@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="pt-BR" translate="no">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Language" content="pt-BR">
+  <meta name="google" content="notranslate">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cadastro de Coleta Seletiva • Hub</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            regen: "#1B7F5A",
+            regenLight: "#4CAF8F",
+            deepBlue: "#0D3B66",
+            energy: "#F2C94C",
+            graphite: "#2E2E2E",
+            grayClean: "#F5F7F6",
+          },
+          boxShadow: { soft: "0 12px 34px rgba(13,59,102,.14)" }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .bg-mesh{
+      background:
+        radial-gradient(900px 500px at 12% 8%, rgba(76,175,143,.25), transparent 55%),
+        radial-gradient(760px 520px at 88% 12%, rgba(242,201,76,.22), transparent 56%),
+        radial-gradient(900px 600px at 70% 88%, rgba(13,59,102,.14), transparent 58%),
+        linear-gradient(135deg, #0D3B66 0%, #1B7F5A 55%, #4CAF8F 100%);
+    }
+    .glass{
+      background: rgba(255,255,255,.78);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,.55);
+    }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"]{ -moz-appearance: textfield; }
+  </style>
+</head>
+
+<body class="min-h-screen bg-mesh text-graphite">
+  <header class="max-w-6xl mx-auto px-4 pt-8 pb-4">
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p class="inline-flex items-center gap-2 text-white/85 text-sm">
+          <span class="h-2 w-2 rounded-full bg-energy"></span>
+          Registro operacional
+        </p>
+        <h1 class="text-white text-2xl sm:text-3xl font-semibold tracking-tight">
+          Cadastro de Coletas Seletivas
+        </h1>
+        <p class="text-white/85 text-sm sm:text-base mt-1">
+          Preencha os campos obrigatórios (*) e anexe fotos quando necessário.
+        </p>
+      </div>
+
+      <div class="flex gap-2">
+        <button id="btnClear" type="button"
+          class="px-4 py-2 rounded-xl bg-white/15 text-white hover:bg-white/20 border border-white/20 transition">
+          Limpar
+        </button>
+        <button id="btnMockSubmit" type="button"
+          class="px-4 py-2 rounded-xl bg-energy text-deepBlue font-semibold hover:brightness-95 transition shadow-soft">
+          Validar
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 pb-10">
+    <form id="formColeta" class="glass rounded-3xl shadow-soft overflow-hidden">
+      <!-- Top bar -->
+      <div class="px-6 py-5 border-b border-black/5 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-center gap-2">
+          <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-deepBlue text-white font-semibold">CS</span>
+          <div>
+            <p class="text-sm text-graphite/70">Formulário</p>
+            <p class="font-semibold">Operação de Coleta Seletiva</p>
+          </div>
+        </div>
+        <div class="text-xs text-graphite/65">
+          Campos obrigatórios: <span class="text-red-600 font-semibold">*</span>
+        </div>
+      </div>
+
+      <div class="p-6 space-y-8">
+        <!-- Avisos -->
+        <div id="alertBox" class="hidden rounded-2xl border border-red-200 bg-red-50 p-4">
+          <p class="font-semibold text-red-700">Atenção</p>
+          <ul id="alertList" class="mt-2 list-disc pl-5 text-sm text-red-700"></ul>
+        </div>
+
+        <!-- 1) Data -->
+        <section class="space-y-3">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h2 class="font-semibold">1. Data da operação <span class="text-red-600">*</span></h2>
+              <p class="text-sm text-graphite/70">Exemplo: 7 de janeiro de 2019</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <label class="block">
+              <span class="text-sm font-medium">Selecione a data</span>
+              <input id="opDate" name="opDate" type="date" required
+                class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-regenLight/50 focus:border-regenLight"/>
+            </label>
+
+            <label class="block">
+              <span class="text-sm font-medium">Data (texto opcional)</span>
+              <input id="opDateText" name="opDateText" type="text" placeholder="Ex: 7 de janeiro de 2019"
+                class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-regenLight/50 focus:border-regenLight"/>
+              <p class="mt-1 text-xs text-graphite/60">Se preferir, mantenha somente a data acima.</p>
+            </label>
+          </div>
+        </section>
+
+        <!-- 2) Tipo de entrega -->
+        <section class="space-y-3">
+          <h2 class="font-semibold">2. Tipo de entrega do resíduo</h2>
+          <p class="text-sm text-graphite/70">Marcar apenas uma opção.</p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <!-- radio cards -->
+            <label class="cursor-pointer">
+              <input type="radio" name="deliveryType" value="Coleta domiciliar pelo triciclo" class="peer sr-only" checked>
+              <div class="rounded-2xl border border-black/10 bg-white p-4 peer-checked:border-regen peer-checked:ring-2 peer-checked:ring-regenLight/40 transition">
+                <p class="font-medium">Coleta domiciliar pelo triciclo</p>
+                <p class="text-xs text-graphite/60 mt-1">Rota porta a porta</p>
+              </div>
+            </label>
+
+            <label class="cursor-pointer">
+              <input type="radio" name="deliveryType" value="Coleta condomínio" class="peer sr-only">
+              <div class="rounded-2xl border border-black/10 bg-white p-4 peer-checked:border-regen peer-checked:ring-2 peer-checked:ring-regenLight/40 transition">
+                <p class="font-medium">Coleta condomínio</p>
+                <p class="text-xs text-graphite/60 mt-1">Pontos concentrados</p>
+              </div>
+            </label>
+
+            <label class="cursor-pointer">
+              <input type="radio" name="deliveryType" value="Entrega voluntária" class="peer sr-only">
+              <div class="rounded-2xl border border-black/10 bg-white p-4 peer-checked:border-regen peer-checked:ring-2 peer-checked:ring-regenLight/40 transition">
+                <p class="font-medium">Entrega voluntária</p>
+                <p class="text-xs text-graphite/60 mt-1">Recebimento no local</p>
+              </div>
+            </label>
+
+            <label class="cursor-pointer">
+              <input type="radio" name="deliveryType" value="Coleta Comércio" class="peer sr-only">
+              <div class="rounded-2xl border border-black/10 bg-white p-4 peer-checked:border-regen peer-checked:ring-2 peer-checked:ring-regenLight/40 transition">
+                <p class="font-medium">Coleta Comércio</p>
+                <p class="text-xs text-graphite/60 mt-1">Estabelecimentos</p>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <!-- 3) Selecionar opção -->
+        <section class="space-y-3">
+          <h2 class="font-semibold">3. Selecionar uma opção <span class="text-red-600">*</span></h2>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <label class="cursor-pointer">
+              <input id="optRecebimento" type="radio" name="flowType" value="recebimento" class="peer sr-only" required>
+              <div class="rounded-2xl border border-black/10 bg-white p-4 peer-checked:border-deepBlue peer-checked:ring-2 peer-checked:ring-deepBlue/20 transition">
+                <p class="font-semibold text-deepBlue">Recebimento de resíduo</p>
+                <p class="text-sm text-graphite/70 mt-1">Pular para a pergunta 4.</p>
+              </div>
+            </label>
+
+            <label class="cursor-pointer">
+              <input id="optFinalTurno" type="radio" name="flowType" value="final_turno" class="peer sr-only" required>
+              <div class="rounded-2xl border border-black/10 bg-white p-4 peer-checked:border-deepBlue peer-checked:ring-2 peer-checked:ring-deepBlue/20 transition">
+                <p class="font-semibold text-deepBlue">Registro de resíduo final do turno</p>
+                <p class="text-sm text-graphite/70 mt-1">Pular para a pergunta 12.</p>
+              </div>
+            </label>
+          </div>
+
+          <p class="text-xs text-graphite/60">
+            A seção não selecionada ficará oculta e seus campos não serão exigidos.
+          </p>
+        </section>
+
+        <!-- RECEBIMENTO DE RESÍDUO (4-11) -->
+        <section id="secRecebimento" class="hidden">
+          <div class="rounded-3xl border border-black/10 bg-white p-5 sm:p-6">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h2 class="text-lg font-semibold text-deepBlue">RECEBIMENTO DE RESÍDUO</h2>
+                <p class="text-sm text-graphite/70">Perguntas 4 a 11</p>
+              </div>
+              <span class="inline-flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-regenLight/15 text-regen border border-regenLight/25">
+                <span class="h-2 w-2 rounded-full bg-regen"></span>
+                Fluxo ativo
+              </span>
+            </div>
+
+            <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <!-- 4 -->
+              <label class="block">
+                <span class="text-sm font-medium">4. Código da Família / Condomínio</span>
+                <input id="codFamilia" name="codFamilia" type="text" placeholder="Ex: FAM-000123"
+                  class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-regenLight/50 focus:border-regenLight"/>
+                <p class="mt-1 text-xs text-graphite/60">Este código será gerado por outra planilha.</p>
+              </label>
+
+              <!-- 5 -->
+              <label class="block">
+                <span class="text-sm font-medium">5. Peso do resíduo seco (kg)</span>
+                <input id="pesoSeco" name="pesoSeco" type="number" step="0.01" min="0" placeholder="0,00"
+                  class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-regenLight/50 focus:border-regenLight"/>
+              </label>
+
+              <!-- 6 -->
+              <div class="block">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium">6. Nota para a qualidade do resíduo</span>
+                  <span id="qualidadeLabel" class="text-xs px-3 py-1 rounded-full bg-grayClean border border-black/10">—</span>
+                </div>
+                <div class="mt-2 rounded-2xl border border-black/10 bg-grayClean p-4">
+                  <div class="flex items-center justify-between text-xs text-graphite/70">
+                    <span>SUJO</span>
+                    <span>LIMPO</span>
+                  </div>
+                  <input id="qualidade" name="qualidade" type="range" min="1" max="3" value="2"
+                    class="mt-2 w-full accent-regen"/>
+                  <div class="mt-2 flex items-center justify-between text-xs text-graphite/70">
+                    <span>1</span><span>2</span><span>3</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 7 -->
+              <label class="block lg:col-span-2">
+                <span class="text-sm font-medium">7. Observação</span>
+                <textarea id="obs" name="obs" rows="3" placeholder="Observações sobre a coleta, qualidade, separação, etc."
+                  class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-regenLight/50 focus:border-regenLight"></textarea>
+              </label>
+
+              <!-- 8 -->
+              <label class="block">
+                <span class="text-sm font-medium">8. Peso do rejeito (kg)</span>
+                <input id="pesoRejeito" name="pesoRejeito" type="number" step="0.01" min="0" value="0"
+                  class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-regenLight/50 focus:border-regenLight"/>
+                <p class="mt-1 text-xs text-graphite/60">Caso não haja rejeito, manter ZERO.</p>
+              </label>
+
+              <!-- 9 -->
+              <label class="block">
+                <span class="text-sm font-medium">9. Peso não comercializado (kg)</span>
+                <input id="pesoNaoComercial" name="pesoNaoComercial" type="number" step="0.01" min="0" value="0"
+                  class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-regenLight/50 focus:border-regenLight"/>
+                <p class="mt-1 text-xs text-graphite/60">Caso não haja, manter ZERO.</p>
+              </label>
+
+              <!-- 10 -->
+              <label class="block lg:col-span-2">
+                <span class="text-sm font-medium">10. Fotos do resíduo</span>
+                <input id="fotosResiduo" name="fotosResiduo" type="file" accept="image/*" multiple
+                  class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 file:mr-3 file:rounded-lg file:border-0 file:bg-deepBlue file:px-3 file:py-2 file:text-white file:font-semibold hover:file:brightness-95"/>
+                <p class="mt-1 text-xs text-graphite/60">Você pode enviar múltiplas imagens.</p>
+              </label>
+
+              <!-- 11 -->
+              <label class="block lg:col-span-2">
+                <span class="text-sm font-medium">11. Fotos do não comercializado e rejeito</span>
+                <input id="fotosNaoComercialRejeito" name="fotosNaoComercialRejeito" type="file" accept="image/*" multiple
+                  class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 file:mr-3 file:rounded-lg file:border-0 file:bg-deepBlue file:px-3 file:py-2 file:text-white file:font-semibold hover:file:brightness-95"/>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <!-- REGISTRO FINAL DO TURNO (12-23) -->
+        <section id="secFinalTurno" class="hidden">
+          <div class="rounded-3xl border border-black/10 bg-white p-5 sm:p-6">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <h2 class="text-lg font-semibold text-deepBlue">REGISTRO DE RESÍDUOS FINAL DO TURNO</h2>
+                <p class="text-sm text-graphite/70">Perguntas 12 a 23</p>
+              </div>
+              <span class="inline-flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-deepBlue/10 text-deepBlue border border-deepBlue/15">
+                <span class="h-2 w-2 rounded-full bg-deepBlue"></span>
+                Fluxo ativo
+              </span>
+            </div>
+
+            <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <!-- 12 -->
+              <label class="block">
+                <span class="text-sm font-medium">12. Código do condomínio (se for registro condomínio)</span>
+                <input id="codCondominio" name="codCondominio" type="text" placeholder="Ex: COND-00045"
+                  class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-deepBlue/20 focus:border-deepBlue"/>
+              </label>
+
+              <!-- 13 -->
+              <label class="block">
+                <span class="text-sm font-medium">13. 2.1 Peso do rejeito geral (kg) <span class="text-red-600">*</span></span>
+                <input id="rejeitoGeral" name="rejeitoGeral" type="number" step="0.01" min="0" placeholder="0,00"
+                  class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-deepBlue/20 focus:border-deepBlue"/>
+              </label>
+
+              <!-- 14-21 -->
+              <div class="lg:col-span-2">
+                <div class="rounded-2xl border border-black/10 bg-grayClean p-4">
+                  <div class="flex items-center justify-between gap-3">
+                    <div>
+                      <p class="font-semibold">Materiais do turno</p>
+                      <p class="text-xs text-graphite/60">Preencha os pesos (kg). Se não houver, deixe em branco ou 0.</p>
+                    </div>
+                  </div>
+
+                  <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <label class="block">
+                      <span class="text-sm font-medium">14. Plástico (kg)</span>
+                      <input name="plastico" type="number" step="0.01" min="0" placeholder="0,00"
+                        class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-deepBlue/20 focus:border-deepBlue"/>
+                    </label>
+
+                    <label class="block">
+                      <span class="text-sm font-medium">15. Papel misto (kg)</span>
+                      <input name="papelMisto" type="number" step="0.01" min="0" placeholder="0,00"
+                        class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-deepBlue/20 focus:border-deepBlue"/>
+                    </label>
+
+                    <label class="block">
+                      <span class="text-sm font-medium">16. Papelão (kg)</span>
+                      <input name="papelao" type="number" step="0.01" min="0" placeholder="0,00"
+                        class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-deepBlue/20 focus:border-deepBlue"/>
+                    </label>
+
+                    <label class="block">
+                      <span class="text-sm font-medium">17. Alumínio/Metal (kg)</span>
+                      <input name="aluminioMetal" type="number" step="0.01" min="0" placeholder="0,00"
+                        class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-deepBlue/20 focus:border-deepBlue"/>
+                    </label>
+
+                    <label class="block">
+                      <span class="text-sm font-medium">18. Vidro (kg)</span>
+                      <input name="vidro" type="number" step="0.01" min="0" placeholder="0,00"
+                        class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-deepBlue/20 focus:border-deepBlue"/>
+                    </label>
+
+                    <label class="block">
+                      <span class="text-sm font-medium">19. Sacaria/Sacolinha (kg)</span>
+                      <input name="sacariaSacolinha" type="number" step="0.01" min="0" placeholder="0,00"
+                        class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-deepBlue/20 focus:border-deepBlue"/>
+                    </label>
+
+                    <label class="block">
+                      <span class="text-sm font-medium">20. Isopor (kg)</span>
+                      <input name="isopor" type="number" step="0.01" min="0" placeholder="0,00"
+                        class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-deepBlue/20 focus:border-deepBlue"/>
+                    </label>
+
+                    <label class="block">
+                      <span class="text-sm font-medium">21. Óleo (kg)</span>
+                      <input name="oleo" type="number" step="0.01" min="0" placeholder="0,00"
+                        class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-deepBlue/20 focus:border-deepBlue"/>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 22 -->
+              <div class="lg:col-span-2">
+                <div class="rounded-2xl border border-black/10 bg-white p-4">
+                  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                      <p class="font-semibold">22. Adicionar mais tipos de materiais</p>
+                      <p class="text-xs text-graphite/60">Informe o nome do material e o peso (kg).</p>
+                    </div>
+                    <button id="btnAddMaterial" type="button"
+                      class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-regen text-white font-semibold hover:brightness-95 transition">
+                      + Adicionar material
+                    </button>
+                  </div>
+
+                  <div id="materialsWrap" class="mt-4 space-y-3"></div>
+
+                  <template id="tplMaterialRow">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end rounded-2xl border border-black/10 bg-grayClean p-3">
+                      <label class="md:col-span-7 block">
+                        <span class="text-sm font-medium">Nome do material</span>
+                        <input type="text" name="extraMaterialName[]" placeholder="Ex: Tetra Pak"
+                          class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-regenLight/40 focus:border-regenLight"/>
+                      </label>
+
+                      <label class="md:col-span-4 block">
+                        <span class="text-sm font-medium">Peso (kg)</span>
+                        <input type="number" name="extraMaterialKg[]" step="0.01" min="0" placeholder="0,00"
+                          class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-regenLight/40 focus:border-regenLight"/>
+                      </label>
+
+                      <button type="button"
+                        class="md:col-span-1 h-12 rounded-xl border border-red-200 bg-red-50 text-red-700 font-semibold hover:bg-red-100 transition"
+                        data-remove-material>
+                        ×
+                      </button>
+                    </div>
+                  </template>
+                </div>
+              </div>
+
+              <!-- 23 -->
+              <label class="block lg:col-span-2">
+                <span class="text-sm font-medium">23. Incluir fotos dos resíduos e rejeitos</span>
+                <input id="fotosTurno" name="fotosTurno" type="file" accept="image/*" multiple
+                  class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 file:mr-3 file:rounded-lg file:border-0 file:bg-deepBlue file:px-3 file:py-2 file:text-white file:font-semibold hover:file:brightness-95"/>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <!-- Ações -->
+        <section class="pt-2">
+          <div class="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+            <div class="text-sm text-graphite/70">
+              <span class="font-semibold text-graphite">Dica:</span> se você selecionar “Recebimento”, o formulário ignora automaticamente o bloco “Final do turno” (e vice-versa).
+            </div>
+
+            <div class="flex gap-2">
+              <button type="button" id="btnPreview"
+                class="px-4 py-3 rounded-xl bg-white border border-black/10 hover:bg-grayClean transition font-semibold">
+                Prévia JSON
+              </button>
+              <button type="submit"
+                class="px-5 py-3 rounded-xl bg-deepBlue text-white font-semibold hover:brightness-95 transition shadow-soft">
+                Salvar registro
+              </button>
+            </div>
+          </div>
+
+          <div id="previewBox" class="hidden mt-4 rounded-2xl border border-black/10 bg-grayClean p-4">
+            <div class="flex items-center justify-between gap-3">
+              <p class="font-semibold">Prévia (JSON)</p>
+              <button id="btnCopy" type="button"
+                class="px-3 py-2 rounded-xl bg-white border border-black/10 hover:bg-white/70 transition text-sm font-semibold">
+                Copiar
+              </button>
+            </div>
+            <pre id="previewJson" class="mt-3 text-xs overflow-auto whitespace-pre-wrap break-words"></pre>
+            <p class="mt-2 text-xs text-graphite/60">
+              Esta prévia é só para conferir. Integre com seu backend/planilha depois.
+            </p>
+          </div>
+        </section>
+      </div>
+
+      <div class="px-6 py-5 border-t border-black/5 bg-white/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <p class="text-xs text-graphite/60">
+          © Hub • Coletas Seletivas — Formulário local (HTML/JS).
+        </p>
+        <p class="text-xs text-graphite/60">
+          Campos com <span class="text-red-600 font-semibold">*</span> são obrigatórios.
+        </p>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    // Helpers
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+    const form = $("#formColeta");
+    const secRecebimento = $("#secRecebimento");
+    const secFinalTurno = $("#secFinalTurno");
+
+    const alertBox = $("#alertBox");
+    const alertList = $("#alertList");
+
+    const qualidade = $("#qualidade");
+    const qualidadeLabel = $("#qualidadeLabel");
+
+    function setQualidadeLabel(val){
+      const map = { "1":"SUJO (1)", "2":"MEDIANO (2)", "3":"LIMPO (3)" };
+      qualidadeLabel.textContent = map[String(val)] || "—";
+    }
+    setQualidadeLabel(qualidade.value);
+    qualidade.addEventListener("input", e => setQualidadeLabel(e.target.value));
+
+    function setFlow(flow){
+      // show/hide sections
+      const isReceb = flow === "recebimento";
+      secRecebimento.classList.toggle("hidden", !isReceb);
+      secFinalTurno.classList.toggle("hidden", isReceb);
+
+      // toggle required fields accordingly
+      // Recebimento: none marked required in your spec besides Q1 and Q3; keep optional.
+      // Final do turno: rejeito geral (Q13) obrigatório (only when this flow is active)
+      const rejeitoGeral = $("#rejeitoGeral");
+      if (rejeitoGeral){
+        rejeitoGeral.required = !isReceb;
+      }
+    }
+
+    $$('input[name="flowType"]').forEach(radio => {
+      radio.addEventListener("change", (e) => setFlow(e.target.value));
+    });
+
+    // Materials add/remove
+    const materialsWrap = $("#materialsWrap");
+    const tpl = $("#tplMaterialRow");
+    $("#btnAddMaterial").addEventListener("click", () => {
+      const node = tpl.content.cloneNode(true);
+      materialsWrap.appendChild(node);
+    });
+
+    materialsWrap.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-remove-material]");
+      if(!btn) return;
+      const row = btn.closest(".grid");
+      if(row) row.remove();
+    });
+
+    // Alerts
+    function showErrors(errors){
+      if(!errors.length){
+        alertBox.classList.add("hidden");
+        alertList.innerHTML = "";
+        return;
+      }
+      alertList.innerHTML = errors.map(x => `<li>${x}</li>`).join("");
+      alertBox.classList.remove("hidden");
+      alertBox.scrollIntoView({behavior:"smooth", block:"start"});
+    }
+
+    // Serialize to JSON (simple)
+    function collectFormData(){
+      const fd = new FormData(form);
+
+      // Convert FormData to object (supports multiple values)
+      const data = {};
+      for (const [k, v] of fd.entries()){
+        if (k.endsWith("[]")){
+          const key = k.slice(0, -2);
+          if(!data[key]) data[key] = [];
+          data[key].push(v);
+        } else if (data[k] !== undefined){
+          if(!Array.isArray(data[k])) data[k] = [data[k]];
+          data[k].push(v);
+        } else {
+          data[k] = v;
+        }
+      }
+
+      // Extra: create a materials array combining name+kg
+      const names = (data.extraMaterialName || []);
+      const kgs = (data.extraMaterialKg || []);
+      const extras = [];
+      const max = Math.max(names.length, kgs.length);
+      for(let i=0;i<max;i++){
+        const name = (names[i] ?? "").toString().trim();
+        const kg = (kgs[i] ?? "").toString().trim();
+        if(name || kg){
+          extras.push({ material: name, kg: kg ? Number(kg) : 0 });
+        }
+      }
+      data.materiaisExtras = extras;
+      delete data.extraMaterialName;
+      delete data.extraMaterialKg;
+
+      // File lists: keep filenames for preview (files still in FormData for submit)
+      const fileKeys = ["fotosResiduo", "fotosNaoComercialRejeito", "fotosTurno"];
+      fileKeys.forEach(key => {
+        const files = fd.getAll(key).filter(Boolean);
+        if(files.length){
+          data[key] = files.map(f => (f && f.name) ? f.name : String(f));
+        } else {
+          data[key] = [];
+        }
+      });
+
+      // Add computed flow sections (for clarity)
+      data.flowType = fd.get("flowType") || "";
+      return data;
+    }
+
+    // Custom validation to enforce required logic + show pretty errors
+    function validate(){
+      const errors = [];
+
+      // Native validity check
+      // 1) Date required
+      const opDate = $("#opDate");
+      if(!opDate.value) errors.push("Informe a data da operação (Pergunta 1).");
+
+      // 3) Flow required
+      const flow = (new FormData(form)).get("flowType");
+      if(!flow) errors.push("Selecione uma opção na Pergunta 3 (Recebimento ou Final do turno).");
+
+      // If final_turno, Q13 required
+      if(flow === "final_turno"){
+        const rejeitoGeral = $("#rejeitoGeral");
+        if(!rejeitoGeral.value && rejeitoGeral.value !== "0"){
+          errors.push("Informe o Peso do rejeito geral (Pergunta 13) no fluxo Final do turno.");
+        }
+      }
+
+      // Numeric guards for common zeros (optional, but helps)
+      const pesoRejeito = $("#pesoRejeito");
+      const pesoNaoComercial = $("#pesoNaoComercial");
+      if(!secRecebimento.classList.contains("hidden")){
+        // If visible, ensure they are not empty (default 0 already)
+        if(pesoRejeito.value === "") pesoRejeito.value = "0";
+        if(pesoNaoComercial.value === "") pesoNaoComercial.value = "0";
+      }
+
+      showErrors(errors);
+      return errors.length === 0;
+    }
+
+    // Preview JSON
+    $("#btnPreview").addEventListener("click", () => {
+      if(!validate()) return;
+      const data = collectFormData();
+      $("#previewJson").textContent = JSON.stringify(data, null, 2);
+      $("#previewBox").classList.remove("hidden");
+      $("#previewBox").scrollIntoView({behavior:"smooth", block:"start"});
+    });
+
+    $("#btnCopy").addEventListener("click", async () => {
+      try{
+        await navigator.clipboard.writeText($("#previewJson").textContent || "");
+        $("#btnCopy").textContent = "Copiado!";
+        setTimeout(() => $("#btnCopy").textContent = "Copiar", 1200);
+      }catch(err){
+        alert("Não foi possível copiar automaticamente. Selecione e copie manualmente.");
+      }
+    });
+
+    // Validate button (top)
+    $("#btnMockSubmit").addEventListener("click", () => {
+      validate();
+    });
+
+    // Clear button
+    $("#btnClear").addEventListener("click", () => {
+      form.reset();
+      materialsWrap.innerHTML = "";
+      $("#previewBox").classList.add("hidden");
+      showErrors([]);
+      secRecebimento.classList.add("hidden");
+      secFinalTurno.classList.add("hidden");
+      setQualidadeLabel($("#qualidade").value);
+      window.scrollTo({top: 0, behavior: "smooth"});
+    });
+
+    // Submit (placeholder)
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if(!validate()) return;
+
+      const data = collectFormData();
+
+      // ✅ Aqui você integra com backend/planilha:
+      // - fetch("/api/coletas", { method:"POST", body: new FormData(form) })
+      // Por enquanto, apenas mostra a prévia:
+      $("#previewJson").textContent = JSON.stringify(data, null, 2);
+      $("#previewBox").classList.remove("hidden");
+      $("#previewBox").scrollIntoView({behavior:"smooth", block:"start"});
+
+      // Feedback rápido
+      const btn = form.querySelector('button[type="submit"]');
+      const old = btn.textContent;
+      btn.textContent = "Salvo (prévia)";
+      btn.disabled = true;
+      setTimeout(() => { btn.textContent = old; btn.disabled = false; }, 1300);
+    });
+  </script>
+</body>
+</html>
