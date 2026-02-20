@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="pt-BR" translate="no">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Language" content="pt-BR">
+  <meta name="google" content="notranslate">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Recicla Bonja • Cadastro de Participantes</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            regen: "#1B7F5A",
+            regenLight: "#4CAF8F",
+            deepBlue: "#0D3B66",
+            energy: "#F2C94C",
+            graphite: "#2E2E2E",
+            grayClean: "#F5F7F6",
+          },
+          boxShadow: { soft: "0 14px 40px rgba(13,59,102,.14)" }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .bg-mesh{
+      background:
+        radial-gradient(900px 500px at 12% 10%, rgba(76,175,143,.25), transparent 55%),
+        radial-gradient(780px 520px at 88% 12%, rgba(242,201,76,.22), transparent 56%),
+        radial-gradient(900px 600px at 70% 88%, rgba(13,59,102,.14), transparent 58%),
+        linear-gradient(135deg, #0D3B66 0%, #1B7F5A 55%, #4CAF8F 100%);
+    }
+    .glass{
+      background: rgba(255,255,255,.86);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,.55);
+    }
+    .focus-ring:focus{
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(27,127,90,.16);
+      border-color: rgba(27,127,90,.45);
+    }
+    .req::after{ content:" *"; color:#dc2626; font-weight:700; }
+  </style>
+</head>
+
+<body class="min-h-screen bg-mesh text-graphite">
+  <!-- TOP -->
+  <header class="max-w-5xl mx-auto px-4 pt-8 pb-4">
+    <div class="flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="h-12 w-12 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center text-white font-extrabold">
+          RB
+        </div>
+        <div class="leading-tight">
+          <div class="text-white/85 text-xs">vila do futuro</div>
+          <div class="text-white text-xl font-extrabold tracking-tight">RECICLA BONJA</div>
+          <div class="text-white/75 text-xs">Cadastro de Participantes</div>
+        </div>
+      </div>
+
+      <a href="index.html" class="text-white/90 text-sm font-semibold hover:underline">Voltar ao menu</a>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 pb-10">
+    <section class="glass rounded-3xl shadow-soft overflow-hidden">
+      <!-- intro -->
+      <div class="p-6 sm:p-8 border-b border-black/5 bg-white/60">
+        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-deepBlue">
+          Cadastro de Participantes
+        </h1>
+        <p class="mt-2 text-graphite/70">
+          Preencha seus dados para participar do projeto. Campos marcados com <b class="text-red-600">*</b> são obrigatórios.
+        </p>
+      </div>
+
+      <form id="form" class="p-6 sm:p-8 space-y-8">
+        <!-- consent -->
+        <div class="rounded-2xl bg-white border border-black/10 p-5">
+          <div class="flex items-start gap-3">
+            <div class="mt-1 h-10 w-10 rounded-2xl bg-regen/10 border border-regen/15 flex items-center justify-center">
+              ✅
+            </div>
+            <div>
+              <h2 class="text-lg font-extrabold text-deepBlue">DADOS PESSOAIS • Termo de ciência e autorização</h2>
+              <p class="mt-1 text-sm text-graphite/70">
+                Declaro estar ciente e autorizo:
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-4 space-y-3 text-sm text-graphite/80">
+            <label class="flex gap-3">
+              <input id="consentDados" type="checkbox" class="mt-1" required>
+              <span>
+                <b>1.</b> O uso dos meus dados pessoais para fins exclusivos de organização e gestão do projeto, em conformidade com a <b>LGPD</b>.
+              </span>
+            </label>
+
+            <label class="flex gap-3">
+              <input id="consentWhats" type="checkbox" class="mt-1" required>
+              <span>
+                <b>2.</b> O envio de comunicações via <b>WhatsApp</b>, incluindo avisos sobre coletas e demais atividades relacionadas ao projeto.
+              </span>
+            </label>
+
+            <label class="flex gap-3">
+              <input id="consentImagem" type="checkbox" class="mt-1" required>
+              <span>
+                <b>3.</b> A utilização da minha <b>imagem</b> para fins de divulgação e promoção das ações do projeto, em mídias impressas, digitais ou outros meios.
+              </span>
+            </label>
+
+            <div class="mt-2 text-xs text-graphite/60">
+              Ao enviar o formulário, você confirma que leu e concorda com as autorizações acima.
+            </div>
+          </div>
+        </div>
+
+        <!-- fields -->
+        <div class="grid lg:grid-cols-2 gap-6">
+          <!-- 1 -->
+          <div class="lg:col-span-2">
+            <label class="text-sm font-semibold req">1) Nome completo</label>
+            <input id="nome" name="nome" required
+              class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white"
+              placeholder="Digite seu nome completo" />
+          </div>
+
+          <!-- 2 -->
+          <div>
+            <label class="text-sm font-semibold req">
+              2) Você já destina o seu resíduo reciclável para algum local ou catador?
+            </label>
+            <div class="mt-2 flex gap-3">
+              <label class="flex items-center gap-2 px-4 py-3 rounded-xl border border-black/10 bg-white cursor-pointer">
+                <input type="radio" name="destina" value="Sim" required>
+                <span class="text-sm font-semibold">Sim</span>
+              </label>
+              <label class="flex items-center gap-2 px-4 py-3 rounded-xl border border-black/10 bg-white cursor-pointer">
+                <input type="radio" name="destina" value="Não" required>
+                <span class="text-sm font-semibold">Não</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 3 -->
+          <div>
+            <label class="text-sm font-semibold req">
+              3) Você tem interesse em participar do projeto, tendo o resíduo coletado na sua residência/local de trabalho?
+            </label>
+            <div class="mt-2 flex gap-3">
+              <label class="flex items-center gap-2 px-4 py-3 rounded-xl border border-black/10 bg-white cursor-pointer">
+                <input type="radio" name="interesse" value="Sim" required>
+                <span class="text-sm font-semibold">Sim</span>
+              </label>
+              <label class="flex items-center gap-2 px-4 py-3 rounded-xl border border-black/10 bg-white cursor-pointer">
+                <input type="radio" name="interesse" value="Não" required>
+                <span class="text-sm font-semibold">Não</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 4 -->
+          <div class="lg:col-span-2">
+            <label class="text-sm font-semibold req">
+              4) Se você encontra dificuldades para separar/armazenar seus resíduos recicláveis (secos), conte quais são as limitações
+            </label>
+            <textarea id="dificuldades" name="dificuldades" required rows="4"
+              class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white"
+              placeholder="Ex.: falta de espaço, falta de sacaria, horários, dúvidas sobre separação, etc."></textarea>
+          </div>
+
+          <!-- 5 -->
+          <div>
+            <label class="text-sm font-semibold req">5) Telefone / WhatsApp com DDD</label>
+            <input id="telefone" name="telefone" required inputmode="tel"
+              class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white"
+              placeholder="(51) 99999-9999" />
+            <div class="text-xs text-graphite/60 mt-1">Dica: informe somente números, se preferir.</div>
+          </div>
+
+          <!-- 6 -->
+          <div>
+            <label class="text-sm font-semibold req">6) Local para coleta do resíduo</label>
+            <select id="localColeta" name="localColeta" required
+              class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white">
+              <option value="">Selecione</option>
+              <option>Casa</option>
+              <option>Condomínio</option>
+              <option>Comércio</option>
+              <option>Outro</option>
+            </select>
+
+            <div id="outroWrap" class="mt-3 hidden">
+              <label class="text-sm font-semibold">Se “Outro”, qual?</label>
+              <input id="localOutro" name="localOutro"
+                class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white"
+                placeholder="Ex.: escola, associação, igreja..." />
+            </div>
+          </div>
+
+          <!-- 7 -->
+          <div class="lg:col-span-2">
+            <label class="text-sm font-semibold req">7) Endereço completo (rua, número, bairro, cidade, CEP)</label>
+            <input id="endereco" name="endereco" required
+              class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white"
+              placeholder="Ex.: Rua X, 123 • Bairro • Cidade/UF • CEP 00000-000" />
+          </div>
+
+          <!-- 8 -->
+          <div class="lg:col-span-2">
+            <label class="text-sm font-semibold req">8) Ponto de referência</label>
+            <input id="referencia" name="referencia" required
+              class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white"
+              placeholder="Ex.: perto do mercado, ao lado da escola, em frente à praça..." />
+          </div>
+        </div>
+
+        <!-- actions -->
+        <div class="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+          <div class="text-xs text-graphite/60">
+            Ao enviar, nosso time avaliará se o endereço está dentro da área de abrangência e entrará em contato.
+          </div>
+
+          <div class="flex gap-3">
+            <button type="button" id="btnPreview"
+              class="px-5 py-3 rounded-xl bg-white border border-black/10 text-graphite font-semibold hover:bg-black/5 transition">
+              Prévia
+            </button>
+            <button type="submit" id="btnSubmit"
+              class="px-6 py-3 rounded-xl bg-regen text-white font-extrabold hover:brightness-95 transition shadow-soft">
+              Enviar cadastro
+            </button>
+          </div>
+        </div>
+
+        <!-- preview / result -->
+        <div id="alert" class="hidden rounded-2xl border p-4 text-sm"></div>
+        <pre id="preview" class="hidden rounded-2xl bg-black text-white/90 p-4 text-xs overflow-auto"></pre>
+      </form>
+    </section>
+
+    <!-- Thanks -->
+    <section class="max-w-5xl mx-auto mt-6 px-0">
+      <div class="glass rounded-3xl shadow-soft p-6 sm:p-8">
+        <h3 class="text-xl font-extrabold text-deepBlue">Agradecemos por se cadastrar no projeto! 💚♻️</h3>
+        <p class="mt-2 text-sm text-graphite/70">
+          Nosso time irá analisar as informações enviadas e entrar em contato para verificar se o endereço informado está
+          dentro da área de abrangência da coleta. Em breve, você receberá mais informações sobre os próximos passos.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // ===========================
+    // Helpers
+    // ===========================
+    const $ = (id) => document.getElementById(id);
+    const form = $("form");
+    const alertBox = $("alert");
+    const preview = $("preview");
+
+    function showAlert(type, text) {
+      alertBox.classList.remove("hidden");
+      alertBox.textContent = text;
+
+      alertBox.className = "rounded-2xl border p-4 text-sm";
+      if (type === "ok") alertBox.classList.add("bg-regen/10","border-regen/20","text-regen");
+      if (type === "err") alertBox.classList.add("bg-red-50","border-red-200","text-red-700");
+      if (type === "info") alertBox.classList.add("bg-blue-50","border-blue-200","text-blue-700");
+    }
+
+    function cleanPhone(v){
+      return (v || "").replace(/[^\d]/g, "");
+    }
+
+    function getRadio(name){
+      const el = document.querySelector(`input[name="${name}"]:checked`);
+      return el ? el.value : "";
+    }
+
+    function buildPayload(){
+      const payload = {
+        type: "participant_registration",
+        createdAtISO: new Date().toISOString(),
+
+        consent: {
+          dados: $("consentDados").checked,
+          whatsapp: $("consentWhats").checked,
+          imagem: $("consentImagem").checked,
+        },
+
+        nomeCompleto: $("nome").value.trim(),
+        jaDestinaReciclavel: getRadio("destina"),
+        temInteresseProjeto: getRadio("interesse"),
+        dificuldades: $("dificuldades").value.trim(),
+        whatsappDDD: cleanPhone($("telefone").value),
+        localColeta: $("localColeta").value,
+        localColetaOutro: $("localOutro").value.trim() || null,
+        enderecoCompleto: $("endereco").value.trim(),
+        pontoReferencia: $("referencia").value.trim(),
+      };
+
+      return payload;
+    }
+
+    function validate(payload){
+      const problems = [];
+
+      if(!payload.consent.dados) problems.push("Aceite o uso de dados (LGPD).");
+      if(!payload.consent.whatsapp) problems.push("Aceite o envio de comunicações via WhatsApp.");
+      if(!payload.consent.imagem) problems.push("Aceite o uso de imagem para divulgação.");
+
+      if(!payload.nomeCompleto) problems.push("Informe o nome completo.");
+      if(!payload.jaDestinaReciclavel) problems.push("Responda a pergunta 2.");
+      if(!payload.temInteresseProjeto) problems.push("Responda a pergunta 3.");
+      if(!payload.dificuldades) problems.push("Descreva as limitações na pergunta 4.");
+
+      if(!payload.whatsappDDD || payload.whatsappDDD.length < 10) problems.push("Informe um telefone/WhatsApp válido com DDD.");
+      if(!payload.localColeta) problems.push("Selecione o local para coleta (pergunta 6).");
+      if(payload.localColeta === "Outro" && (!payload.localColetaOutro || payload.localColetaOutro.length < 2)) {
+        problems.push("Descreva qual é o local (pergunta 6 - Outro).");
+      }
+
+      if(!payload.enderecoCompleto) problems.push("Informe o endereço completo.");
+      if(!payload.pontoReferencia) problems.push("Informe o ponto de referência.");
+
+      return problems;
+    }
+
+    // ===========================
+    // UI logic
+    // ===========================
+    $("localColeta").addEventListener("change", (e) => {
+      const v = e.target.value;
+      $("outroWrap").classList.toggle("hidden", v !== "Outro");
+    });
+
+    $("btnPreview").addEventListener("click", () => {
+      alertBox.classList.add("hidden");
+      const payload = buildPayload();
+      const probs = validate(payload);
+
+      if(probs.length){
+        preview.classList.add("hidden");
+        showAlert("err", "Corrija antes de enviar:\n- " + probs.join("\n- "));
+        return;
+      }
+
+      preview.classList.remove("hidden");
+      preview.textContent = JSON.stringify(payload, null, 2);
+      showAlert("info", "Prévia gerada. Se estiver tudo certo, clique em “Enviar cadastro”.");
+    });
+
+    // ===========================
+    // Submit (mock)
+    // Trocar depois por Firebase (Firestore) se quiser
+    // ===========================
+    $("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      preview.classList.add("hidden");
+      alertBox.classList.add("hidden");
+
+      const payload = buildPayload();
+      const probs = validate(payload);
+
+      if(probs.length){
+        showAlert("err", "Corrija antes de enviar:\n- " + probs.join("\n- "));
+        return;
+      }
+
+      // TODO: integrar com Firestore:
+      // await addDoc(collection(db,"participants"), payload)
+
+      // Simula envio
+      $("btnSubmit").disabled = true;
+      $("btnSubmit").textContent = "Enviando…";
+
+      setTimeout(() => {
+        $("btnSubmit").disabled = false;
+        $("btnSubmit").textContent = "Enviar cadastro";
+
+        showAlert("ok", "Cadastro enviado com sucesso! Em breve entraremos em contato via WhatsApp.");
+        $("form").reset();
+        $("outroWrap").classList.add("hidden");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }, 600);
+    });
+  </script>
+</body>
+</html>
