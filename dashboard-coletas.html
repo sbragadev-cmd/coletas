@@ -5,17 +5,10 @@
   <meta http-equiv="Content-Language" content="pt-BR">
   <meta name="google" content="notranslate">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dashboard • Coletas Seletivas</title>
+  <title>Recicla Bonja • Dashboard Coletas</title>
 
-  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- Leaflet (Mapa) -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
     tailwind.config = {
@@ -30,8 +23,8 @@
             grayClean: "#F5F7F6",
           },
           boxShadow: {
-            soft: "0 14px 40px rgba(46,46,46,.10)",
-            card: "0 10px 26px rgba(13,59,102,.10)"
+            soft: "0 14px 40px rgba(13,59,102,.14)",
+            card: "0 10px 26px rgba(46,46,46,.10)"
           }
         }
       }
@@ -39,554 +32,454 @@
   </script>
 
   <style>
-    .panel { background: #fff; border: 1px solid rgba(0,0,0,.06); box-shadow: 0 10px 26px rgba(13,59,102,.06); }
-    .pill { background: #2ea86d; } /* verde botão do print */
-    .pill:hover{ filter: brightness(.97); }
-    .dash-grid { grid-template-columns: 320px 1fr; }
-    .dashed { border: 2px dashed rgba(0,0,0,.12); }
-
-    /* bolhas de material */
-    .bubble {
-      background: #edf6ef;
-      border: 1px solid rgba(27,127,90,.12);
-      box-shadow: 0 10px 18px rgba(27,127,90,.06);
+    .bg-mesh{
+      background:
+        radial-gradient(900px 500px at 12% 10%, rgba(76,175,143,.25), transparent 55%),
+        radial-gradient(780px 520px at 88% 12%, rgba(242,201,76,.22), transparent 56%),
+        radial-gradient(900px 600px at 70% 88%, rgba(13,59,102,.14), transparent 58%),
+        linear-gradient(135deg, #0D3B66 0%, #1B7F5A 55%, #4CAF8F 100%);
     }
-
-    /* mini legenda do gráfico inferior */
-    .legend-dot { width: 18px; height: 10px; border-radius: 3px; }
-    .leaflet-container { border-radius: 14px; }
-
-    /* bem parecido com o print: bordas “suaves” e linhas pontilhadas de separação */
-    .soft-divider { border-top: 1px dashed rgba(0,0,0,.10); }
+    .glass{
+      background: rgba(255,255,255,.86);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,.55);
+    }
+    .panel { background:#fff; border:1px solid rgba(0,0,0,.06); box-shadow:0 10px 26px rgba(0,0,0,.06); }
+    .dashed { border:1px dashed rgba(0,0,0,.18); }
+    .focus-ring:focus{
+      outline:none;
+      box-shadow: 0 0 0 4px rgba(27,127,90,.14);
+      border-color: rgba(27,127,90,.45);
+    }
   </style>
 </head>
 
-<body class="bg-grayClean text-graphite">
-  <!-- TOP BAR -->
-  <header class="bg-white border-b border-black/5">
-    <div class="max-w-[1400px] mx-auto px-4 py-3 flex items-center gap-3">
-      <!-- Brand -->
-      <div class="flex items-center gap-3 min-w-[260px]">
-        <div class="h-10 w-10 rounded-xl bg-regen/10 flex items-center justify-center border border-regen/15">
-          <span class="text-regen font-extrabold">RB</span>
-        </div>
+<body class="min-h-screen bg-mesh text-graphite">
+  <!-- TOP -->
+  <header class="max-w-[1200px] mx-auto px-4 pt-8 pb-4">
+    <div class="flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="h-12 w-12 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center text-white font-extrabold">RB</div>
         <div class="leading-tight">
-          <div class="text-xs text-graphite/70">vila do futuro</div>
-          <div class="font-extrabold tracking-tight">RECICLA BONJA</div>
-          <div class="text-[11px] text-graphite/55">Sustentabilidade na Quebrada</div>
+          <div class="text-white/85 text-xs">vila do futuro</div>
+          <div class="text-white text-xl font-extrabold tracking-tight">RECICLA BONJA</div>
+          <div class="text-white/75 text-xs">Dashboard • Coletas</div>
         </div>
       </div>
-
-      <!-- Pills (Filtros) -->
-      <div class="flex-1 flex items-center justify-center gap-3 flex-wrap">
-        <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
-          DATA <span class="text-white/90">▾</span>
-        </button>
-        <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
-          MÊS <span class="text-white/90">▾</span>
-        </button>
-        <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
-          CICLO <span class="text-white/90">▾</span>
-        </button>
-        <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
-          TIPO DE COLETA <span class="text-white/90">▾</span>
-        </button>
-        <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
-          CÓDIGO <span class="text-white/90">▾</span>
-        </button>
-      </div>
-
-      <!-- Right empty slot -->
-      <div class="min-w-[260px] flex justify-end">
-        <span class="text-xs text-graphite/55">Dashboard • Coletas</span>
+      <div class="flex items-center gap-3">
+        <a href="cadastro-coleta.html"
+          class="px-4 py-2 rounded-xl bg-white/15 text-white border border-white/20 hover:bg-white/20 transition text-sm font-semibold">
+          + Nova coleta
+        </a>
+        <a href="index.html" class="text-white/90 text-sm font-semibold hover:underline">Menu</a>
       </div>
     </div>
   </header>
 
-  <!-- MAIN -->
-  <main class="max-w-[1400px] mx-auto px-4 py-4">
-    <div class="grid dash-grid gap-4">
-      <!-- LEFT SIDEBAR -->
-      <aside class="space-y-4">
-        <!-- KPIs -->
-        <div class="panel rounded-2xl overflow-hidden">
-          <div class="grid grid-cols-2">
-            <div class="p-4 bg-regen/15 border-r border-black/5">
-              <div class="text-3xl font-extrabold text-graphite" id="kpiDias">171</div>
-              <div class="text-xs text-graphite/70">total de dias do projeto</div>
-              <div class="text-[11px] text-graphite/60">Início: <span class="font-semibold">02 de setembro</span></div>
-            </div>
-            <div class="p-4 bg-regen/10">
-              <div class="text-3xl font-extrabold text-graphite" id="kpiOps">51</div>
-              <div class="text-xs text-graphite/70">operações realizadas</div>
-            </div>
+  <main class="max-w-[1200px] mx-auto px-4 pb-10">
+    <section class="glass rounded-3xl shadow-soft overflow-hidden">
+      <!-- Header -->
+      <div class="p-6 sm:p-8 border-b border-black/5 bg-white/60">
+        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+          <div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-deepBlue">Dashboard de Coletas</h1>
+            <p class="mt-2 text-graphite/70">
+              Dados carregados direto do Firestore (<b>coletasSeletivas</b>). Atualiza automaticamente conforme novos registros entram.
+            </p>
+          </div>
+
+          <div class="text-xs text-graphite/60">
+            Status: <span id="status" class="font-bold">conectando…</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="p-6 sm:p-8 bg-white/60 border-b border-black/5">
+        <div class="grid lg:grid-cols-12 gap-3">
+          <div class="lg:col-span-3">
+            <label class="text-xs font-extrabold">Data inicial</label>
+            <input id="fStart" type="date" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white"/>
+          </div>
+
+          <div class="lg:col-span-3">
+            <label class="text-xs font-extrabold">Data final</label>
+            <input id="fEnd" type="date" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white"/>
+          </div>
+
+          <div class="lg:col-span-3">
+            <label class="text-xs font-extrabold">Tipo de entrega</label>
+            <select id="fDelivery" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white">
+              <option value="all">Todos</option>
+            </select>
+          </div>
+
+          <div class="lg:col-span-3">
+            <label class="text-xs font-extrabold">Fluxo</label>
+            <select id="fFlow" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white">
+              <option value="all">Todos</option>
+              <option value="recebimento">Recebimento</option>
+              <option value="final_turno">Final do turno</option>
+            </select>
+          </div>
+
+          <div class="lg:col-span-9">
+            <label class="text-xs font-extrabold">Buscar por ID vinculado</label>
+            <input id="fLinkedId" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white"
+              placeholder="Ex.: RB-000123 ou COND-000045 (opcional)"/>
+          </div>
+
+          <div class="lg:col-span-3 flex items-end gap-2">
+            <button id="btnApply" class="w-full px-4 py-3 rounded-xl bg-deepBlue text-white font-extrabold hover:brightness-95 transition shadow-soft">
+              Aplicar
+            </button>
+            <button id="btnReset" class="px-4 py-3 rounded-xl bg-white border border-black/10 font-extrabold hover:bg-black/5 transition">
+              Limpar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="p-6 sm:p-8 bg-white">
+        <div class="grid md:grid-cols-4 gap-4">
+          <div class="panel dashed rounded-2xl p-4">
+            <div class="text-xs text-graphite/60 font-bold">Total de coletas</div>
+            <div id="kTotal" class="text-3xl font-extrabold text-deepBlue">0</div>
+          </div>
+
+          <div class="panel dashed rounded-2xl p-4">
+            <div class="text-xs text-graphite/60 font-bold">Total resíduo seco (kg)</div>
+            <div id="kSeco" class="text-3xl font-extrabold text-regen">0</div>
+          </div>
+
+          <div class="panel dashed rounded-2xl p-4">
+            <div class="text-xs text-graphite/60 font-bold">Total rejeito (kg)</div>
+            <div id="kRejeito" class="text-3xl font-extrabold text-red-700">0</div>
+          </div>
+
+          <div class="panel dashed rounded-2xl p-4">
+            <div class="text-xs text-graphite/60 font-bold">Total não comercializado (kg)</div>
+            <div id="kNaoCom" class="text-3xl font-extrabold text-graphite">0</div>
           </div>
         </div>
 
-        <!-- Families / Condo -->
-        <div class="panel rounded-2xl p-4">
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <div class="font-extrabold text-center">FAMÍLIAS</div>
-              <div class="mt-3 space-y-2 text-sm">
-                <div class="flex items-center justify-between">
-                  <span class="text-graphite/70">cadastradas</span>
-                  <span class="font-bold" id="famCadastradas">206</span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-graphite/70">participantes</span>
-                  <span class="font-bold" id="famParticipantes">122</span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-graphite/70">coletas realizadas</span>
-                  <span class="font-bold" id="famColetas">1019</span>
-                </div>
+        <!-- Charts -->
+        <div class="mt-6 grid lg:grid-cols-2 gap-4">
+          <div class="panel dashed rounded-2xl p-4">
+            <div class="flex items-end justify-between gap-3">
+              <div>
+                <div class="text-sm font-extrabold text-deepBlue">Coletas por dia</div>
+                <div class="text-xs text-graphite/60">Quantidade de registros por data (opDate)</div>
               </div>
+              <div class="text-xs text-graphite/60" id="rangeLabel">—</div>
             </div>
+            <canvas id="chartDaily" height="180" class="mt-2"></canvas>
+          </div>
 
-            <div class="border-l border-black/10 pl-3">
-              <div class="font-extrabold text-center">CONDOMÍNIO</div>
-              <div class="mt-3 space-y-2 text-sm">
-                <div class="flex items-center justify-between">
-                  <span class="text-graphite/70">cadastrados</span>
-                  <span class="font-bold" id="condCadastrados">2</span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-graphite/70">participantes</span>
-                  <span class="font-bold" id="condParticipantes">2</span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-graphite/70">coletas realizadas</span>
-                  <span class="font-bold" id="condColetas">57</span>
-                </div>
-              </div>
-            </div>
+          <div class="panel dashed rounded-2xl p-4">
+            <div class="text-sm font-extrabold text-deepBlue">Distribuição por tipo de entrega</div>
+            <div class="text-xs text-graphite/60">Quantidade por deliveryType</div>
+            <canvas id="chartDelivery" height="180" class="mt-2"></canvas>
           </div>
         </div>
 
-        <!-- Map -->
-        <div class="panel rounded-2xl p-4">
-          <div class="font-extrabold text-center text-lg">LOCALIZAÇÃO</div>
-          <div class="mt-3">
-            <div id="map" class="w-full h-[360px]"></div>
+        <div class="mt-4 panel dashed rounded-2xl p-4">
+          <div class="text-sm font-extrabold text-deepBlue">Últimas coletas</div>
+          <div class="text-xs text-graphite/60">Tabela (mais recentes primeiro)</div>
+
+          <div class="mt-3 overflow-x-auto">
+            <table class="w-full text-xs border border-black/10 rounded-xl overflow-hidden">
+              <thead class="bg-black/5">
+                <tr>
+                  <th class="p-2 text-left">Data</th>
+                  <th class="p-2 text-left">Tipo entrega</th>
+                  <th class="p-2 text-left">Fluxo</th>
+                  <th class="p-2 text-left">ID vinculado</th>
+                  <th class="p-2 text-right">Seco (kg)</th>
+                  <th class="p-2 text-right">Rejeito (kg)</th>
+                  <th class="p-2 text-right">Não com. (kg)</th>
+                </tr>
+              </thead>
+              <tbody id="tbl"></tbody>
+            </table>
+          </div>
+
+          <div class="mt-3 text-[11px] text-graphite/60 text-right">
+            Dica: quer detalhar por material? Eu adiciono um gráfico de materiais do “final do turno” (plástico, papelão, vidro…).
           </div>
         </div>
 
-        <!-- Quality donut (like print bottom-left) -->
-        <div class="panel rounded-2xl p-4">
-          <div class="font-extrabold text-center text-lg">QUALIDADE DO RESÍDUO</div>
-          <div class="mt-4">
-            <canvas id="chartQualidade" height="220"></canvas>
-            <div class="mt-3 flex items-center justify-center gap-5 text-xs">
-              <div class="flex items-center gap-2">
-                <span class="legend-dot" style="background:#1B7F5A"></span> LIMPO
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="legend-dot" style="background:#F2C94C"></span> MÉDIO
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="legend-dot" style="background:#EF4444"></span> RUIM
-              </div>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      <!-- RIGHT CONTENT -->
-      <section class="space-y-4">
-        <!-- Summary row -->
-        <div class="panel rounded-2xl p-4">
-          <div class="grid grid-cols-12 gap-4 items-stretch">
-            <div class="col-span-12 md:col-span-2 flex items-center justify-center font-extrabold text-lg">
-              GERAL
-            </div>
-
-            <div class="col-span-12 md:col-span-7 border-l border-black/10 pl-4">
-              <div class="flex items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                  <div class="h-12 w-12 rounded-2xl bg-regen/10 border border-regen/15 flex items-center justify-center">
-                    ♻️
-                  </div>
-                  <div>
-                    <div class="text-xl font-extrabold">
-                      <span id="sumRecKg">6.843,5</span> kg <span class="ml-2">RECICLÁVEL</span>
-                    </div>
-                    <div class="text-sm text-graphite/70">
-                      <span class="text-regen font-extrabold" id="sumRecPct">87,5%</span> do total
-                    </div>
-                    <div class="text-sm text-graphite/70">
-                      Receita total = <span class="font-extrabold">R$</span> <span class="font-extrabold" id="sumReceita">5.284,2</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="hidden md:block w-px bg-black/10"></div>
-
-                <div class="flex items-center gap-3">
-                  <div class="h-12 w-12 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center">
-                    🗑️
-                  </div>
-                  <div class="text-right">
-                    <div class="text-xl font-extrabold">
-                      <span id="sumRejKg">981,6</span> kg <span class="ml-2 text-red-600">REJEITO</span>
-                    </div>
-                    <div class="text-sm text-graphite/70">
-                      <span class="text-red-600 font-extrabold" id="sumRejPct">12,5%</span> do total
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-span-12 md:col-span-3">
-              <div class="rounded-2xl bg-grayClean border border-black/10 p-4 h-full">
-                <div class="text-xs font-extrabold text-graphite/70">RESUMO</div>
-                <div class="mt-2 space-y-2 text-sm">
-                  <div class="flex items-center justify-between">
-                    <span class="text-graphite/70">Total (kg)</span>
-                    <span class="font-extrabold" id="sumTotalKg">7.825,1</span>
-                  </div>
-                  <div class="flex items-center justify-between">
-                    <span class="text-graphite/70">Operações</span>
-                    <span class="font-extrabold" id="sumOps">51</span>
-                  </div>
-                  <div class="flex items-center justify-between">
-                    <span class="text-graphite/70">Dias (no filtro)</span>
-                    <span class="font-extrabold" id="sumDiasFiltro">36</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Middle: bubbles + right reject breakdown -->
-        <div class="grid grid-cols-12 gap-4">
-          <!-- Bubbles materials -->
-          <div class="col-span-12 lg:col-span-8 panel rounded-2xl p-4">
-            <div class="text-center font-extrabold text-lg">TIPO DE MATERIAL RECICLÁVEL</div>
-            <div class="text-center text-xs text-graphite/60 mt-1">(% sobre o total de recicláveis)</div>
-
-            <div id="bubblesGrid" class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
-              <!-- JS preenche bolhas -->
-            </div>
-          </div>
-
-          <!-- Right reject types -->
-          <div class="col-span-12 lg:col-span-4 space-y-4">
-            <div class="panel rounded-2xl p-4">
-              <div class="text-center font-extrabold text-lg">TIPO DE REJEITO</div>
-              <div class="text-center text-xs text-graphite/60 mt-1">(% sobre o total do rejeito)</div>
-
-              <div class="mt-4 space-y-4">
-                <div class="rounded-2xl bg-red-50 border border-red-100 p-4 text-center">
-                  <div class="flex items-center justify-center gap-2 text-3xl">🐀</div>
-                  <div class="text-3xl font-extrabold text-red-600" id="rejNaoRecPct">56,8%</div>
-                  <div class="text-sm font-extrabold">NÃO RECICLÁVEL</div>
-                  <div class="text-sm text-graphite/70"><span id="rejNaoRecKg">557,7</span> kg</div>
-                </div>
-
-                <div class="rounded-2xl bg-white border border-black/10 p-4 text-center">
-                  <div class="flex items-center justify-center gap-2 text-3xl">🚫💰</div>
-                  <div class="text-3xl font-extrabold text-red-600" id="rejNaoComPct">43,2%</div>
-                  <div class="text-sm font-extrabold">NÃO COMERCIALIZADO</div>
-                  <div class="text-sm text-graphite/70"><span id="rejNaoComKg">423,9</span> kg</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="panel rounded-2xl p-4 dashed">
-              <div class="text-center font-extrabold">OUTRO</div>
-              <div class="mt-3 flex items-center justify-center text-5xl">🧴</div>
-              <div class="mt-2 text-center">
-                <div class="text-3xl font-extrabold" id="outroKg">19,5</div>
-                <div class="text-xs text-graphite/70">kg</div>
-                <div class="mt-2 text-sm font-extrabold">ÓLEO DE COZINHA</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Bottom chart -->
-        <div class="panel rounded-2xl p-4">
-          <div class="flex items-center gap-6 text-sm justify-center">
-            <div class="flex items-center gap-2">
-              <span class="legend-dot" style="background:#EF4444"></span> Peso do rejeito
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="legend-dot" style="background:#22C55E"></span> Peso do Reciclável
-            </div>
-          </div>
-
-          <div class="mt-3">
-            <canvas id="chartBar" height="120"></canvas>
-          </div>
-          <div class="soft-divider mt-3 pt-2 text-xs text-center text-graphite/60">
-            Total de famílias/condomínios participantes (no período)
-          </div>
-        </div>
-
-        <!-- Table (like the print bottom-right) -->
-        <div class="panel rounded-2xl p-4">
-          <div class="grid grid-cols-12 gap-3 text-xs font-extrabold text-graphite/70 pb-2 border-b border-black/10">
-            <div class="col-span-1">Código</div>
-            <div class="col-span-2">Tipo de material reciclável</div>
-            <div class="col-span-2">Data de coleta</div>
-            <div class="col-span-2">Qualidade</div>
-            <div class="col-span-3">Observação</div>
-            <div class="col-span-1 text-right">Não reciclável (kg)</div>
-            <div class="col-span-1 text-right">Não comercializado (kg)</div>
-          </div>
-
-          <div id="rows" class="divide-y divide-black/5 text-sm">
-            <!-- JS preenche -->
-          </div>
-
-          <div class="mt-3 text-[11px] text-right text-graphite/50">
-            Desenvolvido por você • Hub Resiliência Climática
-          </div>
-        </div>
-      </section>
-    </div>
+      </div>
+    </section>
   </main>
 
-  <script>
-    // ===========================
-    // MOCK DATA (substituir pelo Firestore)
-    // ===========================
-    const mock = {
-      kpis: {
-        diasProjeto: 171,
-        ops: 51,
-        inicio: "02 de setembro",
-        familias: { cadastradas: 206, participantes: 122, coletas: 1019 },
-        condominios: { cadastrados: 2, participantes: 2, coletas: 57 }
-      },
-      summary: {
-        recKg: 6843.5,
-        rejKg: 981.6,
-        receita: 5284.2
-      },
-      materials: [
-        { key:"PLÁSTICO", pct:20.4, kg:1208.3, receita:2017.8, icon:"🧴" },
-        { key:"VIDRO", pct:27.0, kg:1601.8, receita:128.1, icon:"🍾" },
-        { key:"METAL", pct:6.9, kg:409.1, receita:1178.3, icon:"🥫" },
-        { key:"SACARIA", pct:6.9, kg:407.4, receita:407.4, icon:"🛍️" },
-        { key:"PAPEL MISTO", pct:19.9, kg:1176.8, receita:776.7, icon:"📄" },
-        { key:"PAPELÃO", pct:18.5, kg:1093.6, receita:765.5, icon:"📦" },
-        { key:"ISOPOR", pct:0.4, kg:25.8, receita:10.3, icon:"🍱" },
-      ],
-      rejectBreakdown: {
-        naoRecPct: 56.8, naoRecKg: 557.7,
-        naoComPct: 43.2, naoComKg: 423.9,
-        outroKg: 19.5
-      },
-      qualidade: { limpo: 82, medio: 12, ruim: 6 },
-      series: {
-        labels: Array.from({length: 36}, (_,i)=> String(i+1)),
-        reciclavel: [140,215,283,168,210,176,194,88,76,112,94,158,101,83,92,67,211,208,123,99,143,188,207,121,145,90,77,68,54,61,73,81,97,86,83,91],
-        rejeito:    [12,15,26,18,21,17,19,8,7,11,9,15,10,8,9,6,21,20,12,9,14,18,20,12,14,9,7,6,5,6,7,8,9,8,8,9]
-      },
-      table: [
-        {codigo:"028", tipo:"Plástico", data:"4 de set.", qualidade:"RUIM", obs:"MATERIAL RECICLÁVEL, MAS CONTAMIN...", naoRec:0, naoCom:0},
-        {codigo:"", tipo:"—", data:"11 de set.", qualidade:"BOM", obs:"null", naoRec:0, naoCom:0},
-        {codigo:"", tipo:"—", data:"19 de set.", qualidade:"BOM", obs:"null", naoRec:0, naoCom:0},
-        {codigo:"", tipo:"—", data:"23 de set.", qualidade:"BOM", obs:"null", naoRec:0, naoCom:0},
-      ],
-      mapPoints: [
-        { lat:-30.0346, lng:-51.2177, label:"Ponto 1" }, // Porto Alegre approx
-        { lat:-30.0401, lng:-51.2102, label:"Ponto 2" },
-        { lat:-30.0282, lng:-51.2303, label:"Ponto 3" },
-      ]
-    };
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getFirestore, collection, query, where, orderBy, limit, onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-    // ===========================
-    // UI Fill
-    // ===========================
-    const fmtPt = (n, dec=1) => n.toLocaleString("pt-BR", {minimumFractionDigits: dec, maximumFractionDigits: dec});
+    // =========================
+    // Firebase config (PREENCHA)
+    // =========================
+      const firebaseConfig = {
+  apiKey: "AIzaSyAQBmh8uwLTkyabQc_GznBBV1X2dPhActE",
+  authDomain: "recicla-bonja.firebaseapp.com",
+  projectId: "recicla-bonja",
+  storageBucket: "recicla-bonja.firebasestorage.app",
+  messagingSenderId: "557210456406",
+  appId: "1:557210456406:web:4eebf082cc0d15580c86f7"
+};
 
-    function setText(id, value){ const el=document.getElementById(id); if(el) el.textContent=value; }
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    function renderKpis(){
-      setText("kpiDias", mock.kpis.diasProjeto);
-      setText("kpiOps", mock.kpis.ops);
+    // =========================
+    // UI
+    // =========================
+    const $ = (id) => document.getElementById(id);
 
-      setText("famCadastradas", mock.kpis.familias.cadastradas);
-      setText("famParticipantes", mock.kpis.familias.participantes);
-      setText("famColetas", mock.kpis.familias.coletas);
+    const statusEl = $("status");
+    const fStart = $("fStart");
+    const fEnd = $("fEnd");
+    const fDelivery = $("fDelivery");
+    const fFlow = $("fFlow");
+    const fLinkedId = $("fLinkedId");
+    const btnApply = $("btnApply");
+    const btnReset = $("btnReset");
 
-      setText("condCadastrados", mock.kpis.condominios.cadastrados);
-      setText("condParticipantes", mock.kpis.condominios.participantes);
-      setText("condColetas", mock.kpis.condominios.coletas);
+    const kTotal = $("kTotal");
+    const kSeco = $("kSeco");
+    const kRejeito = $("kRejeito");
+    const kNaoCom = $("kNaoCom");
+    const tbl = $("tbl");
+    const rangeLabel = $("rangeLabel");
+
+    // charts
+    let dailyChart = null;
+    let deliveryChart = null;
+
+    Chart.defaults.font.family = "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial";
+    Chart.defaults.color = "#2E2E2E";
+
+    // =========================
+    // Helpers
+    // =========================
+    function toNum(v){
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    }
+    function normId(v){
+      return (v || "").trim().toUpperCase();
     }
 
-    function renderSummary(){
-      const total = mock.summary.recKg + mock.summary.rejKg;
-      const recPct = total ? (mock.summary.recKg/total)*100 : 0;
-      const rejPct = total ? (mock.summary.rejKg/total)*100 : 0;
-
-      setText("sumRecKg", fmtPt(mock.summary.recKg, 1));
-      setText("sumRejKg", fmtPt(mock.summary.rejKg, 1));
-      setText("sumReceita", fmtPt(mock.summary.receita, 1));
-      setText("sumTotalKg", fmtPt(total, 1));
-      setText("sumOps", mock.kpis.ops);
-      setText("sumDiasFiltro", mock.series.labels.length);
-
-      setText("sumRecPct", recPct.toFixed(1).replace(".", ",") + "%");
-      setText("sumRejPct", rejPct.toFixed(1).replace(".", ",") + "%");
-
-      setText("rejNaoRecPct", mock.rejectBreakdown.naoRecPct.toFixed(1).replace(".", ",") + "%");
-      setText("rejNaoRecKg", fmtPt(mock.rejectBreakdown.naoRecKg, 1));
-      setText("rejNaoComPct", mock.rejectBreakdown.naoComPct.toFixed(1).replace(".", ",") + "%");
-      setText("rejNaoComKg", fmtPt(mock.rejectBreakdown.naoComKg, 1));
-      setText("outroKg", fmtPt(mock.rejectBreakdown.outroKg, 1));
+    function setStatus(text, ok=true){
+      statusEl.textContent = text;
+      statusEl.className = ok ? "font-bold text-regen" : "font-bold text-red-700";
     }
 
-    function renderBubbles(){
-      const grid = document.getElementById("bubblesGrid");
-      grid.innerHTML = "";
-      mock.materials.forEach(m=>{
-        const el = document.createElement("div");
-        el.className = "bubble rounded-full p-4 md:p-5 flex flex-col items-center justify-center text-center min-h-[150px]";
-        el.innerHTML = `
-          <div class="text-3xl">${m.icon}</div>
-          <div class="mt-1 text-2xl font-extrabold">${m.pct.toFixed(1).replace(".", ",")}%</div>
-          <div class="text-sm text-graphite/70">${fmtPt(m.kg,1)} kg</div>
-          <div class="text-[11px] text-graphite/60 mt-1">Receita = <span class="font-bold">R$ ${fmtPt(m.receita,1)}</span></div>
-          <div class="mt-2 text-xs font-extrabold">${m.key}</div>
-        `;
-        grid.appendChild(el);
+    function todayISO(){
+      const d = new Date();
+      const mm = String(d.getMonth()+1).padStart(2,"0");
+      const dd = String(d.getDate()).padStart(2,"0");
+      return `${d.getFullYear()}-${mm}-${dd}`;
+    }
+
+    function daysAgoISO(n){
+      const d = new Date();
+      d.setDate(d.getDate() - n);
+      const mm = String(d.getMonth()+1).padStart(2,"0");
+      const dd = String(d.getDate()).padStart(2,"0");
+      return `${d.getFullYear()}-${mm}-${dd}`;
+    }
+
+    // default filter (últimos 30 dias)
+    fEnd.value = todayISO();
+    fStart.value = daysAgoISO(30);
+
+    // =========================
+    // Firestore subscription (realtime)
+    // =========================
+    let unsub = null;
+    let allRows = []; // snapshot em memória (filtrado por query base)
+
+    function buildBaseQuery(){
+      // Como opDate é string YYYY-MM-DD, dá pra filtrar com where range
+      const col = collection(db, "coletasSeletivas");
+      const clauses = [];
+
+      const start = fStart.value || null;
+      const end = fEnd.value || null;
+
+      if(start) clauses.push(where("opDate", ">=", start));
+      if(end) clauses.push(where("opDate", "<=", end));
+
+      // Atenção: para usar orderBy com where range no mesmo campo, ok
+      // Ordenando por opDate desc e limitando
+      return query(col, ...clauses, orderBy("opDate", "desc"), limit(1000));
+    }
+
+    function applyClientFilters(rows){
+      const del = fDelivery.value;
+      const flow = fFlow.value;
+      const lid = normId(fLinkedId.value);
+
+      return rows.filter(r=>{
+        if(del !== "all" && (r.deliveryType || "") !== del) return false;
+        if(flow !== "all" && (r.flowType || "") !== flow) return false;
+        if(lid && normId(r.linkedId || "") !== lid) return false;
+        return true;
       });
     }
 
-    function renderTable(){
-      const wrap = document.getElementById("rows");
-      wrap.innerHTML = "";
-      mock.table.forEach(r=>{
-        const row = document.createElement("div");
-        row.className = "grid grid-cols-12 gap-3 py-2 text-xs";
-        row.innerHTML = `
-          <div class="col-span-1 font-semibold">${r.codigo || ""}</div>
-          <div class="col-span-2">${r.tipo}</div>
-          <div class="col-span-2">${r.data}</div>
-          <div class="col-span-2 font-semibold">${r.qualidade}</div>
-          <div class="col-span-3 text-graphite/70">${r.obs}</div>
-          <div class="col-span-1 text-right">${r.naoRec}</div>
-          <div class="col-span-1 text-right">${r.naoCom}</div>
-        `;
-        wrap.appendChild(row);
+    function computeAndRender(rows){
+      // KPIs (adaptável: se no seu cadastro de coletas o nome dos campos for diferente, eu ajusto)
+      let total = rows.length;
+      let sumSeco = 0;
+      let sumRejeito = 0;
+      let sumNaoCom = 0;
+
+      // agregações para gráficos
+      const byDay = {};      // opDate -> count
+      const byDelivery = {}; // deliveryType -> count
+      const deliverySet = new Set();
+
+      rows.forEach(r=>{
+        const d = r.opDate || "—";
+        byDay[d] = (byDay[d] || 0) + 1;
+
+        const del = r.deliveryType || "Não informado";
+        byDelivery[del] = (byDelivery[del] || 0) + 1;
+        deliverySet.add(del);
+
+        // pesos: tentamos vários nomes (para não quebrar)
+        // Recebimento (ex.: 5,8,9)
+        sumSeco += toNum(r.pesoResiduoSecoKg ?? r.pesoResiduoSeco ?? r.pesoSecoKg ?? r.secoKg);
+        sumRejeito += toNum(r.pesoRejeitoKg ?? r.pesoRejeito ?? r.rejeitoKg);
+        sumNaoCom += toNum(r.pesoNaoComercializadoKg ?? r.pesoNaoComercializado ?? r.naoComercializadoKg);
+        // Final do turno: você tem 2.1 rejeito geral e materiais — (se quiser somar aqui também, me diga)
+        sumRejeito += toNum(r.pesoRejeitoGeralKg ?? r.rejeitoGeralKg);
       });
-    }
 
-    // ===========================
-    // Charts
-    // ===========================
-    let chartQualidade, chartBar;
+      kTotal.textContent = String(total);
+      kSeco.textContent = String(sumSeco.toFixed(1)).replace(".",",");
+      kRejeito.textContent = String(sumRejeito.toFixed(1)).replace(".",",");
+      kNaoCom.textContent = String(sumNaoCom.toFixed(1)).replace(".",",");
 
-    function drawQualidade(){
-      if(chartQualidade) chartQualidade.destroy();
-      const ctx = document.getElementById("chartQualidade");
-      chartQualidade = new Chart(ctx, {
-        type: "doughnut",
+      // range label
+      const ds = rows.map(r=>r.opDate).filter(Boolean);
+      const max = ds[0] || "—";
+      const min = ds[ds.length-1] || "—";
+      rangeLabel.textContent = `${min} → ${max}`;
+
+      // Chart daily
+      const dayKeys = Object.keys(byDay).sort(); // asc
+      const dayVals = dayKeys.map(k=>byDay[k]);
+
+      if(dailyChart) dailyChart.destroy();
+      dailyChart = new Chart($("chartDaily"), {
+        type: "bar",
         data: {
-          labels: ["LIMPO", "MÉDIO", "RUIM"],
+          labels: dayKeys,
           datasets: [{
-            data: [mock.qualidade.limpo, mock.qualidade.medio, mock.qualidade.ruim],
-            backgroundColor: ["#1B7F5A", "#F2C94C", "#EF4444"],
-            borderWidth: 0
+            label: "Coletas",
+            data: dayVals,
+            borderWidth: 0,
+            borderRadius: 6
           }]
         },
         options: {
-          cutout: "70%",
-          plugins: { legend: { display:false }, tooltip: { enabled:true } }
-        }
-      });
-    }
-
-    function drawBar(){
-      if(chartBar) chartBar.destroy();
-      const ctx = document.getElementById("chartBar");
-      chartBar = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels: mock.series.labels,
-          datasets: [
-            {
-              label: "Peso do rejeito",
-              data: mock.series.rejeito,
-              backgroundColor: "#EF4444",
-              stack: "stack1",
-              borderWidth: 0
-            },
-            {
-              label: "Peso do reciclável",
-              data: mock.series.reciclavel,
-              backgroundColor: "#22C55E",
-              stack: "stack1",
-              borderWidth: 0
-            }
-          ]
-        },
-        options: {
-          responsive: true,
           plugins: { legend: { display:false } },
           scales: {
-            x: { stacked:true, grid: { display:false }, ticks: { maxRotation:0, autoSkip:true, maxTicksLimit:18, font:{size:10} } },
-            y: { stacked:true, grid: { color: "rgba(0,0,0,.06)" }, ticks: { font:{size:10} } }
+            x: { grid:{ display:false }, ticks:{ font:{ size:10 } } },
+            y: { grid:{ color:"rgba(0,0,0,.07)" }, ticks:{ font:{ size:10 } } }
           }
         }
       });
-    }
 
-    // ===========================
-    // Map
-    // ===========================
-    let map;
-    function initMap(){
-      map = L.map('map', { zoomControl: true }).setView([-30.0346, -51.2177], 12);
+      // Chart delivery
+      const delKeys = Object.keys(byDelivery);
+      const delVals = delKeys.map(k=>byDelivery[k]);
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap'
-      }).addTo(map);
+      if(deliveryChart) deliveryChart.destroy();
+      deliveryChart = new Chart($("chartDelivery"), {
+        type: "doughnut",
+        data: {
+          labels: delKeys,
+          datasets: [{ data: delVals, borderWidth: 0 }]
+        },
+        options: {
+          cutout: "70%",
+          plugins: { legend: { position:"bottom", labels:{ boxWidth:10, usePointStyle:true, pointStyle:"circle" } } }
+        }
+      });
 
-      mock.mapPoints.forEach(p=>{
-        L.circleMarker([p.lat, p.lng], {
-          radius: 7,
-          color: "#1B7F5A",
-          fillColor: "#4CAF8F",
-          fillOpacity: 0.9,
-          weight: 2
-        }).addTo(map).bindPopup(p.label);
+      // Preencher dropdown delivery dinamicamente (sem duplicar)
+      const existing = new Set([...fDelivery.options].map(o=>o.value));
+      Array.from(deliverySet).sort().forEach(v=>{
+        if(!existing.has(v)){
+          const op = document.createElement("option");
+          op.value = v;
+          op.textContent = v;
+          fDelivery.appendChild(op);
+        }
+      });
+
+      // Table
+      tbl.innerHTML = "";
+      rows.slice(0, 40).forEach(r=>{
+        const tr = document.createElement("tr");
+        tr.className = "border-t border-black/10";
+        tr.innerHTML = `
+          <td class="p-2 font-semibold">${r.opDate || "—"}</td>
+          <td class="p-2">${r.deliveryType || "—"}</td>
+          <td class="p-2">${r.flowType || "—"}</td>
+          <td class="p-2">${r.linkedId || "—"}</td>
+          <td class="p-2 text-right font-semibold">${toNum(r.pesoResiduoSecoKg ?? r.pesoResiduoSeco ?? r.pesoSecoKg ?? r.secoKg).toFixed(1).replace(".",",")}</td>
+          <td class="p-2 text-right font-semibold">${toNum(r.pesoRejeitoKg ?? r.pesoRejeito ?? r.rejeitoKg ?? r.pesoRejeitoGeralKg ?? r.rejeitoGeralKg).toFixed(1).replace(".",",")}</td>
+          <td class="p-2 text-right font-semibold">${toNum(r.pesoNaoComercializadoKg ?? r.pesoNaoComercializado ?? r.naoComercializadoKg).toFixed(1).replace(".",",")}</td>
+        `;
+        tbl.appendChild(tr);
       });
     }
 
-    // ===========================
-    // Init
-    // ===========================
-    function init(){
-      renderKpis();
-      renderSummary();
-      renderBubbles();
-      renderTable();
-      drawQualidade();
-      drawBar();
-      initMap();
-    }
-    init();
+    function subscribe(){
+      if(unsub) unsub();
 
-    // ===========================
-    // TODO Firestore (ponto de integração)
-    // ===========================
-    // Aqui você substitui o "mock" por dados reais do Firestore:
-    // 1) Buscar coletas por filtro (data/mês/ciclo/tipo/código/território)
-    // 2) Agregar:
-    //    - total reciclável = soma de materiais comercializáveis
-    //    - total rejeito = soma rejeitos
-    //    - materiais[] por categoria
-    //    - qualidade (1/2/3) contagem
-    //    - séries por dia (labels + reciclavel + rejeito)
-    // 3) Atualizar o objeto mock e chamar init() ou funções específicas de rerender
+      setStatus("conectando…", true);
+      const q = buildBaseQuery();
+
+      unsub = onSnapshot(q, (snap)=>{
+        const rows = [];
+        snap.forEach(doc=>{
+          rows.push({ id: doc.id, ...doc.data() });
+        });
+        allRows = rows;
+
+        const filtered = applyClientFilters(allRows);
+        computeAndRender(filtered);
+
+        setStatus(`ok • ${filtered.length} registros`, true);
+      }, (err)=>{
+        console.error(err);
+        setStatus("erro ao carregar (rules/config)", false);
+      });
+    }
+
+    btnApply.addEventListener("click", ()=> subscribe());
+    btnReset.addEventListener("click", ()=>{
+      fEnd.value = todayISO();
+      fStart.value = daysAgoISO(30);
+      fDelivery.value = "all";
+      fFlow.value = "all";
+      fLinkedId.value = "";
+      subscribe();
+    });
+
+    // init
+    subscribe();
   </script>
 </body>
 </html>
