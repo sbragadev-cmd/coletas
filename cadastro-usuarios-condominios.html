@@ -104,6 +104,10 @@
         <div class="mt-4 w-full h-2 bg-black/10 rounded-full overflow-hidden">
           <div id="progressBar" class="h-full bg-regen rounded-full" style="width: 11%;"></div>
         </div>
+
+        <div class="mt-3 text-xs text-graphite/60">
+          Banco: <span id="dbStatus" class="font-semibold">conectando…</span>
+        </div>
       </div>
 
       <!-- body -->
@@ -235,10 +239,15 @@
               <div class="text-sm font-extrabold text-deepBlue">Mensagem final</div>
               <p class="mt-2 text-sm text-graphite/80">
                 Agradecemos por se cadastrar no projeto!<br/>
-                Nosso time irá analisar as informações enviadas e entrar em contato para verificar se o endereço informado está dentro da área de abrangência da coleta.<br/>
+                Nosso time irá analisar as informações enviadas e entrar em contato para verificar se
+                o endereço informado está dentro da área de abrangência da coleta.<br/>
                 Em breve, você receberá mais informações sobre os próximos passos.<br/>
                 Obrigada pelo interesse e por contribuir com essa iniciativa! 💚♻️
               </p>
+            </div>
+
+            <div class="mt-4 text-xs text-graphite/60">
+              Ao clicar em <b>Enviar</b>, seus dados serão salvos no banco do projeto.
             </div>
           </div>
 
@@ -269,12 +278,34 @@
     </section>
   </main>
 
-  <script>
+  <!-- Firebase + Firestore -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getFirestore, collection, addDoc, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+    // ===========================
+    // Firebase Config (SEU)
+    // ===========================
+    const firebaseConfig = {
+      apiKey: "AIzaSyAQBmh8uwLTkyabQc_GznBBV1X2dPhActE",
+      authDomain: "recicla-bonja.firebaseapp.com",
+      projectId: "recicla-bonja",
+      storageBucket: "recicla-bonja.firebasestorage.app",
+      messagingSenderId: "557210456406",
+      appId: "1:557210456406:web:4eebf082cc0d15580c86f7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
     // ===========================
     // State
     // ===========================
     const TOTAL_STEPS = 9;
     let step = 1;
+    let isSubmitting = false;
 
     const state = {
       consent: { c1:false, c2:false, c3:false },
@@ -295,6 +326,12 @@
     const $ = (id) => document.getElementById(id);
     const alertBox = $("alert");
 
+    function setDbStatus(text, ok=true){
+      const el = $("dbStatus");
+      el.textContent = text;
+      el.className = ok ? "font-semibold text-regen" : "font-semibold text-red-700";
+    }
+
     function showAlert(type, text) {
       alertBox.classList.remove("hidden");
       alertBox.textContent = text;
@@ -313,27 +350,36 @@
       $("progressText").textContent = `${step}/${TOTAL_STEPS}`;
       const pct = Math.round((step / TOTAL_STEPS) * 100);
       $("progressBar").style.width = `${pct}%`;
-      $("btnBack").disabled = (step === 1);
-      $("btnBack").classList.toggle("opacity-60", step === 1);
-      $("btnBack").classList.toggle("cursor-not-allowed", step === 1);
+      $("btnBack").disabled = (step === 1 || isSubmitting);
+      $("btnBack").classList.toggle("opacity-60", step === 1 || isSubmitting);
+      $("btnBack").classList.toggle("cursor-not-allowed", step === 1 || isSubmitting);
 
-      // botão Next vira "Enviar" no último passo
-      $("btnNext").textContent = (step === TOTAL_STEPS) ? "Enviar" : "Next";
+      $("btnPreview").disabled = isSubmitting;
+
+      $("btnNext").disabled = isSubmitting;
+      $("btnNext").classList.toggle("opacity-60", isSubmitting);
+      $("btnNext").classList.toggle("cursor-not-allowed", isSubmitting);
+
+      $("btnNext").textContent = (step === TOTAL_STEPS) ? (isSubmitting ? "Enviando…" : "Enviar") : "Next";
     }
 
     function showStep(n) {
       document.querySelectorAll(".step").forEach(el => el.classList.remove("active"));
-      const el = document.querySelector(`.step[data-step="${n}"]`);
+      const el = document.querySelector(\`.step[data-step="\${n}"]\`);
       if (el) el.classList.add("active");
       step = n;
       setProgress();
       hideAlert();
       $("preview").classList.add("hidden");
+      // foco automático no input do passo (se existir)
+      setTimeout(() => {
+        const active = document.querySelector(".step.active input, .step.active textarea");
+        if(active) active.focus();
+      }, 30);
     }
 
     function selectChip(group, value, chipEl) {
-      // desmarca chips do grupo
-      document.querySelectorAll(`.chip[data-radio="${group}"]`).forEach(el => el.classList.remove("selected"));
+      document.querySelectorAll(\`.chip[data-radio="\${group}"]\`).forEach(el => el.classList.remove("selected"));
       chipEl.classList.add("selected");
 
       if(group === "destina") state.jaDestinaReciclavel = value;
@@ -349,7 +395,6 @@
     }
 
     function readStepIntoState() {
-      // atualiza state conforme passo atual (inputs)
       if(step === 1){
         state.consent.c1 = $("c1").checked;
         state.consent.c2 = $("c2").checked;
@@ -376,10 +421,8 @@
     }
 
     function validateCurrentStep() {
-      // lê primeiro
       readStepIntoState();
 
-      // valida por etapa
       if(step === 1){
         if(!(state.consent.c1 && state.consent.c2 && state.consent.c3)){
           return "Para avançar, marque as 3 autorizações (LGPD, WhatsApp e Imagem).";
@@ -435,6 +478,7 @@
       return {
         type: "participant_registration",
         createdAtISO: new Date().toISOString(),
+        createdAt: serverTimestamp(), // timestamp do servidor
         consent: {
           dados: state.consent.c1,
           whatsapp: state.consent.c2,
@@ -448,12 +492,20 @@
         localColeta: state.localColeta,
         localColetaOutro: state.localColeta === "Outro" ? state.localColetaOutro : null,
         enderecoCompleto: state.enderecoCompleto,
-        pontoReferencia: state.pontoReferencia
+        pontoReferencia: state.pontoReferencia,
+        status: "pending" // opcional: você pode trabalhar isso depois no admin/dashboard
       };
     }
 
+    async function saveToFirestore() {
+      // coleção "participants" será criada automaticamente no primeiro addDoc
+      const payload = buildPayloadFinal();
+      const ref = await addDoc(collection(db, "participants"), payload);
+      return { id: ref.id, payload };
+    }
+
     // ===========================
-    // Chip selection events
+    // Chip events
     // ===========================
     document.querySelectorAll(".chip[data-radio]").forEach(chip=>{
       chip.addEventListener("click", ()=>{
@@ -468,27 +520,45 @@
     // Navigation
     // ===========================
     $("btnBack").addEventListener("click", ()=>{
+      if(isSubmitting) return;
       if(step > 1) showStep(step - 1);
     });
 
     $("btnNext").addEventListener("click", async ()=>{
+      if(isSubmitting) return;
+
       const err = validateCurrentStep();
       if(err){
         showAlert("err", err);
         return;
       }
 
-      // último passo = "enviar"
+      // último passo = enviar
       if(step === TOTAL_STEPS){
-        // Aqui você integra com Firebase se quiser:
-        // await addDoc(collection(db,"participants"), buildPayloadFinal())
+        isSubmitting = true;
+        setProgress();
+        hideAlert();
 
-        showAlert("ok", "Cadastro finalizado! Obrigada 💚♻️");
-        $("preview").classList.remove("hidden");
-        $("preview").textContent = JSON.stringify(buildPayloadFinal(), null, 2);
+        try{
+          setDbStatus("salvando no Firestore…", true);
+          const { id, payload } = await saveToFirestore();
+          setDbStatus("salvo ✅", true);
 
-        // opcional: reset total após enviar
-        // setTimeout(()=>location.reload(), 900);
+          showAlert("ok", `Cadastro enviado com sucesso! ID do registro: ${id}`);
+          $("preview").classList.remove("hidden");
+          $("preview").textContent = JSON.stringify({ firestoreDocId: id, ...payload, createdAt: "(serverTimestamp)" }, null, 2);
+
+          // opcional: reset geral e voltar ao início após alguns segundos
+          // setTimeout(()=> location.reload(), 1500);
+
+        }catch(e){
+          console.error(e);
+          setDbStatus("erro ao salvar (rules)", false);
+          showAlert("err", "Não foi possível salvar no Firestore. Verifique suas regras (permissions) e tente novamente.");
+        }finally{
+          isSubmitting = false;
+          setProgress();
+        }
         return;
       }
 
@@ -496,34 +566,24 @@
     });
 
     $("btnPreview").addEventListener("click", ()=>{
-      // valida o passo atual primeiro (para não mostrar payload incompleto sem avisar)
-      const err = validateCurrentStep();
-      if(err){
-        showAlert("info", "Prévia parcial: finalize este passo para avançar. Você ainda pode ver o que já foi preenchido.");
-      } else {
-        hideAlert();
-      }
-
-      // salva o estado do passo atual e mostra o que tem
       readStepIntoState();
+      const payload = buildPayloadFinal();
       $("preview").classList.remove("hidden");
-      $("preview").textContent = JSON.stringify(buildPayloadFinal(), null, 2);
+      $("preview").textContent = JSON.stringify({ ...payload, createdAt: "(serverTimestamp)" }, null, 2);
+      showAlert("info", "Prévia gerada (ainda não foi salva).");
     });
 
-    // enter = next (quando fizer sentido)
+    // Enter = Next (exceto textarea)
     document.addEventListener("keydown", (e)=>{
       if(e.key !== "Enter") return;
-
-      // evita enter em textarea
       const tag = (document.activeElement?.tagName || "").toLowerCase();
       if(tag === "textarea") return;
-
-      // se estiver em step com input, Enter = Next
       e.preventDefault();
       $("btnNext").click();
     });
 
     // init
+    setDbStatus("conectado ✅", true);
     setProgress();
   </script>
 </body>
