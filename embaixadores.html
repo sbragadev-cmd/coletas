@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="pt-BR" translate="no">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Language" content="pt-BR">
+  <meta name="google" content="notranslate">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gestão Operação dos Embaixadores • Recicla Bonja</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            regen: "#1B7F5A",
+            regenLight: "#4CAF8F",
+            deepBlue: "#0D3B66",
+            energy: "#F2C94C",
+            graphite: "#2E2E2E",
+            grayClean: "#F5F7F6",
+            blueFatima: "#1E63C6",
+            tealManinha: "#0FA3B1",
+            pinkAna: "#D81B7D",
+            orangePantera: "#F57C00",
+          },
+          boxShadow: {
+            soft: "0 12px 34px rgba(13,59,102,.10)",
+            card: "0 10px 26px rgba(46,46,46,.10)",
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .panel { background:#fff; border:1px solid rgba(0,0,0,.06); box-shadow:0 10px 26px rgba(0,0,0,.06); }
+    .dashed { border: 1px dashed rgba(0,0,0,.18); }
+    .grid-emb { grid-template-columns: 320px 1fr; }
+    .pill { background:#2ea86d; }
+    .pill:hover{ filter:brightness(.97); }
+    .legend-dot{ width:10px; height:10px; border-radius:999px; }
+    .muted{ color: rgba(46,46,46,.65); }
+  </style>
+</head>
+
+<body class="bg-grayClean text-graphite">
+  <!-- TOPBAR -->
+  <header class="bg-white border-b border-black/5">
+    <div class="max-w-[1200px] mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-regen/10 border border-regen/15 flex items-center justify-center font-extrabold text-regen">
+          RB
+        </div>
+        <div class="leading-tight">
+          <div class="text-xs muted">vila do futuro</div>
+          <div class="font-extrabold tracking-tight">RECICLA BONJA</div>
+          <div class="text-[11px] muted">Sustentabilidade na Quebrada</div>
+        </div>
+      </div>
+
+      <div class="text-center">
+        <div class="text-lg sm:text-xl font-extrabold tracking-tight">GESTÃO OPERAÇÃO DOS EMBAIXADORES</div>
+      </div>
+
+      <div class="w-[160px] text-right text-xs muted">Painel • Embaixadores</div>
+    </div>
+
+    <!-- Filters row -->
+    <div class="max-w-[1200px] mx-auto px-4 pb-3">
+      <div class="flex items-center justify-center gap-3 flex-wrap">
+        <select id="fSemana" class="pill text-white font-semibold text-sm px-5 py-2 rounded-lg shadow-soft outline-none">
+          <option value="all">Semana (todas)</option>
+        </select>
+
+        <select id="fEmbaixador" class="pill text-white font-semibold text-sm px-5 py-2 rounded-lg shadow-soft outline-none">
+          <option value="all">Embaixador (todos)</option>
+        </select>
+
+        <button id="btnReset"
+          class="px-4 py-2 rounded-lg bg-white border border-black/10 text-sm font-semibold hover:bg-black/5 transition">
+          Limpar filtros
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-[1200px] mx-auto px-4 py-4">
+    <div class="grid grid-emb gap-4">
+      <!-- LEFT KPI -->
+      <aside class="space-y-4">
+        <div class="panel rounded-xl overflow-hidden dashed">
+          <div class="p-4 bg-regen/15">
+            <div class="text-4xl font-extrabold" id="kpiDias">28</div>
+            <div class="text-sm muted font-semibold">total de dias de atuação</div>
+            <div class="text-xs muted">Início: <span class="font-semibold" id="kpiInicio">23 de janeiro</span></div>
+          </div>
+        </div>
+
+        <div class="panel rounded-xl p-4 dashed">
+          <div class="text-sm font-extrabold">Legenda:</div>
+          <div id="legend" class="mt-3 grid grid-cols-2 gap-2 text-xs"></div>
+        </div>
+      </aside>
+
+      <!-- RIGHT CONTENT -->
+      <section class="space-y-4">
+        <!-- Charts row -->
+        <div class="panel rounded-xl p-4 dashed">
+          <div class="grid lg:grid-cols-2 gap-4">
+            <!-- Donut -->
+            <div>
+              <div class="font-extrabold text-sm mb-2">Cadastrados por Embaixador e por Semana</div>
+              <div class="relative">
+                <canvas id="donut" height="220"></canvas>
+                <div class="pointer-events-none absolute inset-0 flex items-center justify-center">
+                  <div class="text-center">
+                    <div class="text-3xl font-extrabold" id="donutTotal">108</div>
+                    <div class="text-xs muted">cadastros realizados</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bars -->
+            <div>
+              <div class="flex items-end justify-between gap-3">
+                <div>
+                  <div class="font-extrabold text-sm">Cadastrados por dia e semana</div>
+                  <div class="text-[11px] muted">Clique na legenda para ocultar/mostrar embaixadores</div>
+                </div>
+                <div class="text-[11px] muted" id="rangeLabel"></div>
+              </div>
+              <canvas id="bars" height="220" class="mt-2"></canvas>
+
+              <div class="mt-2">
+                <div class="text-[11px] muted text-right">Total de cadastros por dia da semana</div>
+                <canvas id="dow" height="70"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Performance -->
+        <div class="panel rounded-xl p-4 dashed">
+          <div class="font-extrabold text-sm mb-2">Performance do embaixador por semana (meta = 30 cadastros na semana)</div>
+          <div id="cards" class="grid md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+
+          <div class="mt-4 overflow-x-auto">
+            <table class="w-full text-xs border border-black/10 rounded-lg overflow-hidden">
+              <thead class="bg-black/5">
+                <tr>
+                  <th class="p-2 text-left">SEMANA</th>
+                  <th class="p-2 text-left">Embaixador</th>
+                  <th class="p-2 text-right">Total cadastros</th>
+                  <th class="p-2 text-right">% meta (30)</th>
+                  <th class="p-2 text-left">Status</th>
+                </tr>
+              </thead>
+              <tbody id="tbl"></tbody>
+            </table>
+          </div>
+
+          <div class="mt-3 text-[11px] muted text-right">Desenvolvido por você • Hub Resiliência Climática</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    // =========================
+    // DATA MODEL (mock)
+    // =========================
+    const META = 30;
+
+    const embaixadores = [
+      { id:"fatima",  nome:"FÁTIMA",    color:"#1E63C6" },
+      { id:"maninha", nome:"MANINHA",   color:"#0FA3B1" },
+      { id:"ana",     nome:"ANA PAULA", color:"#D81B7D" },
+      { id:"pantera", nome:"PANTERA",   color:"#F57C00" },
+    ];
+
+    // registros por dia (cada item = um dia, com totais por embaixador)
+    // week: "SEMANA 1" etc.
+    const registros = [
+      { date:"2025-01-23", label:"23 de jan.", week:"SEMANA 1", dow:"Qui", fatima:0, maninha:0, ana:0, pantera:6 },
+      { date:"2025-01-25", label:"25 de jan.", week:"SEMANA 1", dow:"Sáb", fatima:0, maninha:0, ana:0, pantera:1 },
+      { date:"2025-01-26", label:"26 de jan.", week:"SEMANA 1", dow:"Dom", fatima:9, maninha:0, ana:7, pantera:0 },
+      { date:"2025-01-27", label:"27 de jan.", week:"SEMANA 1", dow:"Seg", fatima:5, maninha:9, ana:2, pantera:0 },
+      { date:"2025-01-28", label:"28 de jan.", week:"SEMANA 1", dow:"Ter", fatima:0, maninha:0, ana:0, pantera:1 },
+      { date:"2025-01-29", label:"29 de jan.", week:"SEMANA 1", dow:"Qua", fatima:6, maninha:4, ana:0, pantera:5 },
+      { date:"2025-01-31", label:"31 de jan.", week:"SEMANA 2", dow:"Sex", fatima:0, maninha:2, ana:0, pantera:0 },
+      { date:"2025-02-02", label:"2 de fev.",  week:"SEMANA 2", dow:"Dom", fatima:1, maninha:0, ana:0, pantera:0 },
+      { date:"2025-02-04", label:"4 de fev.",  week:"SEMANA 2", dow:"Ter", fatima:0, maninha:0, ana:8, pantera:0 },
+    ];
+
+    // infos “operacionais” (dias sem atuação e última data) — em produção isso vem calculado
+    const opsInfo = {
+      ana:     { diasSem: 2, ultima: "18 de fev." },
+      fatima:  { diasSem: 10, ultima: "10 de fev." },
+      maninha: { diasSem: 1, ultima: "19 de fev." },
+      pantera: { diasSem: 5, ultima: "15 de fev." },
+    };
+
+    // =========================
+    // FILTERS
+    // =========================
+    const fSemana = document.getElementById("fSemana");
+    const fEmbaixador = document.getElementById("fEmbaixador");
+    const btnReset = document.getElementById("btnReset");
+
+    function unique(arr){ return Array.from(new Set(arr)); }
+
+    function fillFilters(){
+      unique(registros.map(r=>r.week)).forEach(w=>{
+        const op = document.createElement("option");
+        op.value = w; op.textContent = w;
+        fSemana.appendChild(op);
+      });
+
+      embaixadores.forEach(e=>{
+        const op = document.createElement("option");
+        op.value = e.id; op.textContent = e.nome;
+        fEmbaixador.appendChild(op);
+      });
+    }
+
+    function getFiltered(){
+      const ws = fSemana.value;
+      const em = fEmbaixador.value;
+
+      let data = registros.slice();
+      if(ws !== "all") data = data.filter(r => r.week === ws);
+
+      // se filtra por embaixador, vamos “zerar” os outros para manter charts e totais coerentes
+      if(em !== "all"){
+        data = data.map(r => {
+          const x = {...r};
+          embaixadores.forEach(e=>{
+            if(e.id !== em) x[e.id] = 0;
+          });
+          return x;
+        });
+      }
+      return data;
+    }
+
+    btnReset.addEventListener("click", ()=>{
+      fSemana.value = "all";
+      fEmbaixador.value = "all";
+      renderAll();
+    });
+    fSemana.addEventListener("change", renderAll);
+    fEmbaixador.addEventListener("change", renderAll);
+
+    // =========================
+    // LEGEND
+    // =========================
+    function renderLegend(){
+      const wrap = document.getElementById("legend");
+      wrap.innerHTML = "";
+      embaixadores.forEach(e=>{
+        const item = document.createElement("div");
+        item.className = "flex items-center gap-2";
+        item.innerHTML = `<span class="legend-dot" style="background:${e.color}"></span> <span class="font-semibold">${e.nome}</span>`;
+        wrap.appendChild(item);
+      });
+    }
+
+    // =========================
+    // AGGREGATIONS
+    // =========================
+    function sumByEmb(data){
+      const totals = {};
+      embaixadores.forEach(e=> totals[e.id]=0);
+      data.forEach(r=>{
+        embaixadores.forEach(e=> totals[e.id] += (Number(r[e.id])||0));
+      });
+      return totals;
+    }
+
+    function totalsByWeek(data){
+      const byWeek = {};
+      data.forEach(r=>{
+        if(!byWeek[r.week]) byWeek[r.week] = {};
+        embaixadores.forEach(e=>{
+          byWeek[r.week][e.id] = (byWeek[r.week][e.id] || 0) + (Number(r[e.id])||0);
+        });
+      });
+      return byWeek;
+    }
+
+    function dowTotals(data){
+      const order = ["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"];
+      const by = {};
+      order.forEach(d=>by[d]=0);
+      data.forEach(r=>{
+        const t = embaixadores.reduce((a,e)=>a+(Number(r[e.id])||0),0);
+        by[r.dow] = (by[r.dow]||0)+t;
+      });
+      return { order, by };
+    }
+
+    function pctMeta(n){ return (n / META) * 100; }
+    function statusFromPct(p){
+      if(p >= 100) return { label:"Ótimo", cls:"bg-regen/15 text-regen border-regen/20" };
+      if(p >= 60)  return { label:"Atenção", cls:"bg-energy/20 text-graphite border-energy/30" };
+      return { label:"Crítico", cls:"bg-red-50 text-red-700 border-red-200" };
+    }
+
+    // =========================
+    // CHARTS
+    // =========================
+    let donutChart, barChart, dowChart;
+
+    // plugin: remove legend border / compact
+    Chart.defaults.font.family = "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial";
+    Chart.defaults.color = "#2E2E2E";
+
+    function renderDonut(data){
+      const totals = sumByEmb(data);
+      const totalAll = Object.values(totals).reduce((a,b)=>a+b,0);
+
+      document.getElementById("donutTotal").textContent = totalAll;
+
+      if(donutChart) donutChart.destroy();
+      donutChart = new Chart(document.getElementById("donut"), {
+        type: "doughnut",
+        data: {
+          labels: embaixadores.map(e=>e.nome),
+          datasets: [{
+            data: embaixadores.map(e=>totals[e.id]),
+            backgroundColor: embaixadores.map(e=>e.color),
+            borderWidth: 0
+          }]
+        },
+        options: {
+          cutout: "72%",
+          plugins: { legend: { position:"bottom", labels:{ boxWidth:10, usePointStyle:true, pointStyle:"circle" } } }
+        }
+      });
+    }
+
+    function renderBars(data){
+      const labels = data.map(r=>r.label);
+
+      const min = data[0]?.label ?? "";
+      const max = data[data.length-1]?.label ?? "";
+      document.getElementById("rangeLabel").textContent = labels.length ? `${min} → ${max}` : "";
+
+      if(barChart) barChart.destroy();
+      barChart = new Chart(document.getElementById("bars"), {
+        type: "bar",
+        data: {
+          labels,
+          datasets: embaixadores.map(e=>({
+            label: e.nome,
+            data: data.map(r=>Number(r[e.id])||0),
+            backgroundColor: e.color,
+            stack: "stack1",
+            borderWidth: 0,
+            borderRadius: 6,
+          }))
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position:"top", labels:{ boxWidth:10, usePointStyle:true, pointStyle:"circle" } },
+            tooltip: { enabled:true }
+          },
+          scales: {
+            x: { stacked:true, grid:{ display:false }, ticks:{ font:{ size:11 } } },
+            y: { stacked:true, grid:{ color:"rgba(0,0,0,.07)" }, ticks:{ font:{ size:11 } } }
+          }
+        }
+      });
+
+      // DOW totals
+      const { order, by } = dowTotals(data);
+      if(dowChart) dowChart.destroy();
+      dowChart = new Chart(document.getElementById("dow"), {
+        type: "bar",
+        data: {
+          labels: order,
+          datasets: [{
+            label: "Total",
+            data: order.map(d=>by[d]||0),
+            backgroundColor: "rgba(46,46,46,.35)",
+            borderRadius: 6,
+            borderWidth: 0
+          }]
+        },
+        options: {
+          plugins: { legend:{ display:false } },
+          scales:{
+            x:{ grid:{ display:false }, ticks:{ font:{ size:10 } } },
+            y:{ grid:{ color:"rgba(0,0,0,.06)" }, ticks:{ font:{ size:10 } } }
+          }
+        }
+      });
+    }
+
+    function renderCardsAndTable(data){
+      const cardsWrap = document.getElementById("cards");
+      const tbl = document.getElementById("tbl");
+      cardsWrap.innerHTML = "";
+      tbl.innerHTML = "";
+
+      const byWeek = totalsByWeek(data);
+
+      // Cards: total geral por embaixador no filtro
+      const totals = sumByEmb(data);
+
+      embaixadores.forEach(e=>{
+        const total = totals[e.id] || 0;
+        const p = pctMeta(total);
+        const st = statusFromPct(p);
+        const info = opsInfo[e.id] || { diasSem: 0, ultima: "—" };
+
+        const card = document.createElement("div");
+        card.className = "rounded-xl border border-black/10 bg-white p-4 shadow-card";
+        card.innerHTML = `
+          <div class="flex items-center justify-between gap-2">
+            <div class="font-extrabold" style="color:${e.color}">${e.nome}</div>
+            <span class="text-[11px] px-2 py-1 rounded-full border ${st.cls} font-bold">${st.label}</span>
+          </div>
+          <div class="mt-2 grid grid-cols-2 gap-2 text-xs">
+            <div class="rounded-lg bg-grayClean border border-black/10 p-2">
+              <div class="muted">dias sem atuação</div>
+              <div class="text-xl font-extrabold">${info.diasSem}</div>
+            </div>
+            <div class="rounded-lg bg-grayClean border border-black/10 p-2">
+              <div class="muted">última data</div>
+              <div class="text-xl font-extrabold">${info.ultima}</div>
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-semibold">Meta semanal: ${META}</span>
+              <span class="font-extrabold">${total} (${p.toFixed(1).replace(".",",")}%)</span>
+            </div>
+            <div class="mt-2 h-2 rounded-full bg-black/5 overflow-hidden">
+              <div class="h-full rounded-full" style="width:${Math.min(100,p)}%; background:${e.color}"></div>
+            </div>
+          </div>
+        `;
+        cardsWrap.appendChild(card);
+      });
+
+      // Table: por semana e embaixador
+      const weeks = Object.keys(byWeek).sort();
+      weeks.forEach(w=>{
+        embaixadores.forEach(e=>{
+          const total = byWeek[w]?.[e.id] || 0;
+          const p = pctMeta(total);
+          const st = statusFromPct(p);
+
+          const tr = document.createElement("tr");
+          tr.className = "border-t border-black/10";
+          tr.innerHTML = `
+            <td class="p-2 font-semibold">${w}</td>
+            <td class="p-2 font-extrabold" style="color:${e.color}">${e.nome}</td>
+            <td class="p-2 text-right font-extrabold">${total}</td>
+            <td class="p-2 text-right font-semibold">${p.toFixed(1).replace(".",",")}%</td>
+            <td class="p-2">
+              <span class="text-[11px] px-2 py-1 rounded-full border ${st.cls} font-bold">${st.label}</span>
+            </td>
+          `;
+          tbl.appendChild(tr);
+        });
+      });
+    }
+
+    // KPI dias (simples: baseado em range do filtro)
+    function renderKpi(data){
+      document.getElementById("kpiDias").textContent = new Set(data.map(d=>d.date)).size;
+    }
+
+    function renderAll(){
+      const data = getFiltered();
+      renderKpi(data);
+      renderDonut(data);
+      renderBars(data);
+      renderCardsAndTable(data);
+    }
+
+    // INIT
+    fillFilters();
+    renderLegend();
+    renderAll();
+  </script>
+</body>
+</html>

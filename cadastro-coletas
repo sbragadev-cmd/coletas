@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="pt-BR" translate="no">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Language" content="pt-BR">
+  <meta name="google" content="notranslate">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cadastro de Coleta Seletiva • Firebase</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            regen: "#1B7F5A",
+            regenLight: "#4CAF8F",
+            deepBlue: "#0D3B66",
+            energy: "#F2C94C",
+            graphite: "#2E2E2E",
+            grayClean: "#F5F7F6",
+          },
+          boxShadow: { soft: "0 12px 34px rgba(13,59,102,.14)" }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .bg-mesh{
+      background:
+        radial-gradient(900px 500px at 12% 8%, rgba(76,175,143,.25), transparent 55%),
+        radial-gradient(760px 520px at 88% 12%, rgba(242,201,76,.22), transparent 56%),
+        radial-gradient(900px 600px at 70% 88%, rgba(13,59,102,.14), transparent 58%),
+        linear-gradient(135deg, #0D3B66 0%, #1B7F5A 55%, #4CAF8F 100%);
+    }
+    .glass{
+      background: rgba(255,255,255,.78);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,.55);
+    }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"]{ -moz-appearance: textfield; }
+  </style>
+</head>
+
+<body class="min-h-screen bg-mesh text-graphite">
+  <header class="max-w-6xl mx-auto px-4 pt-8 pb-4">
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p class="inline-flex items-center gap-2 text-white/85 text-sm">
+          <span class="h-2 w-2 rounded-full bg-energy"></span>
+          Registro operacional
+        </p>
+        <h1 class="text-white text-2xl sm:text-3xl font-semibold tracking-tight">
+          Cadastro de Coletas Seletivas
+        </h1>
+        <p class="text-white/85 text-sm sm:text-base mt-1">
+          Salvando no Firestore + fotos no Storage.
+        </p>
+      </div>
+
+      <div class="flex gap-2">
+        <button id="btnClear" type="button"
+          class="px-4 py-2 rounded-xl bg-white/15 text-white hover:bg-white/20 border border-white/20 transition">
+          Limpar
+        </button>
+        <button id="btnPreview"
+          type="button"
+          class="px-4 py-2 rounded-xl bg-energy text-deepBlue font-semibold hover:brightness-95 transition shadow-soft">
+          Prévia JSON
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 pb-10">
+    <form id="formColeta" class="glass rounded-3xl shadow-soft overflow-hidden">
+      <div class="px-6 py-5 border-b border-black/5 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-center gap-2">
+          <span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-deepBlue text-white font-semibold">CS</span>
+          <div>
+            <p class="text-sm text-graphite/70">Formulário</p>
+            <p class="font-semibold">Operação de Coleta Seletiva</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <span id="statusSave" class="text-xs px-3 py-1 rounded-full bg-white border border-black/10 text-graphite/70">
+            Pronto para salvar
+          </span>
+        </div>
+      </div>
+
+      <div class="p-6 space-y-8">
+        <!-- Alert -->
+        <div id="alertBox" class="hidden rounded-2xl border border-red-200 bg-red-50 p-4">
+          <p class="font-semibold text-red-700">Atenção</p>
+          <ul id="alertList" class="mt-2 list-disc pl-5 text-sm text-red-700"></ul>
+        </div>
+
+        <!-- 1 -->
+        <section class="space-y-3">
+          <div>
+            <h2 class="font-semibold">1. Data da operação <span class="text-red-600">*</span></h2>
+            <p class="text-sm text-graphite/70">Exemplo: 7 de janeiro de 2019</p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <label class="block">
+              <span class="text-sm font-medium">Selecione a data</span>
+              <input id="opDate" name="opDate" type="date" required
+                class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-regenLight/50 focus:border-regenLight"/>
+            </label>
+
+            <label class="block">
+              <span class="text-sm font-medium">Data (texto opcional)</span>
+              <input id="opDateText" name="opDateText" type="text" placeholder="Ex: 7 de janeiro de 2019"
+                class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-regenLight/50 focus:border-regenLight"/>
+            </label>
+          </div>
+        </section>
+
+        <!-- 2 -->
+        <section class="space-y-3">
+          <h2 class="font-semibold">2. Tipo de entrega do resíduo</h2>
+          <p class="text-sm text-graphite/70">Marcar apenas uma opção.</p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <label class="cursor-pointer">
+              <input type="radio" name="deliveryType" value="Coleta domiciliar pelo triciclo" class="peer sr-only" checked>
+              <div class="rounded-2xl border border-black/10 bg-white p-4 peer-checked:border-regen peer-checked:ring-2 peer-checked:ring-regenLight/40 transition">
+                <p class="font-medium">Coleta domiciliar pelo triciclo</p>
+              </div>
+            </label>
+
+            <label class="cursor-pointer">
+              <input type="radio" name="deliveryType" value="Coleta condomínio" class="peer sr-only">
+              <div class="rounded-2xl border border-black/10 bg-white p-4 peer-checked:border-regen peer-checked:ring-2 peer-checked:ring-regenLight/40 transition">
+                <p class="font-medium">Coleta condomínio</p>
+              </div>
+            </label>
+
+            <label class="cursor-pointer">
+              <input type="radio" name="deliveryType" value="Entrega voluntária" class="peer sr-only">
+              <div class="rounded-2xl border border-black/10 bg-white p-4 peer-checked:border-regen peer-checked:ring-2 peer-checked:ring-regenLight/40 transition">
+                <p class="font-medium">Entrega voluntária</p>
+              </div>
+            </label>
+
+            <label class="cursor-pointer">
+              <input type="radio" name="deliveryType" value="Coleta Comércio" class="peer sr-only">
+              <div class="rounded-2xl border border-black/10 bg-white p-4 peer-checked:border-regen peer-checked:ring-2 peer-checked:ring-regenLight/40 transition">
+                <p class="font-medium">Coleta Comércio</p>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <!-- 3 -->
+        <section class="space-y-3">
+          <h2 class="font-semibold">3. Selecionar uma opção <span class="text-red-600">*</span></h2>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <label class="cursor-pointer">
+              <input id="optRecebimento" type="radio" name="flowType" value="recebimento" class="peer sr-only" required>
+              <div class="rounded-2xl border border-black/10 bg-white p-4 peer-checked:border-deepBlue peer-checked:ring-2 peer-checked:ring-deepBlue/20 transition">
+                <p class="font-semibold text-deepBlue">Recebimento de resíduo</p>
+                <p class="text-sm text-graphite/70 mt-1">Pular para a pergunta 4.</p>
+              </div>
+            </label>
+
+            <label class="cursor-pointer">
+              <input id="optFinalTurno" type="radio" name="flowType" value="final_turno" class="peer sr-only" required>
+              <div class="rounded-2xl border border-black/10 bg-white p-4 peer-checked:border-deepBlue peer-checked:ring-2 peer-checked:ring-deepBlue/20 transition">
+                <p class="font-semibold text-deepBlue">Registro de resíduo final do turno</p>
+                <p class="text-sm text-graphite/70 mt-1">Pular para a pergunta 12.</p>
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <!-- 4-11 -->
+        <section id="secRecebimento" class="hidden">
+          <div class="rounded-3xl border border-black/10 bg-white p-5 sm:p-6">
+            <h2 class="text-lg font-semibold text-deepBlue">RECEBIMENTO DE RESÍDUO</h2>
+            <p class="text-sm text-graphite/70">Perguntas 4 a 11</p>
+
+            <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <label class="block">
+                <span class="text-sm font-medium">4. Código da Família / Condomínio</span>
+                <input id="codFamilia" name="codFamilia" type="text" placeholder="Ex: FAM-000123"
+                  class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-regenLight/50 focus:border-regenLight"/>
+              </label>
+
+              <label class="block">
+                <span class="text-sm font-medium">5. Peso do resíduo seco (kg)</span>
+                <input id="pesoSeco" name="pesoSeco" type="number" step="0.01" min="0" placeholder="0,00"
+                  class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-regenLight/50 focus:border-regenLight"/>
+              </label>
+
+              <div class="block">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium">6. Nota para a qualidade do resíduo</span>
+                  <span id="qualidadeLabel" class="text-xs px-3 py-1 rounded-full bg-grayClean border border-black/10">—</span>
+                </div>
+                <div class="mt-2 rounded-2xl border border-black/10 bg-grayClean p-4">
+                  <div class="flex items-center justify-between text-xs text-graphite/70">
+                    <span>SUJO</span><span>LIMPO</span>
+                  </div>
+                  <input id="qualidade" name="qualidade" type="range" min="1" max="3" value="2" class="mt-2 w-full accent-regen"/>
+                  <div class="mt-2 flex items-center justify-between text-xs text-graphite/70">
+                    <span>1</span><span>2</span><span>3</span>
+                  </div>
+                </div>
+              </div>
+
+              <label class="block lg:col-span-2">
+                <span class="text-sm font-medium">7. Observação</span>
+                <textarea id="obs" name="obs" rows="3" placeholder="Observações..."
+                  class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-regenLight/50 focus:border-regenLight"></textarea>
+              </label>
+
+              <label class="block">
+                <span class="text-sm font-medium">8. Peso do rejeito (kg)</span>
+                <input id="pesoRejeito" name="pesoRejeito" type="number" step="0.01" min="0" value="0"
+                  class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-regenLight/50 focus:border-regenLight"/>
+                <p class="mt-1 text-xs text-graphite/60">Se não houver, manter ZERO.</p>
+              </label>
+
+              <label class="block">
+                <span class="text-sm font-medium">9. Peso não comercializado (kg)</span>
+                <input id="pesoNaoComercial" name="pesoNaoComercial" type="number" step="0.01" min="0" value="0"
+                  class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-regenLight/50 focus:border-regenLight"/>
+                <p class="mt-1 text-xs text-graphite/60">Se não houver, manter ZERO.</p>
+              </label>
+
+              <label class="block lg:col-span-2">
+                <span class="text-sm font-medium">10. Fotos do resíduo</span>
+                <input id="fotosResiduo" name="fotosResiduo" type="file" accept="image/*" multiple
+                  class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 file:mr-3 file:rounded-lg file:border-0 file:bg-deepBlue file:px-3 file:py-2 file:text-white file:font-semibold hover:file:brightness-95"/>
+              </label>
+
+              <label class="block lg:col-span-2">
+                <span class="text-sm font-medium">11. Fotos do não comercializado e rejeito</span>
+                <input id="fotosNaoComercialRejeito" name="fotosNaoComercialRejeito" type="file" accept="image/*" multiple
+                  class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 file:mr-3 file:rounded-lg file:border-0 file:bg-deepBlue file:px-3 file:py-2 file:text-white file:font-semibold hover:file:brightness-95"/>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <!-- 12-23 -->
+        <section id="secFinalTurno" class="hidden">
+          <div class="rounded-3xl border border-black/10 bg-white p-5 sm:p-6">
+            <h2 class="text-lg font-semibold text-deepBlue">REGISTRO DE RESÍDUOS FINAL DO TURNO</h2>
+            <p class="text-sm text-graphite/70">Perguntas 12 a 23</p>
+
+            <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <label class="block">
+                <span class="text-sm font-medium">12. Código do condomínio (se for registro condomínio)</span>
+                <input id="codCondominio" name="codCondominio" type="text" placeholder="Ex: COND-00045"
+                  class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-deepBlue/20 focus:border-deepBlue"/>
+              </label>
+
+              <label class="block">
+                <span class="text-sm font-medium">13. 2.1 Peso do rejeito geral (kg) <span class="text-red-600">*</span></span>
+                <input id="rejeitoGeral" name="rejeitoGeral" type="number" step="0.01" min="0" placeholder="0,00"
+                  class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-deepBlue/20 focus:border-deepBlue"/>
+              </label>
+
+              <div class="lg:col-span-2">
+                <div class="rounded-2xl border border-black/10 bg-grayClean p-4">
+                  <p class="font-semibold">Materiais do turno</p>
+                  <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <label class="block">
+                      <span class="text-sm font-medium">14. Plástico (kg)</span>
+                      <input name="plastico" type="number" step="0.01" min="0" placeholder="0,00"
+                        class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-deepBlue/20 focus:border-deepBlue"/>
+                    </label>
+                    <label class="block">
+                      <span class="text-sm font-medium">15. Papel misto (kg)</span>
+                      <input name="papelMisto" type="number" step="0.01" min="0" placeholder="0,00"
+                        class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-deepBlue/20 focus:border-deepBlue"/>
+                    </label>
+                    <label class="block">
+                      <span class="text-sm font-medium">16. Papelão (kg)</span>
+                      <input name="papelao" type="number" step="0.01" min="0" placeholder="0,00"
+                        class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-deepBlue/20 focus:border-deepBlue"/>
+                    </label>
+                    <label class="block">
+                      <span class="text-sm font-medium">17. Alumínio/Metal (kg)</span>
+                      <input name="aluminioMetal" type="number" step="0.01" min="0" placeholder="0,00"
+                        class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-deepBlue/20 focus:border-deepBlue"/>
+                    </label>
+                    <label class="block">
+                      <span class="text-sm font-medium">18. Vidro (kg)</span>
+                      <input name="vidro" type="number" step="0.01" min="0" placeholder="0,00"
+                        class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-deepBlue/20 focus:border-deepBlue"/>
+                    </label>
+                    <label class="block">
+                      <span class="text-sm font-medium">19. Sacaria/Sacolinha (kg)</span>
+                      <input name="sacariaSacolinha" type="number" step="0.01" min="0" placeholder="0,00"
+                        class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-deepBlue/20 focus:border-deepBlue"/>
+                    </label>
+                    <label class="block">
+                      <span class="text-sm font-medium">20. Isopor (kg)</span>
+                      <input name="isopor" type="number" step="0.01" min="0" placeholder="0,00"
+                        class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-deepBlue/20 focus:border-deepBlue"/>
+                    </label>
+                    <label class="block">
+                      <span class="text-sm font-medium">21. Óleo (kg)</span>
+                      <input name="oleo" type="number" step="0.01" min="0" placeholder="0,00"
+                        class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-deepBlue/20 focus:border-deepBlue"/>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 22 -->
+              <div class="lg:col-span-2">
+                <div class="rounded-2xl border border-black/10 bg-white p-4">
+                  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                      <p class="font-semibold">22. Adicionar mais tipos de materiais</p>
+                      <p class="text-xs text-graphite/60">Nome do material + peso (kg).</p>
+                    </div>
+                    <button id="btnAddMaterial" type="button"
+                      class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-regen text-white font-semibold hover:brightness-95 transition">
+                      + Adicionar material
+                    </button>
+                  </div>
+
+                  <div id="materialsWrap" class="mt-4 space-y-3"></div>
+
+                  <template id="tplMaterialRow">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end rounded-2xl border border-black/10 bg-grayClean p-3">
+                      <label class="md:col-span-7 block">
+                        <span class="text-sm font-medium">Nome do material</span>
+                        <input type="text" name="extraMaterialName[]" placeholder="Ex: Tetra Pak"
+                          class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-regenLight/40 focus:border-regenLight"/>
+                      </label>
+
+                      <label class="md:col-span-4 block">
+                        <span class="text-sm font-medium">Peso (kg)</span>
+                        <input type="number" name="extraMaterialKg[]" step="0.01" min="0" placeholder="0,00"
+                          class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-regenLight/40 focus:border-regenLight"/>
+                      </label>
+
+                      <button type="button"
+                        class="md:col-span-1 h-12 rounded-xl border border-red-200 bg-red-50 text-red-700 font-semibold hover:bg-red-100 transition"
+                        data-remove-material>×</button>
+                    </div>
+                  </template>
+                </div>
+              </div>
+
+              <!-- 23 -->
+              <label class="block lg:col-span-2">
+                <span class="text-sm font-medium">23. Fotos dos resíduos e rejeitos</span>
+                <input id="fotosTurno" name="fotosTurno" type="file" accept="image/*" multiple
+                  class="mt-1 w-full rounded-xl border border-black/10 bg-white px-4 py-3 file:mr-3 file:rounded-lg file:border-0 file:bg-deepBlue file:px-3 file:py-2 file:text-white file:font-semibold hover:file:brightness-95"/>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <!-- Preview / Submit -->
+        <section class="pt-2">
+          <div class="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+            <p class="text-sm text-graphite/70">
+              Ao salvar, as fotos vão para <span class="font-semibold">Firebase Storage</span> e o registro vai para <span class="font-semibold">Firestore</span>.
+            </p>
+
+            <button type="submit"
+              class="px-5 py-3 rounded-xl bg-deepBlue text-white font-semibold hover:brightness-95 transition shadow-soft">
+              Salvar no Firebase
+            </button>
+          </div>
+
+          <div id="previewBox" class="hidden mt-4 rounded-2xl border border-black/10 bg-grayClean p-4">
+            <div class="flex items-center justify-between gap-3">
+              <p class="font-semibold">Prévia (JSON)</p>
+              <button id="btnCopy" type="button"
+                class="px-3 py-2 rounded-xl bg-white border border-black/10 hover:bg-white/70 transition text-sm font-semibold">
+                Copiar
+              </button>
+            </div>
+            <pre id="previewJson" class="mt-3 text-xs overflow-auto whitespace-pre-wrap break-words"></pre>
+          </div>
+        </section>
+      </div>
+
+      <div class="px-6 py-5 border-t border-black/5 bg-white/60 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <p class="text-xs text-graphite/60">© Hub • Coletas Seletivas</p>
+        <p class="text-xs text-graphite/60">Campos com <span class="text-red-600 font-semibold">*</span> são obrigatórios.</p>
+      </div>
+    </form>
+  </main>
+
+  <!-- Firebase (SDK modular via CDN) -->
+  <script type="module">
+    // 1) Troque pelo seu firebaseConfig:
+    const firebaseConfig = {
+      apiKey: "AIzaSyA8LPTZD7LA_CW2fOnJXJlVe6pByLyrRzo",
+      authDomain: "hub-resiliencia-climatica.firebaseapp.com",
+      projectId: "hub-resiliencia-climatica",
+      storageBucket: "hub-resiliencia-climatica.firebasestorage.app",
+      messagingSenderId: "485694309026",
+      appId: "1:485694309026:web:771ed497d49861fa444dfb"
+    };
+
+    // Firebase imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getFirestore, addDoc, collection, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import {
+      getStorage, ref, uploadBytes, getDownloadURL
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
+
+    // Init
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // Helpers DOM
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+    const form = $("#formColeta");
+    const secRecebimento = $("#secRecebimento");
+    const secFinalTurno = $("#secFinalTurno");
+    const alertBox = $("#alertBox");
+    const alertList = $("#alertList");
+    const statusSave = $("#statusSave");
+
+    // Quality label
+    const qualidade = $("#qualidade");
+    const qualidadeLabel = $("#qualidadeLabel");
+    function setQualidadeLabel(val){
+      const map = { "1":"SUJO (1)", "2":"MEDIANO (2)", "3":"LIMPO (3)" };
+      qualidadeLabel.textContent = map[String(val)] || "—";
+    }
+    setQualidadeLabel(qualidade?.value ?? 2);
+    qualidade?.addEventListener("input", e => setQualidadeLabel(e.target.value));
+
+    // Flow toggle
+    function setFlow(flow){
+      const isReceb = flow === "recebimento";
+      secRecebimento.classList.toggle("hidden", !isReceb);
+      secFinalTurno.classList.toggle("hidden", isReceb);
+
+      // Required only when final_turno
+      const rejeitoGeral = $("#rejeitoGeral");
+      if (rejeitoGeral) rejeitoGeral.required = !isReceb;
+    }
+    $$('input[name="flowType"]').forEach(r => r.addEventListener("change", e => setFlow(e.target.value)));
+
+    // Materials add/remove
+    const materialsWrap = $("#materialsWrap");
+    const tpl = $("#tplMaterialRow");
+    $("#btnAddMaterial").addEventListener("click", () => materialsWrap.appendChild(tpl.content.cloneNode(true)));
+    materialsWrap.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-remove-material]");
+      if(!btn) return;
+      btn.closest(".grid")?.remove();
+    });
+
+    // Alerts
+    function showErrors(errors){
+      if(!errors.length){
+        alertBox.classList.add("hidden");
+        alertList.innerHTML = "";
+        return;
+      }
+      alertList.innerHTML = errors.map(x => `<li>${x}</li>`).join("");
+      alertBox.classList.remove("hidden");
+      alertBox.scrollIntoView({behavior:"smooth", block:"start"});
+    }
+
+    // Validation
+    function validate(){
+      const errors = [];
+      if(!$("#opDate").value) errors.push("Informe a data da operação (Pergunta 1).");
+
+      const fd = new FormData(form);
+      const flow = fd.get("flowType");
+      if(!flow) errors.push("Selecione uma opção na Pergunta 3 (Recebimento ou Final do turno).");
+
+      if(flow === "final_turno"){
+        const rg = $("#rejeitoGeral").value;
+        if(rg === "" || rg === null) errors.push("Informe o Peso do rejeito geral (Pergunta 13).");
+      }
+
+      // Defaults for zeros in recebimento
+      if(flow === "recebimento"){
+        if($("#pesoRejeito").value === "") $("#pesoRejeito").value = "0";
+        if($("#pesoNaoComercial").value === "") $("#pesoNaoComercial").value = "0";
+      }
+
+      showErrors(errors);
+      return errors.length === 0;
+    }
+
+    // Build payload (Firestore doc)
+    function buildPayload(){
+      const fd = new FormData(form);
+
+      const flowType = fd.get("flowType"); // recebimento | final_turno
+
+      // Extras
+      const extraNames = fd.getAll("extraMaterialName[]");
+      const extraKgs = fd.getAll("extraMaterialKg[]");
+      const materiaisExtras = [];
+      for(let i=0;i<Math.max(extraNames.length, extraKgs.length);i++){
+        const name = (extraNames[i] ?? "").toString().trim();
+        const kgStr = (extraKgs[i] ?? "").toString().trim();
+        if(name || kgStr){
+          materiaisExtras.push({
+            material: name,
+            kg: kgStr ? Number(kgStr) : 0
+          });
+        }
+      }
+
+      // Base
+      const payload = {
+        opDate: fd.get("opDate") || null,                 // string yyyy-mm-dd
+        opDateText: fd.get("opDateText") || null,         // opcional
+        deliveryType: fd.get("deliveryType") || null,
+
+        flowType,
+
+        // Recebimento (4-11)
+        recebimento: (flowType === "recebimento") ? {
+          codigoFamiliaCondominio: fd.get("codFamilia") || null,
+          pesoResiduoSecoKg: fd.get("pesoSeco") ? Number(fd.get("pesoSeco")) : null,
+          notaQualidade: fd.get("qualidade") ? Number(fd.get("qualidade")) : null, // 1..3
+          observacao: fd.get("obs") || null,
+          pesoRejeitoKg: fd.get("pesoRejeito") ? Number(fd.get("pesoRejeito")) : 0,
+          pesoNaoComercializadoKg: fd.get("pesoNaoComercial") ? Number(fd.get("pesoNaoComercial")) : 0,
+          fotosResiduoUrls: [],                 // preenchido após upload
+          fotosNaoComercialRejeitoUrls: []      // preenchido após upload
+        } : null,
+
+        // Final do turno (12-23)
+        finalTurno: (flowType === "final_turno") ? {
+          codigoCondominio: fd.get("codCondominio") || null,
+          rejeitoGeralKg: fd.get("rejeitoGeral") ? Number(fd.get("rejeitoGeral")) : null,
+
+          plasticoKg: fd.get("plastico") ? Number(fd.get("plastico")) : 0,
+          papelMistoKg: fd.get("papelMisto") ? Number(fd.get("papelMisto")) : 0,
+          papelaoKg: fd.get("papelao") ? Number(fd.get("papelao")) : 0,
+          aluminioMetalKg: fd.get("aluminioMetal") ? Number(fd.get("aluminioMetal")) : 0,
+          vidroKg: fd.get("vidro") ? Number(fd.get("vidro")) : 0,
+          sacariaSacolinhaKg: fd.get("sacariaSacolinha") ? Number(fd.get("sacariaSacolinha")) : 0,
+          isoporKg: fd.get("isopor") ? Number(fd.get("isopor")) : 0,
+          oleoKg: fd.get("oleo") ? Number(fd.get("oleo")) : 0,
+
+          materiaisExtras,
+          fotosTurnoUrls: [] // preenchido após upload
+        } : null,
+
+        createdAt: serverTimestamp()
+      };
+
+      return payload;
+    }
+
+    // Upload helper
+    async function uploadFilesAndGetUrls(files, folderPath){
+      const urls = [];
+      const safe = (s) => s.replace(/[^\w.\-]+/g, "_");
+
+      // Upload sequential (mais simples e estável)
+      for (const file of files){
+        const filename = `${Date.now()}_${safe(file.name)}`;
+        const storageRef = ref(storage, `${folderPath}/${filename}`);
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
+        urls.push(url);
+      }
+      return urls;
+    }
+
+    // Preview JSON
+    $("#btnPreview").addEventListener("click", () => {
+      if(!validate()) return;
+      const payload = buildPayload();
+      $("#previewJson").textContent = JSON.stringify(payload, null, 2);
+      $("#previewBox").classList.remove("hidden");
+      $("#previewBox").scrollIntoView({behavior:"smooth", block:"start"});
+    });
+
+    $("#btnCopy").addEventListener("click", async () => {
+      try{
+        await navigator.clipboard.writeText($("#previewJson").textContent || "");
+        $("#btnCopy").textContent = "Copiado!";
+        setTimeout(() => $("#btnCopy").textContent = "Copiar", 1200);
+      }catch(e){
+        alert("Não foi possível copiar automaticamente. Selecione e copie manualmente.");
+      }
+    });
+
+    // Clear
+    $("#btnClear").addEventListener("click", () => {
+      form.reset();
+      materialsWrap.innerHTML = "";
+      $("#previewBox").classList.add("hidden");
+      showErrors([]);
+      secRecebimento.classList.add("hidden");
+      secFinalTurno.classList.add("hidden");
+      setQualidadeLabel($("#qualidade")?.value ?? 2);
+      statusSave.textContent = "Pronto para salvar";
+      window.scrollTo({top: 0, behavior: "smooth"});
+    });
+
+    // Submit => uploads + addDoc
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if(!validate()) return;
+
+      statusSave.textContent = "Salvando...";
+      statusSave.className = "text-xs px-3 py-1 rounded-full bg-energy/20 border border-energy/40 text-deepBlue";
+
+      try{
+        const fd = new FormData(form);
+        const payload = buildPayload();
+
+        // Path base for storage
+        const opDate = fd.get("opDate") || "sem_data";
+        const flow = fd.get("flowType") || "sem_fluxo";
+        const baseFolder = `coletas/${opDate}/${flow}`;
+
+        // Uploads by flow
+        if(flow === "recebimento"){
+          const fotosResiduo = fd.getAll("fotosResiduo").filter(x => x instanceof File && x.size > 0);
+          const fotosNR = fd.getAll("fotosNaoComercialRejeito").filter(x => x instanceof File && x.size > 0);
+
+          payload.recebimento.fotosResiduoUrls = await uploadFilesAndGetUrls(fotosResiduo, `${baseFolder}/residuo`);
+          payload.recebimento.fotosNaoComercialRejeitoUrls = await uploadFilesAndGetUrls(fotosNR, `${baseFolder}/nao_comercial_rejeito`);
+        }
+
+        if(flow === "final_turno"){
+          const fotosTurno = fd.getAll("fotosTurno").filter(x => x instanceof File && x.size > 0);
+          payload.finalTurno.fotosTurnoUrls = await uploadFilesAndGetUrls(fotosTurno, `${baseFolder}/turno`);
+        }
+
+        // Save doc
+        const docRef = await addDoc(collection(db, "coletasSeletivas"), payload);
+
+        // UI feedback
+        statusSave.textContent = `Salvo ✓ (${docRef.id})`;
+        statusSave.className = "text-xs px-3 py-1 rounded-full bg-regenLight/20 border border-regenLight/40 text-regen";
+
+        // Preview
+        $("#previewJson").textContent = JSON.stringify({ id: docRef.id, ...payload }, null, 2);
+        $("#previewBox").classList.remove("hidden");
+        $("#previewBox").scrollIntoView({behavior:"smooth", block:"start"});
+
+        // Optional: reset form
+        // form.reset(); materialsWrap.innerHTML=""; secRecebimento.classList.add("hidden"); secFinalTurno.classList.add("hidden");
+
+      }catch(err){
+        console.error(err);
+        statusSave.textContent = "Erro ao salvar";
+        statusSave.className = "text-xs px-3 py-1 rounded-full bg-red-100 border border-red-200 text-red-700";
+        showErrors([`Falha ao salvar no Firebase: ${err?.message || err}`]);
+      }
+    });
+  </script>
+</body>
+</html>
