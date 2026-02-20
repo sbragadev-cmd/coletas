@@ -138,7 +138,7 @@
               </label>
               <label class="flex gap-3">
                 <input id="c3" type="checkbox" class="mt-1">
-                <span><b>3.</b> A utilização da minha <b>imagem</b> para fins de divulgação e promoção das ações do projeto, em mídias impressas, digitais ou outros meios.</span>
+                <span><b>3.</b> A utilização da minha <b>imagem</b> para fins de divulgação e promoção das ações do projeto, em mídias impressas, digitais ou outros meios de comunicação.</span>
               </label>
             </div>
           </div>
@@ -186,7 +186,7 @@
 
           <!-- STEP 5: Dificuldades -->
           <div class="step" data-step="5">
-            <h2 class="text-lg font-extrabold text-deepBlue reqDot">4) Quais são as limitações para separar/armazenar resíduos recicláveis (secos)?</h2>
+            <h2 class="text-lg font-extrabold text-deepBlue reqDot">4) Se você encontra dificuldades para separar/armazenar seus resíduos recicláveis (secos), nos conte quais são as limitações</h2>
             <p class="mt-1 text-sm text-graphite/70">Conte com suas palavras (ex.: espaço, tempo, dúvidas, falta de sacaria).</p>
             <textarea id="dificuldades" rows="5" class="mt-4 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
               placeholder="Escreva aqui…"></textarea>
@@ -282,7 +282,14 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
-      getFirestore, collection, addDoc, serverTimestamp
+      getFirestore,
+      collection,
+      addDoc,
+      serverTimestamp,
+      query,
+      where,
+      getDocs,
+      limit
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
     // ===========================
@@ -346,10 +353,30 @@
 
     function cleanPhone(v){ return (v || "").replace(/[^\d]/g, ""); }
 
+    function todayKey(){
+      // YYYY-MM-DD
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,"0");
+      const da = String(d.getDate()).padStart(2,"0");
+      return `${y}-${m}-${da}`;
+    }
+
+    function makePublicId(){
+      // PART-YYYYMMDD-XXXXX (não sequencial, mas amigável)
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,"0");
+      const da = String(d.getDate()).padStart(2,"0");
+      const rand = Math.random().toString(36).slice(2,7).toUpperCase();
+      return `PART-${y}${m}${da}-${rand}`;
+    }
+
     function setProgress() {
       $("progressText").textContent = `${step}/${TOTAL_STEPS}`;
       const pct = Math.round((step / TOTAL_STEPS) * 100);
       $("progressBar").style.width = `${pct}%`;
+
       $("btnBack").disabled = (step === 1 || isSubmitting);
       $("btnBack").classList.toggle("opacity-60", step === 1 || isSubmitting);
       $("btnBack").classList.toggle("cursor-not-allowed", step === 1 || isSubmitting);
@@ -365,13 +392,12 @@
 
     function showStep(n) {
       document.querySelectorAll(".step").forEach(el => el.classList.remove("active"));
-      const el = document.querySelector(\`.step[data-step="\${n}"]\`);
+      const el = document.querySelector(`.step[data-step="${n}"]`);
       if (el) el.classList.add("active");
       step = n;
       setProgress();
       hideAlert();
       $("preview").classList.add("hidden");
-      // foco automático no input do passo (se existir)
       setTimeout(() => {
         const active = document.querySelector(".step.active input, .step.active textarea");
         if(active) active.focus();
@@ -379,7 +405,7 @@
     }
 
     function selectChip(group, value, chipEl) {
-      document.querySelectorAll(\`.chip[data-radio="\${group}"]\`).forEach(el => el.classList.remove("selected"));
+      document.querySelectorAll(`.chip[data-radio="${group}"]`).forEach(el => el.classList.remove("selected"));
       chipEl.classList.add("selected");
 
       if(group === "destina") state.jaDestinaReciclavel = value;
@@ -475,33 +501,62 @@
     }
 
     function buildPayloadFinal() {
+      const phone = state.whatsappDDD;
+      const day = todayKey();
       return {
         type: "participant_registration",
+        publicId: makePublicId(),        // ID amigável (não sequencial)
+        dayKey: day,                     // chave do dia (para evitar duplicidade simples)
         createdAtISO: new Date().toISOString(),
-        createdAt: serverTimestamp(), // timestamp do servidor
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        sourcePage: "cadastro-participantes-step",
+
         consent: {
           dados: state.consent.c1,
           whatsapp: state.consent.c2,
           imagem: state.consent.c3
         },
+
         nomeCompleto: state.nomeCompleto,
         jaDestinaReciclavel: state.jaDestinaReciclavel,
         temInteresseProjeto: state.temInteresseProjeto,
         dificuldades: state.dificuldades,
-        whatsappDDD: state.whatsappDDD,
+        whatsappDDD: phone,
+
         localColeta: state.localColeta,
         localColetaOutro: state.localColeta === "Outro" ? state.localColetaOutro : null,
+
         enderecoCompleto: state.enderecoCompleto,
         pontoReferencia: state.pontoReferencia,
-        status: "pending" // opcional: você pode trabalhar isso depois no admin/dashboard
+
+        status: "pending"
       };
     }
 
+    async function existsSamePhoneToday(phoneDigits, dayKey){
+      // (opcional) evita duplicidade: mesmo telefone no mesmo dia
+      const q = query(
+        collection(db, "participants"),
+        where("whatsappDDD", "==", phoneDigits),
+        where("dayKey", "==", dayKey),
+        limit(1)
+      );
+      const snap = await getDocs(q);
+      return !snap.empty;
+    }
+
     async function saveToFirestore() {
-      // coleção "participants" será criada automaticamente no primeiro addDoc
       const payload = buildPayloadFinal();
+
+      // bloqueio simples de duplicidade (opcional)
+      const dup = await existsSamePhoneToday(payload.whatsappDDD, payload.dayKey);
+      if(dup){
+        return { duplicated: true, id: null, payload };
+      }
+
       const ref = await addDoc(collection(db, "participants"), payload);
-      return { id: ref.id, payload };
+      return { duplicated: false, id: ref.id, payload };
     }
 
     // ===========================
@@ -541,15 +596,52 @@
 
         try{
           setDbStatus("salvando no Firestore…", true);
-          const { id, payload } = await saveToFirestore();
+
+          const result = await saveToFirestore();
+
+          if(result.duplicated){
+            setDbStatus("não salvo (duplicado)", false);
+            showAlert("err", "Esse telefone já foi cadastrado hoje. Se foi engano, tente novamente amanhã ou use outro número.");
+            isSubmitting = false;
+            setProgress();
+            return;
+          }
+
           setDbStatus("salvo ✅", true);
+          showAlert("ok", `Cadastro enviado com sucesso! ID: ${result.payload.publicId} • docId: ${result.id}`);
 
-          showAlert("ok", `Cadastro enviado com sucesso! ID do registro: ${id}`);
           $("preview").classList.remove("hidden");
-          $("preview").textContent = JSON.stringify({ firestoreDocId: id, ...payload, createdAt: "(serverTimestamp)" }, null, 2);
+          $("preview").textContent = JSON.stringify(
+            { firestoreDocId: result.id, ...result.payload, createdAt: "(serverTimestamp)", updatedAt: "(serverTimestamp)" },
+            null,
+            2
+          );
 
-          // opcional: reset geral e voltar ao início após alguns segundos
-          // setTimeout(()=> location.reload(), 1500);
+          // reset do fluxo (opcional)
+          setTimeout(()=> {
+            // limpar inputs/chips
+            document.querySelectorAll("input, textarea").forEach(el => {
+              if(el.type === "checkbox") el.checked = false;
+              else el.value = "";
+            });
+            document.querySelectorAll(".chip").forEach(el => el.classList.remove("selected"));
+            document.getElementById("localOutroWrap").classList.add("hidden");
+
+            // reset state
+            state.consent = { c1:false, c2:false, c3:false };
+            state.nomeCompleto = "";
+            state.jaDestinaReciclavel = "";
+            state.temInteresseProjeto = "";
+            state.dificuldades = "";
+            state.whatsappDDD = "";
+            state.localColeta = "";
+            state.localColetaOutro = "";
+            state.enderecoCompleto = "";
+            state.pontoReferencia = "";
+
+            showStep(1);
+            $("preview").classList.add("hidden");
+          }, 1200);
 
         }catch(e){
           console.error(e);
@@ -569,7 +661,7 @@
       readStepIntoState();
       const payload = buildPayloadFinal();
       $("preview").classList.remove("hidden");
-      $("preview").textContent = JSON.stringify({ ...payload, createdAt: "(serverTimestamp)" }, null, 2);
+      $("preview").textContent = JSON.stringify({ ...payload, createdAt: "(serverTimestamp)", updatedAt: "(serverTimestamp)" }, null, 2);
       showAlert("info", "Prévia gerada (ainda não foi salva).");
     });
 
