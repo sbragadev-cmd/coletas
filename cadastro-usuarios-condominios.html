@@ -5,8 +5,9 @@
   <meta http-equiv="Content-Language" content="pt-BR">
   <meta name="google" content="notranslate">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Recicla Bonja • Cadastro Usuários & Condomínios</title>
+  <title>Recicla Bonja • Cadastro de Participantes (Passo a passo)</title>
 
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -35,9 +36,9 @@
         linear-gradient(135deg, #0D3B66 0%, #1B7F5A 55%, #4CAF8F 100%);
     }
     .glass{
-      background: rgba(255,255,255,.86);
-      -webkit-backdrop-filter: blur(10px);
-      backdrop-filter: blur(10px);
+      background: rgba(255,255,255,.88);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
       border: 1px solid rgba(255,255,255,.55);
     }
     .focus-ring:focus{
@@ -45,336 +46,485 @@
       box-shadow: 0 0 0 4px rgba(27,127,90,.16);
       border-color: rgba(27,127,90,.45);
     }
-    .tabBtn.active{
-      background: rgba(13,59,102,.10);
-      border-color: rgba(13,59,102,.25);
-      color: #0D3B66;
+    .step{ display:none; }
+    .step.active{ display:block; }
+    .chip{
+      border:1px solid rgba(0,0,0,.1);
+      background:#fff;
+      border-radius:14px;
+      padding:12px 14px;
+      cursor:pointer;
+      transition:.15s;
+      user-select:none;
     }
+    .chip:hover{ background:rgba(0,0,0,.03); }
+    .chip.selected{
+      border-color: rgba(27,127,90,.35);
+      box-shadow: 0 0 0 4px rgba(27,127,90,.10);
+    }
+    .reqDot::after{ content:" *"; color:#dc2626; font-weight:800; }
   </style>
 </head>
 
 <body class="min-h-screen bg-mesh text-graphite">
-  <header class="max-w-6xl mx-auto px-4 pt-8 pb-4">
+  <!-- TOP -->
+  <header class="max-w-5xl mx-auto px-4 pt-8 pb-4">
     <div class="flex items-center justify-between gap-3">
       <div class="flex items-center gap-3">
         <div class="h-12 w-12 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center text-white font-extrabold">RB</div>
         <div class="leading-tight">
           <div class="text-white/85 text-xs">vila do futuro</div>
           <div class="text-white text-xl font-extrabold tracking-tight">RECICLA BONJA</div>
-          <div class="text-white/75 text-xs">Cadastro • Usuários & Condomínios</div>
+          <div class="text-white/75 text-xs">Cadastro de Participantes • Passo a passo</div>
         </div>
       </div>
-
       <a href="index.html" class="text-white/90 text-sm font-semibold hover:underline">Voltar ao menu</a>
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4 pb-10">
+  <main class="max-w-5xl mx-auto px-4 pb-10">
     <section class="glass rounded-3xl shadow-soft overflow-hidden">
+      <!-- header -->
       <div class="p-6 sm:p-8 border-b border-black/5 bg-white/60">
-        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-deepBlue">Cadastro</h1>
-        <p class="mt-2 text-graphite/70">
-          Aqui você cria <b>Usuários</b> (ID RB-000xxx) e <b>Condomínios</b> (ID COND-000xxx).
-        </p>
-      </div>
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+          <div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-deepBlue">Cadastro de Participantes</h1>
+            <p class="mt-2 text-graphite/70">
+              Responda uma pergunta por vez. Você só avança após preencher a resposta.
+            </p>
+          </div>
 
-      <!-- Tabs -->
-      <div class="px-6 sm:px-8 pt-6 bg-white/60">
-        <div class="flex flex-wrap gap-2">
-          <button id="tabUsersBtn" class="tabBtn active px-4 py-2 rounded-xl border border-black/10 bg-white text-sm font-extrabold">Usuários</button>
-          <button id="tabCondBtn"  class="tabBtn px-4 py-2 rounded-xl border border-black/10 bg-white text-sm font-extrabold">Condomínios</button>
+          <div class="text-xs text-graphite/70">
+            <span class="font-bold">Progresso:</span>
+            <span id="progressText">1/9</span>
+          </div>
+        </div>
+
+        <!-- progress bar -->
+        <div class="mt-4 w-full h-2 bg-black/10 rounded-full overflow-hidden">
+          <div id="progressBar" class="h-full bg-regen rounded-full" style="width: 11%;"></div>
         </div>
       </div>
 
+      <!-- body -->
       <div class="p-6 sm:p-8 bg-white">
-        <!-- Alerts -->
-        <div id="alert" class="hidden rounded-2xl border p-4 text-sm mb-6"></div>
+        <div id="alert" class="hidden rounded-2xl border p-4 text-sm mb-4"></div>
 
-        <!-- USERS -->
-        <div id="tabUsers" class="space-y-6">
-          <div class="rounded-2xl bg-grayClean border border-black/10 p-4">
-            <div class="text-sm font-extrabold text-deepBlue">Novo Usuário</div>
-            <div class="text-xs text-graphite/60">Ao salvar, será gerado automaticamente um ID do tipo <b>RB-000123</b>.</div>
-          </div>
+        <!-- STEPS (9 no total: consent + 8 perguntas) -->
+        <div id="steps">
 
-          <form id="formUser" class="grid lg:grid-cols-2 gap-6">
-            <div class="lg:col-span-2">
-              <label class="text-sm font-semibold">Nome completo</label>
-              <input id="u_nome" required class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring" placeholder="Nome completo" />
-            </div>
-
-            <div>
-              <label class="text-sm font-semibold">Telefone/WhatsApp</label>
-              <input id="u_tel" required class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring" placeholder="(51) 99999-9999" />
-            </div>
-
-            <div>
-              <label class="text-sm font-semibold">Perfil</label>
-              <select id="u_role" required class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white">
-                <option value="">Selecione</option>
-                <option value="participante">Participante</option>
-                <option value="embaixador">Embaixador</option>
-                <option value="cooperativa">Cooperativa</option>
-                <option value="gestor">Gestor</option>
-                <option value="governanca">Governança</option>
-              </select>
-            </div>
-
-            <div class="lg:col-span-2">
-              <label class="text-sm font-semibold">Condomínio (ID COND-000xxx) – opcional</label>
-              <input id="u_condominioId" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring" placeholder="Ex.: COND-000012" />
-              <div class="text-xs text-graphite/60 mt-1">Se existir, você pode associar o usuário a um condomínio pelo ID.</div>
-            </div>
-
-            <div class="lg:col-span-2 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-end">
-              <button id="btnUserSave" type="submit"
-                class="px-6 py-3 rounded-xl bg-regen text-white font-extrabold hover:brightness-95 transition shadow-soft">
-                Salvar usuário
-              </button>
-            </div>
-
-            <div class="lg:col-span-2">
-              <div class="rounded-2xl border border-black/10 bg-white p-4">
-                <div class="text-sm font-extrabold text-deepBlue">Último usuário criado</div>
-                <div class="mt-2 text-sm">
-                  ID: <span id="lastUserId" class="font-extrabold text-regen">—</span>
-                </div>
-                <div class="text-xs text-graphite/60 mt-1">Use esse ID no cadastro de coletas para puxar os dados automaticamente.</div>
+          <!-- STEP 1: Consent -->
+          <div class="step active" data-step="1">
+            <div class="flex items-start gap-3">
+              <div class="mt-1 h-10 w-10 rounded-2xl bg-regen/10 border border-regen/15 flex items-center justify-center">✅</div>
+              <div>
+                <h2 class="text-lg font-extrabold text-deepBlue">Dados Pessoais • Declaro estar ciente e autorizo</h2>
+                <p class="mt-1 text-sm text-graphite/70">Selecione todos os itens para avançar.</p>
               </div>
             </div>
-          </form>
-        </div>
 
-        <!-- CONDOMINIOS -->
-        <div id="tabCond" class="space-y-6 hidden">
-          <div class="rounded-2xl bg-grayClean border border-black/10 p-4">
-            <div class="text-sm font-extrabold text-deepBlue">Novo Condomínio</div>
-            <div class="text-xs text-graphite/60">Ao salvar, será gerado automaticamente um ID do tipo <b>COND-000123</b>.</div>
+            <div class="mt-5 space-y-3 text-sm text-graphite/85">
+              <label class="flex gap-3">
+                <input id="c1" type="checkbox" class="mt-1">
+                <span><b>1.</b> O uso dos meus dados pessoais para fins exclusivos de organização e gestão do projeto, em conformidade com a <b>LGPD</b>.</span>
+              </label>
+              <label class="flex gap-3">
+                <input id="c2" type="checkbox" class="mt-1">
+                <span><b>2.</b> O envio de comunicações via <b>WhatsApp</b>, incluindo avisos sobre coletas e demais atividades relacionadas ao projeto.</span>
+              </label>
+              <label class="flex gap-3">
+                <input id="c3" type="checkbox" class="mt-1">
+                <span><b>3.</b> A utilização da minha <b>imagem</b> para fins de divulgação e promoção das ações do projeto, em mídias impressas, digitais ou outros meios.</span>
+              </label>
+            </div>
           </div>
 
-          <form id="formCond" class="grid lg:grid-cols-2 gap-6">
-            <div class="lg:col-span-2">
-              <label class="text-sm font-semibold">Nome do condomínio</label>
-              <input id="c_nome" required class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring" placeholder="Nome do condomínio" />
-            </div>
+          <!-- STEP 2: Nome -->
+          <div class="step" data-step="2">
+            <h2 class="text-lg font-extrabold text-deepBlue reqDot">1) Nome completo</h2>
+            <p class="mt-1 text-sm text-graphite/70">Como você gostaria de se identificar no projeto?</p>
+            <input id="nome" class="mt-4 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring" placeholder="Digite seu nome completo"/>
+          </div>
 
-            <div class="lg:col-span-2">
-              <label class="text-sm font-semibold">Endereço completo</label>
-              <input id="c_endereco" required class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring" placeholder="Rua, número, bairro, cidade, CEP" />
-            </div>
+          <!-- STEP 3: Destina reciclável -->
+          <div class="step" data-step="3">
+            <h2 class="text-lg font-extrabold text-deepBlue reqDot">2) Você já destina seu resíduo reciclável para algum local ou catador?</h2>
+            <p class="mt-1 text-sm text-graphite/70">Selecione uma opção.</p>
 
-            <div>
-              <label class="text-sm font-semibold">Ponto de referência</label>
-              <input id="c_ref" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring" placeholder="Ex.: perto do mercado..." />
-            </div>
-
-            <div>
-              <label class="text-sm font-semibold">Contato/WhatsApp</label>
-              <input id="c_tel" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring" placeholder="(51) 99999-9999" />
-            </div>
-
-            <div class="lg:col-span-2 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-end">
-              <button id="btnCondSave" type="submit"
-                class="px-6 py-3 rounded-xl bg-deepBlue text-white font-extrabold hover:brightness-95 transition shadow-soft">
-                Salvar condomínio
-              </button>
-            </div>
-
-            <div class="lg:col-span-2">
-              <div class="rounded-2xl border border-black/10 bg-white p-4">
-                <div class="text-sm font-extrabold text-deepBlue">Último condomínio criado</div>
-                <div class="mt-2 text-sm">
-                  ID: <span id="lastCondId" class="font-extrabold text-deepBlue">—</span>
-                </div>
-                <div class="text-xs text-graphite/60 mt-1">Use esse ID no cadastro de coletas para vincular coleta ao condomínio.</div>
+            <div class="mt-4 grid sm:grid-cols-2 gap-3" role="radiogroup" aria-label="Destina">
+              <div class="chip" data-radio="destina" data-value="Sim">
+                <div class="font-extrabold">Sim</div>
+                <div class="text-xs text-graphite/60">Já destino atualmente</div>
+              </div>
+              <div class="chip" data-radio="destina" data-value="Não">
+                <div class="font-extrabold">Não</div>
+                <div class="text-xs text-graphite/60">Ainda não destino</div>
               </div>
             </div>
-          </form>
+          </div>
+
+          <!-- STEP 4: Interesse -->
+          <div class="step" data-step="4">
+            <h2 class="text-lg font-extrabold text-deepBlue reqDot">3) Você tem interesse em participar do Projeto, tendo seu resíduo coletado na sua residência/local de trabalho?</h2>
+            <p class="mt-1 text-sm text-graphite/70">Selecione uma opção.</p>
+
+            <div class="mt-4 grid sm:grid-cols-2 gap-3" role="radiogroup" aria-label="Interesse">
+              <div class="chip" data-radio="interesse" data-value="Sim">
+                <div class="font-extrabold">Sim</div>
+                <div class="text-xs text-graphite/60">Tenho interesse</div>
+              </div>
+              <div class="chip" data-radio="interesse" data-value="Não">
+                <div class="font-extrabold">Não</div>
+                <div class="text-xs text-graphite/60">Não tenho interesse agora</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 5: Dificuldades -->
+          <div class="step" data-step="5">
+            <h2 class="text-lg font-extrabold text-deepBlue reqDot">4) Quais são as limitações para separar/armazenar resíduos recicláveis (secos)?</h2>
+            <p class="mt-1 text-sm text-graphite/70">Conte com suas palavras (ex.: espaço, tempo, dúvidas, falta de sacaria).</p>
+            <textarea id="dificuldades" rows="5" class="mt-4 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
+              placeholder="Escreva aqui…"></textarea>
+          </div>
+
+          <!-- STEP 6: Telefone -->
+          <div class="step" data-step="6">
+            <h2 class="text-lg font-extrabold text-deepBlue reqDot">5) Telefone/WhatsApp com DDD</h2>
+            <p class="mt-1 text-sm text-graphite/70">Ex.: (51) 99999-9999</p>
+            <input id="telefone" inputmode="tel" class="mt-4 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
+              placeholder="(DD) 99999-9999"/>
+            <div class="mt-2 text-xs text-graphite/60">Você pode digitar com parênteses e traço. O sistema valida pelos números.</div>
+          </div>
+
+          <!-- STEP 7: Local -->
+          <div class="step" data-step="7">
+            <h2 class="text-lg font-extrabold text-deepBlue reqDot">6) Local para coleta do resíduo</h2>
+            <p class="mt-1 text-sm text-graphite/70">Selecione uma opção. Se for “Outro”, descreva.</p>
+
+            <div class="mt-4 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div class="chip" data-radio="local" data-value="Casa"><div class="font-extrabold">Casa</div></div>
+              <div class="chip" data-radio="local" data-value="Condomínio"><div class="font-extrabold">Condomínio</div></div>
+              <div class="chip" data-radio="local" data-value="Comércio"><div class="font-extrabold">Comércio</div></div>
+              <div class="chip" data-radio="local" data-value="Outro"><div class="font-extrabold">Outro</div></div>
+            </div>
+
+            <div id="localOutroWrap" class="mt-4 hidden">
+              <label class="text-sm font-semibold reqDot">Descreva (Outro)</label>
+              <input id="localOutro" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
+                placeholder="Ex.: escola, associação, igreja, etc." />
+            </div>
+          </div>
+
+          <!-- STEP 8: Endereço -->
+          <div class="step" data-step="8">
+            <h2 class="text-lg font-extrabold text-deepBlue reqDot">7) Endereço completo</h2>
+            <p class="mt-1 text-sm text-graphite/70">Rua, número, bairro, cidade e CEP.</p>
+            <input id="endereco" class="mt-4 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
+              placeholder="Ex.: Rua X, 123 • Bairro • Cidade/UF • CEP 00000-000" />
+          </div>
+
+          <!-- STEP 9: Referência + final -->
+          <div class="step" data-step="9">
+            <h2 class="text-lg font-extrabold text-deepBlue reqDot">8) Ponto de referência</h2>
+            <p class="mt-1 text-sm text-graphite/70">Ajuda nosso time a localizar o endereço para a coleta.</p>
+            <input id="referencia" class="mt-4 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
+              placeholder="Ex.: em frente à praça, perto do mercado..." />
+
+            <div class="mt-6 rounded-2xl border border-black/10 bg-grayClean p-4">
+              <div class="text-sm font-extrabold text-deepBlue">Mensagem final</div>
+              <p class="mt-2 text-sm text-graphite/80">
+                Agradecemos por se cadastrar no projeto!<br/>
+                Nosso time irá analisar as informações enviadas e entrar em contato para verificar se o endereço informado está dentro da área de abrangência da coleta.<br/>
+                Em breve, você receberá mais informações sobre os próximos passos.<br/>
+                Obrigada pelo interesse e por contribuir com essa iniciativa! 💚♻️
+              </p>
+            </div>
+          </div>
+
         </div>
 
+        <!-- NAV -->
+        <div class="mt-8 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+          <button id="btnBack" type="button"
+            class="px-5 py-3 rounded-xl bg-white border border-black/10 text-graphite font-semibold hover:bg-black/5 transition">
+            Voltar
+          </button>
+
+          <div class="flex gap-3">
+            <button id="btnPreview" type="button"
+              class="px-5 py-3 rounded-xl bg-white border border-black/10 text-graphite font-semibold hover:bg-black/5 transition">
+              Prévia
+            </button>
+
+            <button id="btnNext" type="button"
+              class="px-6 py-3 rounded-xl bg-regen text-white font-extrabold hover:brightness-95 transition shadow-soft">
+              Next
+            </button>
+          </div>
+        </div>
+
+        <pre id="preview" class="hidden mt-4 rounded-2xl bg-black text-white/90 p-4 text-xs overflow-auto"></pre>
       </div>
     </section>
   </main>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import {
-      getFirestore, doc, setDoc, runTransaction, serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+  <script>
+    // ===========================
+    // State
+    // ===========================
+    const TOTAL_STEPS = 9;
+    let step = 1;
 
-    // =========================
-    // 1) Firebase config (PREENCHA)
-    // =========================
-   const firebaseConfig = {
-  apiKey: "AIzaSyAQBmh8uwLTkyabQc_GznBBV1X2dPhActE",
-  authDomain: "recicla-bonja.firebaseapp.com",
-  projectId: "recicla-bonja",
-  storageBucket: "recicla-bonja.firebasestorage.app",
-  messagingSenderId: "557210456406",
-  appId: "1:557210456406:web:4eebf082cc0d15580c86f7"
-};
+    const state = {
+      consent: { c1:false, c2:false, c3:false },
+      nomeCompleto: "",
+      jaDestinaReciclavel: "",
+      temInteresseProjeto: "",
+      dificuldades: "",
+      whatsappDDD: "",
+      localColeta: "",
+      localColetaOutro: "",
+      enderecoCompleto: "",
+      pontoReferencia: ""
+    };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    // =========================
+    // ===========================
     // Helpers
-    // =========================
+    // ===========================
     const $ = (id) => document.getElementById(id);
     const alertBox = $("alert");
 
     function showAlert(type, text) {
       alertBox.classList.remove("hidden");
       alertBox.textContent = text;
-      alertBox.className = "rounded-2xl border p-4 text-sm mb-6";
+
+      alertBox.className = "rounded-2xl border p-4 text-sm mb-4";
       if (type === "ok") alertBox.classList.add("bg-regen/10","border-regen/20","text-regen");
       if (type === "err") alertBox.classList.add("bg-red-50","border-red-200","text-red-700");
       if (type === "info") alertBox.classList.add("bg-blue-50","border-blue-200","text-blue-700");
     }
 
+    function hideAlert(){ alertBox.classList.add("hidden"); }
+
     function cleanPhone(v){ return (v || "").replace(/[^\d]/g, ""); }
 
-    function formatCode(prefix, n){
-      return `${prefix}-${String(n).padStart(6,"0")}`;
+    function setProgress() {
+      $("progressText").textContent = `${step}/${TOTAL_STEPS}`;
+      const pct = Math.round((step / TOTAL_STEPS) * 100);
+      $("progressBar").style.width = `${pct}%`;
+      $("btnBack").disabled = (step === 1);
+      $("btnBack").classList.toggle("opacity-60", step === 1);
+      $("btnBack").classList.toggle("cursor-not-allowed", step === 1);
+
+      // botão Next vira "Enviar" no último passo
+      $("btnNext").textContent = (step === TOTAL_STEPS) ? "Enviar" : "Next";
     }
 
-    async function createWithCounter({ counterKey, prefix, collectionName, data }) {
-      const counterRef = doc(db, "counters", counterKey);
+    function showStep(n) {
+      document.querySelectorAll(".step").forEach(el => el.classList.remove("active"));
+      const el = document.querySelector(`.step[data-step="${n}"]`);
+      if (el) el.classList.add("active");
+      step = n;
+      setProgress();
+      hideAlert();
+      $("preview").classList.add("hidden");
+    }
 
-      const result = await runTransaction(db, async (tx) => {
-        const snap = await tx.get(counterRef);
-        const current = snap.exists() ? (snap.data().seq || 0) : 0;
-        const next = current + 1;
+    function selectChip(group, value, chipEl) {
+      // desmarca chips do grupo
+      document.querySelectorAll(`.chip[data-radio="${group}"]`).forEach(el => el.classList.remove("selected"));
+      chipEl.classList.add("selected");
 
-        const code = formatCode(prefix, next);
-        const ref = doc(db, collectionName, code);
+      if(group === "destina") state.jaDestinaReciclavel = value;
+      if(group === "interesse") state.temInteresseProjeto = value;
+      if(group === "local") {
+        state.localColeta = value;
+        $("localOutroWrap").classList.toggle("hidden", value !== "Outro");
+        if(value !== "Outro") {
+          state.localColetaOutro = "";
+          $("localOutro").value = "";
+        }
+      }
+    }
 
-        tx.set(counterRef, { seq: next, updatedAt: serverTimestamp() }, { merge: true });
-        tx.set(ref, {
-          ...data,
-          code,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        });
+    function readStepIntoState() {
+      // atualiza state conforme passo atual (inputs)
+      if(step === 1){
+        state.consent.c1 = $("c1").checked;
+        state.consent.c2 = $("c2").checked;
+        state.consent.c3 = $("c3").checked;
+      }
+      if(step === 2){
+        state.nomeCompleto = ($("nome").value || "").trim();
+      }
+      if(step === 5){
+        state.dificuldades = ($("dificuldades").value || "").trim();
+      }
+      if(step === 6){
+        state.whatsappDDD = cleanPhone($("telefone").value);
+      }
+      if(step === 7){
+        state.localColetaOutro = ($("localOutro").value || "").trim();
+      }
+      if(step === 8){
+        state.enderecoCompleto = ($("endereco").value || "").trim();
+      }
+      if(step === 9){
+        state.pontoReferencia = ($("referencia").value || "").trim();
+      }
+    }
 
-        return { code, docId: ref.id };
+    function validateCurrentStep() {
+      // lê primeiro
+      readStepIntoState();
+
+      // valida por etapa
+      if(step === 1){
+        if(!(state.consent.c1 && state.consent.c2 && state.consent.c3)){
+          return "Para avançar, marque as 3 autorizações (LGPD, WhatsApp e Imagem).";
+        }
+      }
+      if(step === 2){
+        if(!state.nomeCompleto || state.nomeCompleto.length < 3){
+          return "Informe seu nome completo para avançar.";
+        }
+      }
+      if(step === 3){
+        if(!state.jaDestinaReciclavel){
+          return "Selecione Sim ou Não para avançar.";
+        }
+      }
+      if(step === 4){
+        if(!state.temInteresseProjeto){
+          return "Selecione Sim ou Não para avançar.";
+        }
+      }
+      if(step === 5){
+        if(!state.dificuldades || state.dificuldades.length < 3){
+          return "Conte quais são as limitações para avançar.";
+        }
+      }
+      if(step === 6){
+        if(!state.whatsappDDD || state.whatsappDDD.length < 10){
+          return "Informe um telefone/WhatsApp válido com DDD (mínimo 10 dígitos).";
+        }
+      }
+      if(step === 7){
+        if(!state.localColeta){
+          return "Selecione o local para coleta para avançar.";
+        }
+        if(state.localColeta === "Outro" && (!state.localColetaOutro || state.localColetaOutro.length < 2)){
+          return "Descreva o local (Outro) para avançar.";
+        }
+      }
+      if(step === 8){
+        if(!state.enderecoCompleto || state.enderecoCompleto.length < 6){
+          return "Informe o endereço completo para avançar.";
+        }
+      }
+      if(step === 9){
+        if(!state.pontoReferencia || state.pontoReferencia.length < 3){
+          return "Informe o ponto de referência para finalizar.";
+        }
+      }
+      return null;
+    }
+
+    function buildPayloadFinal() {
+      return {
+        type: "participant_registration",
+        createdAtISO: new Date().toISOString(),
+        consent: {
+          dados: state.consent.c1,
+          whatsapp: state.consent.c2,
+          imagem: state.consent.c3
+        },
+        nomeCompleto: state.nomeCompleto,
+        jaDestinaReciclavel: state.jaDestinaReciclavel,
+        temInteresseProjeto: state.temInteresseProjeto,
+        dificuldades: state.dificuldades,
+        whatsappDDD: state.whatsappDDD,
+        localColeta: state.localColeta,
+        localColetaOutro: state.localColeta === "Outro" ? state.localColetaOutro : null,
+        enderecoCompleto: state.enderecoCompleto,
+        pontoReferencia: state.pontoReferencia
+      };
+    }
+
+    // ===========================
+    // Chip selection events
+    // ===========================
+    document.querySelectorAll(".chip[data-radio]").forEach(chip=>{
+      chip.addEventListener("click", ()=>{
+        const group = chip.getAttribute("data-radio");
+        const value = chip.getAttribute("data-value");
+        selectChip(group, value, chip);
+        hideAlert();
       });
+    });
 
-      return result;
-    }
+    // ===========================
+    // Navigation
+    // ===========================
+    $("btnBack").addEventListener("click", ()=>{
+      if(step > 1) showStep(step - 1);
+    });
 
-    // =========================
-    // Tabs
-    // =========================
-    const tabUsersBtn = $("tabUsersBtn");
-    const tabCondBtn  = $("tabCondBtn");
-    const tabUsers    = $("tabUsers");
-    const tabCond     = $("tabCond");
-
-    function setTab(which){
-      const isUsers = which === "users";
-      tabUsersBtn.classList.toggle("active", isUsers);
-      tabCondBtn.classList.toggle("active", !isUsers);
-      tabUsers.classList.toggle("hidden", !isUsers);
-      tabCond.classList.toggle("hidden", isUsers);
-      alertBox.classList.add("hidden");
-    }
-    tabUsersBtn.addEventListener("click", () => setTab("users"));
-    tabCondBtn.addEventListener("click", () => setTab("cond"));
-
-    // =========================
-    // Save User (RB-000xxx) -> users/{code}
-    // =========================
-    $("formUser").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      alertBox.classList.add("hidden");
-
-      const nome = $("u_nome").value.trim();
-      const tel  = cleanPhone($("u_tel").value);
-      const role = $("u_role").value;
-      const cond = $("u_condominioId").value.trim() || null;
-
-      if(!nome || !tel || tel.length < 10 || !role){
-        showAlert("err", "Preencha nome, telefone (com DDD) e perfil.");
+    $("btnNext").addEventListener("click", async ()=>{
+      const err = validateCurrentStep();
+      if(err){
+        showAlert("err", err);
         return;
       }
 
-      $("btnUserSave").disabled = true;
-      $("btnUserSave").textContent = "Salvando…";
+      // último passo = "enviar"
+      if(step === TOTAL_STEPS){
+        // Aqui você integra com Firebase se quiser:
+        // await addDoc(collection(db,"participants"), buildPayloadFinal())
 
-      try{
-        const { code } = await createWithCounter({
-          counterKey: "users",
-          prefix: "RB",
-          collectionName: "users",
-          data: {
-            type: "user",
-            nomeCompleto: nome,
-            telefone: tel,
-            role,
-            condominioId: cond,
-            status: "active"
-          }
-        });
+        showAlert("ok", "Cadastro finalizado! Obrigada 💚♻️");
+        $("preview").classList.remove("hidden");
+        $("preview").textContent = JSON.stringify(buildPayloadFinal(), null, 2);
 
-        $("lastUserId").textContent = code;
-        showAlert("ok", `Usuário cadastrado com sucesso! ID gerado: ${code}`);
-        $("formUser").reset();
-      }catch(err){
-        console.error(err);
-        showAlert("err", "Erro ao salvar usuário. Verifique firebaseConfig e permissões (rules).");
-      }finally{
-        $("btnUserSave").disabled = false;
-        $("btnUserSave").textContent = "Salvar usuário";
-      }
-    });
-
-    // =========================
-    // Save Condomínio (COND-000xxx) -> condominios/{code}
-    // =========================
-    $("formCond").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      alertBox.classList.add("hidden");
-
-      const nome = $("c_nome").value.trim();
-      const end  = $("c_endereco").value.trim();
-      const ref  = $("c_ref").value.trim() || null;
-      const tel  = cleanPhone($("c_tel").value) || null;
-
-      if(!nome || !end){
-        showAlert("err", "Preencha nome e endereço do condomínio.");
+        // opcional: reset total após enviar
+        // setTimeout(()=>location.reload(), 900);
         return;
       }
 
-      $("btnCondSave").disabled = true;
-      $("btnCondSave").textContent = "Salvando…";
-
-      try{
-        const { code } = await createWithCounter({
-          counterKey: "condominios",
-          prefix: "COND",
-          collectionName: "condominios",
-          data: {
-            type: "condominio",
-            nome,
-            enderecoCompleto: end,
-            pontoReferencia: ref,
-            telefone: tel,
-            status: "active"
-          }
-        });
-
-        $("lastCondId").textContent = code;
-        showAlert("ok", `Condomínio cadastrado com sucesso! ID gerado: ${code}`);
-        $("formCond").reset();
-      }catch(err){
-        console.error(err);
-        showAlert("err", "Erro ao salvar condomínio. Verifique firebaseConfig e permissões (rules).");
-      }finally{
-        $("btnCondSave").disabled = false;
-        $("btnCondSave").textContent = "Salvar condomínio";
-      }
+      showStep(step + 1);
     });
+
+    $("btnPreview").addEventListener("click", ()=>{
+      // valida o passo atual primeiro (para não mostrar payload incompleto sem avisar)
+      const err = validateCurrentStep();
+      if(err){
+        showAlert("info", "Prévia parcial: finalize este passo para avançar. Você ainda pode ver o que já foi preenchido.");
+      } else {
+        hideAlert();
+      }
+
+      // salva o estado do passo atual e mostra o que tem
+      readStepIntoState();
+      $("preview").classList.remove("hidden");
+      $("preview").textContent = JSON.stringify(buildPayloadFinal(), null, 2);
+    });
+
+    // enter = next (quando fizer sentido)
+    document.addEventListener("keydown", (e)=>{
+      if(e.key !== "Enter") return;
+
+      // evita enter em textarea
+      const tag = (document.activeElement?.tagName || "").toLowerCase();
+      if(tag === "textarea") return;
+
+      // se estiver em step com input, Enter = Next
+      e.preventDefault();
+      $("btnNext").click();
+    });
+
+    // init
+    setProgress();
   </script>
 </body>
 </html>
