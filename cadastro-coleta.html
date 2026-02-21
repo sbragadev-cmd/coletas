@@ -5,9 +5,11 @@
   <meta http-equiv="Content-Language" content="pt-BR">
   <meta name="google" content="notranslate">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Recicla Bonja • Cadastro de Coletas</title>
+  <title>Recicla Bonja • Cadastro de Coletas Seletivas</title>
 
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+
   <script>
     tailwind.config = {
       theme: {
@@ -35,9 +37,9 @@
         linear-gradient(135deg, #0D3B66 0%, #1B7F5A 55%, #4CAF8F 100%);
     }
     .glass{
-      background: rgba(255,255,255,.86);
-      -webkit-backdrop-filter: blur(10px);
-      backdrop-filter: blur(10px);
+      background: rgba(255,255,255,.88);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
       border: 1px solid rgba(255,255,255,.55);
     }
     .focus-ring:focus{
@@ -45,11 +47,34 @@
       box-shadow: 0 0 0 4px rgba(27,127,90,.16);
       border-color: rgba(27,127,90,.45);
     }
-    .req::after{ content:" *"; color:#dc2626; font-weight:700; }
+    .req::after{ content:" *"; color:#dc2626; font-weight:800; }
+    .chip{
+      border:1px solid rgba(0,0,0,.10);
+      background:#fff;
+      border-radius:14px;
+      padding:12px 14px;
+      cursor:pointer;
+      transition:.15s;
+      user-select:none;
+    }
+    .chip:hover{ background:rgba(0,0,0,.03); }
+    .chip.selected{
+      border-color: rgba(27,127,90,.35);
+      box-shadow: 0 0 0 4px rgba(27,127,90,.10);
+    }
+    .panel{
+      background:#fff;
+      border:1px solid rgba(0,0,0,.08);
+      border-radius: 18px;
+    }
+    .hiddenX{ display:none !important; }
+    .fileHint{ font-size: 12px; color: rgba(46,46,46,.65); }
+    .line { border-top: 1px dashed rgba(0,0,0,.12); }
   </style>
 </head>
 
 <body class="min-h-screen bg-mesh text-graphite">
+  <!-- TOP -->
   <header class="max-w-6xl mx-auto px-4 pt-8 pb-4">
     <div class="flex items-center justify-between gap-3">
       <div class="flex items-center gap-3">
@@ -57,7 +82,7 @@
         <div class="leading-tight">
           <div class="text-white/85 text-xs">vila do futuro</div>
           <div class="text-white text-xl font-extrabold tracking-tight">RECICLA BONJA</div>
-          <div class="text-white/75 text-xs">Cadastro de Coletas</div>
+          <div class="text-white/75 text-xs">Cadastro de Coletas Seletivas</div>
         </div>
       </div>
 
@@ -65,257 +90,602 @@
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4 pb-10">
+  <main class="max-w-6xl mx-auto px-4 pb-12">
     <section class="glass rounded-3xl shadow-soft overflow-hidden">
       <div class="p-6 sm:p-8 border-b border-black/5 bg-white/60">
-        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-deepBlue">Cadastro de Coletas</h1>
-        <p class="mt-2 text-graphite/70">Agora você pode vincular a coleta a um <b>Usuário (RB-...)</b> ou <b>Condomínio (COND-...)</b> e puxar os dados.</p>
+        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-deepBlue">
+          Cadastro de Coletas Seletivas
+        </h1>
+        <p class="mt-2 text-graphite/70">
+          Preencha os dados da operação. Campos com <b class="text-red-600">*</b> são obrigatórios.
+        </p>
+        <div class="mt-3 text-xs text-graphite/60">
+          Banco: <span id="dbStatus" class="font-semibold">conectando…</span>
+        </div>
       </div>
 
-      <div class="p-6 sm:p-8 bg-white space-y-6">
+      <form id="form" class="p-6 sm:p-8 space-y-8">
         <div id="alert" class="hidden rounded-2xl border p-4 text-sm"></div>
 
-        <!-- VINCULO -->
-        <div class="rounded-2xl border border-black/10 bg-grayClean p-5">
-          <div class="flex flex-col lg:flex-row lg:items-end gap-4">
-            <div class="flex-1">
-              <label class="text-sm font-semibold">ID do Usuário/Condomínio (opcional)</label>
-              <input id="linkedId" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white"
-                placeholder="Ex.: RB-000123 ou COND-000045" />
-              <div class="text-xs text-graphite/60 mt-1">Se preencher, clique em “Puxar dados” para preencher automaticamente.</div>
+        <!-- ======= BASE INFO ======= -->
+        <div class="panel p-5 sm:p-6">
+          <div class="flex items-start gap-3">
+            <div class="mt-1 h-10 w-10 rounded-2xl bg-regen/10 border border-regen/15 flex items-center justify-center">🧾</div>
+            <div>
+              <h2 class="text-lg font-extrabold text-deepBlue">Informações da operação</h2>
+              <p class="text-sm text-graphite/70">Dados base da coleta.</p>
             </div>
-
-            <button id="btnFetch" type="button"
-              class="px-6 py-3 rounded-xl bg-deepBlue text-white font-extrabold hover:brightness-95 transition shadow-soft">
-              Puxar dados
-            </button>
           </div>
 
-          <div id="linkedCard" class="hidden mt-4 rounded-2xl bg-white border border-black/10 p-4">
-            <div class="text-sm font-extrabold text-deepBlue">Dados encontrados</div>
-            <div class="mt-2 text-sm">
-              Tipo: <span id="linkedType" class="font-extrabold">—</span><br/>
-              Nome: <span id="linkedName" class="font-semibold">—</span><br/>
-              Telefone: <span id="linkedPhone" class="font-semibold">—</span><br/>
-              Endereço: <span id="linkedAddr" class="font-semibold">—</span>
+          <div class="mt-5 grid lg:grid-cols-2 gap-5">
+            <!-- 1) Data -->
+            <div>
+              <label class="text-sm font-semibold req">1) Data da operação</label>
+              <input id="opDate" required type="date"
+                class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white" />
+              <div class="mt-1 text-xs text-graphite/60">
+                Exemplo: 7 de janeiro de 2019 (no sistema fica 2019-01-07)
+              </div>
+            </div>
+
+            <!-- ID / Código vinculado (para puxar dados do user/condominio) -->
+            <div>
+              <label class="text-sm font-semibold">Código/ID do participante ou condomínio (opcional)</label>
+              <input id="linkedId" placeholder="Ex.: RB-000123 ou COND-000045"
+                class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white" />
+              <div class="mt-1 text-xs text-graphite/60">
+                Se você usar no projeto, o dashboard consegue contar participantes por esse ID.
+              </div>
+            </div>
+
+            <!-- 2) Tipo entrega -->
+            <div class="lg:col-span-2">
+              <label class="text-sm font-semibold req">2) Tipo de entrega do resíduo (marcar apenas uma)</label>
+              <div class="mt-3 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div class="chip" data-radio="deliveryType" data-value="Coleta domiciliar pelo triciclo">
+                  <div class="font-extrabold">Domiciliar (triciclo)</div>
+                  <div class="text-xs text-graphite/60">porta a porta</div>
+                </div>
+                <div class="chip" data-radio="deliveryType" data-value="Coleta condomínio">
+                  <div class="font-extrabold">Condomínio</div>
+                  <div class="text-xs text-graphite/60">coleta no condomínio</div>
+                </div>
+                <div class="chip" data-radio="deliveryType" data-value="Entrega voluntária">
+                  <div class="font-extrabold">Entrega voluntária</div>
+                  <div class="text-xs text-graphite/60">ponto de entrega</div>
+                </div>
+                <div class="chip" data-radio="deliveryType" data-value="Coleta Comércio">
+                  <div class="font-extrabold">Comércio</div>
+                  <div class="text-xs text-graphite/60">coleta em comércio</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3) fluxo -->
+            <div class="lg:col-span-2">
+              <label class="text-sm font-semibold req">3) Selecionar uma opção</label>
+              <div class="mt-3 grid sm:grid-cols-2 gap-3">
+                <div class="chip" data-radio="flowType" data-value="recebimento">
+                  <div class="font-extrabold">Recebimento de resíduo</div>
+                  <div class="text-xs text-graphite/60">vai para a pergunta 4</div>
+                </div>
+                <div class="chip" data-radio="flowType" data-value="final_turno">
+                  <div class="font-extrabold">Registro final do turno</div>
+                  <div class="text-xs text-graphite/60">pula para a pergunta 12</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 line"></div>
+
+          <div class="mt-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+            <div class="text-xs text-graphite/60">
+              Dica: selecione o tipo de fluxo para liberar os campos específicos.
+            </div>
+
+            <div class="flex gap-3">
+              <button type="button" id="btnPreview"
+                class="px-5 py-3 rounded-xl bg-white border border-black/10 text-graphite font-semibold hover:bg-black/5 transition">
+                Prévia
+              </button>
+              <button type="submit" id="btnSubmit"
+                class="px-6 py-3 rounded-xl bg-regen text-white font-extrabold hover:brightness-95 transition shadow-soft">
+                Salvar coleta
+              </button>
             </div>
           </div>
         </div>
 
-        <!-- FORM COLETA (modelo mínimo; você pode plugar no seu completo) -->
-        <form id="formColeta" class="grid lg:grid-cols-2 gap-6">
-          <div>
-            <label class="text-sm font-semibold req">Data da operação</label>
-            <input id="opDate" type="date" required class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring" />
-          </div>
-
-          <div>
-            <label class="text-sm font-semibold req">Tipo de entrega do resíduo</label>
-            <select id="deliveryType" required class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white">
-              <option value="">Selecione</option>
-              <option>Coleta domiciliar pelo triciclo</option>
-              <option>Coleta condomínio</option>
-              <option>Entrega voluntária</option>
-              <option>Coleta Comércio</option>
-            </select>
-          </div>
-
-          <div class="lg:col-span-2">
-            <label class="text-sm font-semibold req">Selecione uma opção</label>
-            <div class="mt-2 flex flex-wrap gap-3">
-              <label class="flex items-center gap-2 px-4 py-3 rounded-xl border border-black/10 bg-white cursor-pointer">
-                <input type="radio" name="flowType" value="recebimento" required>
-                <span class="text-sm font-semibold">Recebimento de resíduo</span>
-              </label>
-              <label class="flex items-center gap-2 px-4 py-3 rounded-xl border border-black/10 bg-white cursor-pointer">
-                <input type="radio" name="flowType" value="final_turno" required>
-                <span class="text-sm font-semibold">Registro final do turno</span>
-              </label>
+        <!-- ======= RECEBIMENTO (4-11) ======= -->
+        <div id="secRecebimento" class="panel p-5 sm:p-6 hiddenX">
+          <div class="flex items-start gap-3">
+            <div class="mt-1 h-10 w-10 rounded-2xl bg-regen/10 border border-regen/15 flex items-center justify-center">📥</div>
+            <div>
+              <h2 class="text-lg font-extrabold text-deepBlue">RECEBIMENTO DE RESÍDUO</h2>
+              <p class="text-sm text-graphite/70">Perguntas 4 a 11</p>
             </div>
           </div>
 
-          <div class="lg:col-span-2 flex justify-end gap-3">
-            <button id="btnSave" type="submit"
-              class="px-6 py-3 rounded-xl bg-regen text-white font-extrabold hover:brightness-95 transition shadow-soft">
-              Salvar coleta
-            </button>
+          <div class="mt-5 grid lg:grid-cols-2 gap-5">
+            <!-- 4) codigo família/cond -->
+            <div>
+              <label class="text-sm font-semibold">4) Código da Família / Condomínio</label>
+              <input id="codigoFamilia" placeholder="Código gerado por outra planilha"
+                class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white" />
+              <div class="mt-1 text-xs text-graphite/60">Se não tiver, pode deixar em branco.</div>
+            </div>
+
+            <!-- 5) peso resíduo seco -->
+            <div>
+              <label class="text-sm font-semibold req">5) Peso do resíduo seco (kg)</label>
+              <input id="pesoResiduoSecoKg" type="number" step="0.01" min="0" placeholder="Ex.: 12,5"
+                class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white" />
+            </div>
+
+            <!-- 6) qualidade -->
+            <div class="lg:col-span-2">
+              <label class="text-sm font-semibold req">6) Nota para a qualidade do resíduo</label>
+              <div class="mt-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                <div class="text-xs font-bold text-red-600">SUJO</div>
+                <div class="flex gap-3">
+                  <div class="chip px-5 py-3" data-radio="qualidadeNota" data-value="1">1</div>
+                  <div class="chip px-5 py-3" data-radio="qualidadeNota" data-value="2">2</div>
+                  <div class="chip px-5 py-3" data-radio="qualidadeNota" data-value="3">3</div>
+                </div>
+                <div class="text-xs font-bold text-regen">LIMPO</div>
+              </div>
+            </div>
+
+            <!-- 7) observação -->
+            <div class="lg:col-span-2">
+              <label class="text-sm font-semibold">7) Observação</label>
+              <textarea id="observacao" rows="3" placeholder="Ex.: material misturado, sacaria inadequada, etc."
+                class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white"></textarea>
+            </div>
+
+            <!-- 8) rejeito -->
+            <div>
+              <label class="text-sm font-semibold req">8) Peso do rejeito (kg)</label>
+              <input id="pesoRejeitoKg" type="number" step="0.01" min="0" value="0"
+                class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white" />
+              <div class="mt-1 text-xs text-graphite/60">Se não houver rejeito, colocar ZERO.</div>
+            </div>
+
+            <!-- 9) não comercializado -->
+            <div>
+              <label class="text-sm font-semibold req">9) Peso não comercializado (kg)</label>
+              <input id="pesoNaoComercializadoKg" type="number" step="0.01" min="0" value="0"
+                class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white" />
+              <div class="mt-1 text-xs text-graphite/60">Se não houver, colocar ZERO.</div>
+            </div>
+
+            <!-- 10) fotos resíduo -->
+            <div>
+              <label class="text-sm font-semibold">10) Fotos do resíduo</label>
+              <input id="fotosResiduo" type="file" accept="image/*" multiple
+                class="mt-2 w-full" />
+              <div class="fileHint mt-1">Arquivos enviados: <span id="fotosResiduoCount">0</span></div>
+            </div>
+
+            <!-- 11) fotos rejeito -->
+            <div>
+              <label class="text-sm font-semibold">11) Fotos do não comercializado e rejeito</label>
+              <input id="fotosRejeito" type="file" accept="image/*" multiple
+                class="mt-2 w-full" />
+              <div class="fileHint mt-1">Arquivos enviados: <span id="fotosRejeitoCount">0</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ======= FINAL DO TURNO (12-23) ======= -->
+        <div id="secFinalTurno" class="panel p-5 sm:p-6 hiddenX">
+          <div class="flex items-start gap-3">
+            <div class="mt-1 h-10 w-10 rounded-2xl bg-regen/10 border border-regen/15 flex items-center justify-center">🧮</div>
+            <div>
+              <h2 class="text-lg font-extrabold text-deepBlue">REGISTRO DE RESÍDUOS FINAL DO TURNO</h2>
+              <p class="text-sm text-graphite/70">Perguntas 12 a 23</p>
+            </div>
           </div>
 
-          <pre id="preview" class="hidden lg:col-span-2 rounded-2xl bg-black text-white/90 p-4 text-xs overflow-auto"></pre>
-        </form>
-      </div>
+          <div class="mt-5 grid lg:grid-cols-2 gap-5">
+            <!-- 12) código condomínio -->
+            <div>
+              <label class="text-sm font-semibold">12) Código do condomínio (se for registro condomínio)</label>
+              <input id="codigoCondominio" placeholder="Ex.: COND-000045"
+                class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white" />
+            </div>
+
+            <!-- 13) rejeito geral -->
+            <div>
+              <label class="text-sm font-semibold req">13) 2.1 Peso do rejeito geral (kg)</label>
+              <input id="pesoRejeitoGeralKg" type="number" step="0.01" min="0" placeholder="Ex.: 25"
+                class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white" />
+            </div>
+
+            <!-- 14-21 materiais -->
+            <div class="lg:col-span-2">
+              <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label class="text-sm font-semibold">14) 2.2 Plástico (kg)</label>
+                  <input id="plasticoKg" type="number" step="0.01" min="0" value="0"
+                    class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white" />
+                </div>
+                <div>
+                  <label class="text-sm font-semibold">15) 2.3 Papel misto (kg)</label>
+                  <input id="papelMistoKg" type="number" step="0.01" min="0" value="0"
+                    class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white" />
+                </div>
+                <div>
+                  <label class="text-sm font-semibold">16) 2.4 Papelão (kg)</label>
+                  <input id="papelaoKg" type="number" step="0.01" min="0" value="0"
+                    class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white" />
+                </div>
+                <div>
+                  <label class="text-sm font-semibold">17) 2.5 Alumínio/Metal (kg)</label>
+                  <input id="aluminioMetalKg" type="number" step="0.01" min="0" value="0"
+                    class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white" />
+                </div>
+                <div>
+                  <label class="text-sm font-semibold">18) 2.6 Vidro (kg)</label>
+                  <input id="vidroKg" type="number" step="0.01" min="0" value="0"
+                    class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white" />
+                </div>
+                <div>
+                  <label class="text-sm font-semibold">19) 2.7 Sacaria/Sacolinha (kg)</label>
+                  <input id="sacariaKg" type="number" step="0.01" min="0" value="0"
+                    class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white" />
+                </div>
+                <div>
+                  <label class="text-sm font-semibold">20) 2.8 Isopor (kg)</label>
+                  <input id="isoporKg" type="number" step="0.01" min="0" value="0"
+                    class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white" />
+                </div>
+                <div>
+                  <label class="text-sm font-semibold">21) 2.9 Óleo (kg)</label>
+                  <input id="oleoKg" type="number" step="0.01" min="0" value="0"
+                    class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white" />
+                </div>
+              </div>
+            </div>
+
+            <!-- 22) extras -->
+            <div class="lg:col-span-2">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <label class="text-sm font-semibold">22) Materiais extras (nome + peso)</label>
+                  <div class="text-xs text-graphite/60">Adicione quantos materiais precisar.</div>
+                </div>
+                <button type="button" id="btnAddExtra"
+                  class="px-4 py-2 rounded-xl bg-white border border-black/10 font-semibold hover:bg-black/5">
+                  + Adicionar
+                </button>
+              </div>
+
+              <div id="extrasWrap" class="mt-3 space-y-2">
+                <!-- JS adiciona linhas -->
+              </div>
+            </div>
+
+            <!-- 23) fotos gerais -->
+            <div class="lg:col-span-2">
+              <label class="text-sm font-semibold">23) Incluir fotos dos resíduos e rejeitos</label>
+              <input id="fotosGerais" type="file" accept="image/*" multiple class="mt-2 w-full" />
+              <div class="fileHint mt-1">Arquivos enviados: <span id="fotosGeraisCount">0</span></div>
+              <div class="mt-2 text-xs text-graphite/60">
+                * Nesta versão, as fotos não são enviadas automaticamente ao Storage (salvamos apenas os nomes/metadata).
+                Se você quiser, eu integro com Firebase Storage.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- preview -->
+        <pre id="preview" class="hidden rounded-2xl bg-black text-white/90 p-4 text-xs overflow-auto"></pre>
+      </form>
     </section>
   </main>
 
+  <!-- Firebase + Firestore -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
-      getFirestore, doc, getDoc, addDoc, collection, serverTimestamp
+      getFirestore, collection, addDoc, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-    // =========================
-    // Firebase config (PREENCHA)
-    // =========================
- const firebaseConfig = {
-  apiKey: "AIzaSyAe5E7M8Jednj1xGRjNrV0oD4wQwv6b-WM",
-  authDomain: "reciclabonja-3dee7.firebaseapp.com",
-  projectId: "reciclabonja-3dee7",
-  storageBucket: "reciclabonja-3dee7.firebasestorage.app",
-  messagingSenderId: "590941010829",
-  appId: "1:590941010829:web:9b8e4703df54cc8b0a9bc4"
-};
+    // ===========================
+    // Firebase Config (SEU)
+    // ===========================
+    const firebaseConfig = {
+      apiKey: "AIzaSyAQBmh8uwLTkyabQc_GznBBV1X2dPhActE",
+      authDomain: "recicla-bonja.firebaseapp.com",
+      projectId: "recicla-bonja",
+      storageBucket: "recicla-bonja.firebasestorage.app",
+      messagingSenderId: "557210456406",
+      appId: "1:557210456406:web:4eebf082cc0d15580c86f7"
+    };
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // ===========================
+    // UI / STATE
+    // ===========================
     const $ = (id) => document.getElementById(id);
     const alertBox = $("alert");
-    const linkedCard = $("linkedCard");
+    const preview = $("preview");
 
-    // Guardamos o snapshot encontrado para enviar junto no payload:
-    let linkedSnapshot = null; // { type, id, data }
+    const state = {
+      deliveryType: "",
+      flowType: "",
+      qualidadeNota: null
+    };
+
+    function setDbStatus(text, ok=true){
+      const el = $("dbStatus");
+      el.textContent = text;
+      el.className = ok ? "font-semibold text-regen" : "font-semibold text-red-700";
+    }
 
     function showAlert(type, text) {
       alertBox.classList.remove("hidden");
       alertBox.textContent = text;
       alertBox.className = "rounded-2xl border p-4 text-sm";
+
       if (type === "ok") alertBox.classList.add("bg-regen/10","border-regen/20","text-regen");
       if (type === "err") alertBox.classList.add("bg-red-50","border-red-200","text-red-700");
       if (type === "info") alertBox.classList.add("bg-blue-50","border-blue-200","text-blue-700");
     }
+    function hideAlert(){ alertBox.classList.add("hidden"); }
 
-    function getRadio(name){
-      const el = document.querySelector(`input[name="${name}"]:checked`);
-      return el ? el.value : "";
+    function toggleSections(){
+      $("secRecebimento").classList.toggle("hiddenX", state.flowType !== "recebimento");
+      $("secFinalTurno").classList.toggle("hiddenX", state.flowType !== "final_turno");
     }
 
-    function normalizeId(v){
-      return (v || "").trim().toUpperCase();
+    function selectChip(group, value, chipEl){
+      document.querySelectorAll(`.chip[data-radio="${group}"]`).forEach(el => el.classList.remove("selected"));
+      chipEl.classList.add("selected");
+
+      if(group === "deliveryType") state.deliveryType = value;
+      if(group === "flowType") state.flowType = value;
+      if(group === "qualidadeNota") state.qualidadeNota = Number(value);
+
+      toggleSections();
+      hideAlert();
     }
 
-    function fillLinkedCard(type, data){
-      linkedCard.classList.remove("hidden");
-      $("linkedType").textContent = type === "user" ? "Usuário" : "Condomínio";
-
-      if(type === "user"){
-        $("linkedName").textContent = data.nomeCompleto || "—";
-        $("linkedPhone").textContent = data.telefone || "—";
-        $("linkedAddr").textContent = data.enderecoCompleto || (data.condominioId ? `Associado a ${data.condominioId}` : "—");
-      }else{
-        $("linkedName").textContent = data.nome || "—";
-        $("linkedPhone").textContent = data.telefone || "—";
-        $("linkedAddr").textContent = data.enderecoCompleto || "—";
-      }
-    }
-
-    async function fetchLinkedById(id){
-      // 1) tenta users/{id}
-      const userRef = doc(db, "users", id);
-      const uSnap = await getDoc(userRef);
-      if(uSnap.exists()){
-        return { type:"user", id, data: uSnap.data() };
-      }
-
-      // 2) tenta condominios/{id}
-      const cRef = doc(db, "condominios", id);
-      const cSnap = await getDoc(cRef);
-      if(cSnap.exists()){
-        return { type:"condominio", id, data: cSnap.data() };
-      }
-
-      return null;
-    }
-
-    $("btnFetch").addEventListener("click", async () => {
-      alertBox.classList.add("hidden");
-      linkedCard.classList.add("hidden");
-      linkedSnapshot = null;
-
-      const id = normalizeId($("linkedId").value);
-      if(!id){
-        showAlert("info", "Digite um ID (RB-... ou COND-...) para buscar.");
-        return;
-      }
-
-      $("btnFetch").disabled = true;
-      $("btnFetch").textContent = "Buscando…";
-
-      try{
-        const res = await fetchLinkedById(id);
-        if(!res){
-          showAlert("err", "ID não encontrado em Usuários nem em Condomínios.");
-          return;
-        }
-
-        linkedSnapshot = res;
-        fillLinkedCard(res.type, res.data);
-        showAlert("ok", `Dados puxados com sucesso (${res.type === "user" ? "Usuário" : "Condomínio"}).`);
-      }catch(err){
-        console.error(err);
-        showAlert("err", "Erro ao buscar dados. Verifique permissões (rules) e firebaseConfig.");
-      }finally{
-        $("btnFetch").disabled = false;
-        $("btnFetch").textContent = "Puxar dados";
-      }
+    document.querySelectorAll(".chip[data-radio]").forEach(chip=>{
+      chip.addEventListener("click", ()=>{
+        const group = chip.getAttribute("data-radio");
+        const value = chip.getAttribute("data-value");
+        selectChip(group, value, chip);
+      });
     });
 
-    function buildPayload(){
-      const flowType = getRadio("flowType");
+    // file counts
+    function bindFileCount(inputId, labelId){
+      const input = $(inputId);
+      const label = $(labelId);
+      input.addEventListener("change", ()=> label.textContent = input.files ? input.files.length : 0);
+    }
+    bindFileCount("fotosResiduo", "fotosResiduoCount");
+    bindFileCount("fotosRejeito", "fotosRejeitoCount");
+    bindFileCount("fotosGerais", "fotosGeraisCount");
 
-      // Aqui você encaixa TODA sua estrutura completa de coletas.
-      // Neste exemplo mínimo, já vai o vínculo e o snapshot.
+    // ===========================
+    // Extras (materiais adicionais)
+    // ===========================
+    function addExtraRow(name="", kg=""){
+      const wrap = $("extrasWrap");
+      const row = document.createElement("div");
+      row.className = "grid grid-cols-12 gap-2 items-center";
+      row.innerHTML = `
+        <div class="col-span-7">
+          <input class="extraName w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white"
+                 placeholder="Nome do material (ex.: Tetra Pak)" value="${escapeHtml(name)}"/>
+        </div>
+        <div class="col-span-4">
+          <input class="extraKg w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white"
+                 type="number" step="0.01" min="0" placeholder="kg" value="${escapeHtml(kg)}"/>
+        </div>
+        <div class="col-span-1 flex justify-end">
+          <button type="button" class="btnRemove px-3 py-2 rounded-xl border border-black/10 hover:bg-black/5">✕</button>
+        </div>
+      `;
+      row.querySelector(".btnRemove").addEventListener("click", ()=> row.remove());
+      wrap.appendChild(row);
+    }
+
+    function escapeHtml(str){
+      return String(str ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    $("btnAddExtra").addEventListener("click", ()=> addExtraRow());
+
+    // inicia com 1 linha opcional
+    addExtraRow();
+
+    // ===========================
+    // Payload builder
+    // ===========================
+    function filesMeta(fileList){
+      if(!fileList || !fileList.length) return [];
+      return Array.from(fileList).map(f => ({
+        name: f.name,
+        type: f.type,
+        size: f.size,
+        lastModified: f.lastModified
+      }));
+    }
+
+    function buildBase(){
+      const opDate = $("opDate").value; // YYYY-MM-DD
       return {
         type: "coletaSeletiva",
         createdAt: serverTimestamp(),
+        createdAtISO: new Date().toISOString(),
 
-        opDate: $("opDate").value,              // yyyy-mm-dd
-        deliveryType: $("deliveryType").value,
-        flowType,
+        opDate,
+        deliveryType: state.deliveryType,
+        flowType: state.flowType,
 
-        // vínculo (para “comunicar” com cadastros)
-        linkedId: linkedSnapshot?.id || null,
-        linkedType: linkedSnapshot?.type || null,
-        linkedSnapshot: linkedSnapshot ? {
-          // snapshot “enxuto” (evita duplicar dados demais)
-          nome: linkedSnapshot.type === "user" ? (linkedSnapshot.data.nomeCompleto || null) : (linkedSnapshot.data.nome || null),
-          telefone: linkedSnapshot.data.telefone || null,
-          endereco: linkedSnapshot.data.enderecoCompleto || null
-        } : null
+        linkedId: ($("linkedId").value || "").trim() || null
       };
     }
 
-    $("formColeta").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      alertBox.classList.add("hidden");
+    function buildRecebimento(){
+      return {
+        codigoFamilia: ($("codigoFamilia").value || "").trim() || null,
+        pesoResiduoSecoKg: Number($("pesoResiduoSecoKg").value || 0),
+        qualidadeNota: state.qualidadeNota ?? null,
+        observacao: ($("observacao").value || "").trim() || null,
+        pesoRejeitoKg: Number($("pesoRejeitoKg").value || 0),
+        pesoNaoComercializadoKg: Number($("pesoNaoComercializadoKg").value || 0),
+        fotosResiduo: filesMeta($("fotosResiduo").files),
+        fotosRejeito: filesMeta($("fotosRejeito").files),
+      };
+    }
 
+    function buildFinalTurno(){
+      const extras = Array.from(document.querySelectorAll("#extrasWrap > div"))
+        .map(row => {
+          const name = (row.querySelector(".extraName")?.value || "").trim();
+          const kg = Number(row.querySelector(".extraKg")?.value || 0);
+          return (name && kg >= 0) ? { name, kg } : null;
+        })
+        .filter(Boolean);
+
+      return {
+        codigoCondominio: ($("codigoCondominio").value || "").trim() || null,
+        pesoRejeitoGeralKg: Number($("pesoRejeitoGeralKg").value || 0),
+
+        plasticoKg: Number($("plasticoKg").value || 0),
+        papelMistoKg: Number($("papelMistoKg").value || 0),
+        papelaoKg: Number($("papelaoKg").value || 0),
+        aluminioMetalKg: Number($("aluminioMetalKg").value || 0),
+        vidroKg: Number($("vidroKg").value || 0),
+        sacariaKg: Number($("sacariaKg").value || 0),
+        isoporKg: Number($("isoporKg").value || 0),
+        oleoKg: Number($("oleoKg").value || 0),
+
+        materiaisExtras: extras,
+        fotosGerais: filesMeta($("fotosGerais").files)
+      };
+    }
+
+    function validate(){
+      const problems = [];
+
+      if(!$("opDate").value) problems.push("Informe a data da operação (obrigatório).");
+      if(!state.deliveryType) problems.push("Selecione o tipo de entrega do resíduo (obrigatório).");
+      if(!state.flowType) problems.push("Selecione o tipo de registro (Recebimento ou Final do turno).");
+
+      if(state.flowType === "recebimento"){
+        if(!($("pesoResiduoSecoKg").value) || Number($("pesoResiduoSecoKg").value) < 0) problems.push("Informe o peso do resíduo seco (kg).");
+        if(!(state.qualidadeNota === 1 || state.qualidadeNota === 2 || state.qualidadeNota === 3)) problems.push("Selecione a nota de qualidade (1/2/3).");
+
+        const rej = Number($("pesoRejeitoKg").value || 0);
+        const nc = Number($("pesoNaoComercializadoKg").value || 0);
+        if(rej < 0) problems.push("Peso do rejeito não pode ser negativo.");
+        if(nc < 0) problems.push("Peso não comercializado não pode ser negativo.");
+      }
+
+      if(state.flowType === "final_turno"){
+        if($("pesoRejeitoGeralKg").value === "" || Number($("pesoRejeitoGeralKg").value) < 0){
+          problems.push("Informe o peso do rejeito geral (kg) (obrigatório).");
+        }
+      }
+
+      return problems;
+    }
+
+    function buildPayload(){
+      const base = buildBase();
+      const details = (state.flowType === "recebimento") ? buildRecebimento() : buildFinalTurno();
+      return { ...base, ...details };
+    }
+
+    async function saveToFirestore(payload){
+      const ref = await addDoc(collection(db, "coletasSeletivas"), payload);
+      return ref.id;
+    }
+
+    // ===========================
+    // Preview / Submit
+    // ===========================
+    $("btnPreview").addEventListener("click", ()=>{
+      hideAlert();
+      const probs = validate();
+      if(probs.length){
+        preview.classList.add("hidden");
+        showAlert("err", "Corrija antes da prévia:\n- " + probs.join("\n- "));
+        return;
+      }
       const payload = buildPayload();
+      preview.classList.remove("hidden");
+      preview.textContent = JSON.stringify({ ...payload, createdAt: "(serverTimestamp)" }, null, 2);
+      showAlert("info", "Prévia gerada (ainda não foi salva).");
+    });
 
-      if(!payload.opDate || !payload.deliveryType || !payload.flowType){
-        showAlert("err", "Preencha data, tipo de entrega e selecione a opção (recebimento/final de turno).");
+    $("form").addEventListener("submit", async (e)=>{
+      e.preventDefault();
+      hideAlert();
+      preview.classList.add("hidden");
+
+      const probs = validate();
+      if(probs.length){
+        showAlert("err", "Corrija antes de salvar:\n- " + probs.join("\n- "));
         return;
       }
 
-      // Se quiser obrigar vínculo:
-      // if(!payload.linkedId) { showAlert("err","Informe o ID e clique em Puxar dados."); return; }
+      const payload = buildPayload();
 
-      $("btnSave").disabled = true;
-      $("btnSave").textContent = "Salvando…";
+      $("btnSubmit").disabled = true;
+      $("btnSubmit").textContent = "Salvando…";
+      setDbStatus("salvando no Firestore…", true);
 
       try{
-        const ref = await addDoc(collection(db, "coletasSeletivas"), payload);
-        showAlert("ok", `Coleta salva com sucesso! (docId: ${ref.id})`);
-        $("preview").classList.remove("hidden");
-        $("preview").textContent = JSON.stringify({ docId: ref.id, ...payload, createdAt: "(serverTimestamp)" }, null, 2);
+        const id = await saveToFirestore(payload);
+        setDbStatus("salvo ✅", true);
+        showAlert("ok", `Coleta salva com sucesso! ID do registro: ${id}`);
+
+        preview.classList.remove("hidden");
+        preview.textContent = JSON.stringify({ firestoreDocId: id, ...payload, createdAt: "(serverTimestamp)" }, null, 2);
 
         // reset
-        // $("formColeta").reset();
+        $("form").reset();
+        state.deliveryType = "";
+        state.flowType = "";
+        state.qualidadeNota = null;
+        document.querySelectorAll(".chip.selected").forEach(el=>el.classList.remove("selected"));
+        toggleSections();
+        $("extrasWrap").innerHTML = "";
+        addExtraRow();
+        $("fotosResiduoCount").textContent = "0";
+        $("fotosRejeitoCount").textContent = "0";
+        $("fotosGeraisCount").textContent = "0";
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
       }catch(err){
         console.error(err);
-        showAlert("err", "Erro ao salvar coleta. Verifique permissões (rules) e firebaseConfig.");
+        setDbStatus("erro ao salvar (rules)", false);
+        showAlert("err", "Não foi possível salvar no Firestore. Verifique as regras/permissões e tente novamente.");
       }finally{
-        $("btnSave").disabled = false;
-        $("btnSave").textContent = "Salvar coleta";
+        $("btnSubmit").disabled = false;
+        $("btnSubmit").textContent = "Salvar coleta";
       }
     });
+
+    // init
+    setDbStatus("conectado ✅", true);
+    toggleSections();
   </script>
 </body>
 </html>
