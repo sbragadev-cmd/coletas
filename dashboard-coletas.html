@@ -7,13 +7,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dashboard • Coletas Seletivas</title>
 
-  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Leaflet (Mapa) -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -43,12 +39,6 @@
     .pill { background: #2ea86d; }
     .pill:hover{ filter: brightness(.97); }
     .dash-grid { grid-template-columns: 320px 1fr; }
-    .dashed { border: 2px dashed rgba(0,0,0,.12); }
-    .bubble {
-      background: #edf6ef;
-      border: 1px solid rgba(27,127,90,.12);
-      box-shadow: 0 10px 18px rgba(27,127,90,.06);
-    }
     .legend-dot { width: 18px; height: 10px; border-radius: 3px; }
     .leaflet-container { border-radius: 14px; }
     .soft-divider { border-top: 1px dashed rgba(0,0,0,.10); }
@@ -56,10 +46,8 @@
 </head>
 
 <body class="bg-grayClean text-graphite">
-  <!-- TOP BAR -->
   <header class="bg-white border-b border-black/5">
     <div class="max-w-[1400px] mx-auto px-4 py-3 flex items-center gap-3">
-      <!-- Brand -->
       <div class="flex items-center gap-3 min-w-[260px]">
         <div class="h-10 w-10 rounded-xl bg-regen/10 flex items-center justify-center border border-regen/15">
           <span class="text-regen font-extrabold">RB</span>
@@ -67,11 +55,10 @@
         <div class="leading-tight">
           <div class="text-xs text-graphite/70">vila do futuro</div>
           <div class="font-extrabold tracking-tight">RECICLA BONJA</div>
-          <div class="text-[11px] text-graphite/55">Sustentabilidade na Quebrada</div>
+          <div class="text-[11px] text-graphite/55">Dashboard • Coletas</div>
         </div>
       </div>
 
-      <!-- Pills (placeholders) -->
       <div class="flex-1 flex items-center justify-center gap-3 flex-wrap">
         <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
           DATA <span class="text-white/90">▾</span>
@@ -80,322 +67,130 @@
           MÊS <span class="text-white/90">▾</span>
         </button>
         <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
-          CICLO <span class="text-white/90">▾</span>
-        </button>
-        <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
-          TIPO DE COLETA <span class="text-white/90">▾</span>
-        </button>
-        <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
-          CÓDIGO <span class="text-white/90">▾</span>
+          TIPO <span class="text-white/90">▾</span>
         </button>
       </div>
 
       <div class="min-w-[260px] flex justify-end items-center gap-3">
-        <span class="text-xs text-graphite/55">Dashboard • Coletas</span>
+        <span class="text-xs text-graphite/55">Firestore: <span id="dbStatus" class="font-semibold">conectando…</span></span>
         <a href="cadastro-coletas.html" class="text-xs font-bold text-regen hover:underline">Cadastrar coleta</a>
       </div>
     </div>
   </header>
 
-  <!-- MAIN -->
   <main class="max-w-[1400px] mx-auto px-4 py-4">
     <div class="grid dash-grid gap-4">
-      <!-- LEFT SIDEBAR -->
+      <!-- LEFT -->
       <aside class="space-y-4">
-        <!-- KPIs -->
         <div class="panel rounded-2xl overflow-hidden">
           <div class="grid grid-cols-2">
             <div class="p-4 bg-regen/15 border-r border-black/5">
               <div class="text-3xl font-extrabold text-graphite" id="kpiDias">—</div>
-              <div class="text-xs text-graphite/70">total de dias do projeto</div>
-              <div class="text-[11px] text-graphite/60">Início: <span class="font-semibold" id="kpiInicio">—</span></div>
+              <div class="text-xs text-graphite/70">dias com registros</div>
             </div>
             <div class="p-4 bg-regen/10">
               <div class="text-3xl font-extrabold text-graphite" id="kpiOps">0</div>
-              <div class="text-xs text-graphite/70">operações realizadas</div>
+              <div class="text-xs text-graphite/70">operações</div>
             </div>
           </div>
         </div>
 
-        <!-- Families / Condo (placeholders simples) -->
-        <div class="panel rounded-2xl p-4">
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <div class="font-extrabold text-center">FAMÍLIAS</div>
-              <div class="mt-3 space-y-2 text-sm">
-                <div class="flex items-center justify-between">
-                  <span class="text-graphite/70">cadastradas</span>
-                  <span class="font-bold" id="famCadastradas">—</span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-graphite/70">participantes</span>
-                  <span class="font-bold" id="famParticipantes">—</span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-graphite/70">coletas realizadas</span>
-                  <span class="font-bold" id="famColetas">—</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="border-l border-black/10 pl-3">
-              <div class="font-extrabold text-center">CONDOMÍNIO</div>
-              <div class="mt-3 space-y-2 text-sm">
-                <div class="flex items-center justify-between">
-                  <span class="text-graphite/70">cadastrados</span>
-                  <span class="font-bold" id="condCadastrados">—</span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-graphite/70">participantes</span>
-                  <span class="font-bold" id="condParticipantes">—</span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-graphite/70">coletas realizadas</span>
-                  <span class="font-bold" id="condColetas">—</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-3 text-[11px] text-graphite/55">
-            * Esses blocos podem ser refinados depois quando você cadastrar “famílias/condomínios” em coleções próprias.
-          </div>
-        </div>
-
-        <!-- Map -->
         <div class="panel rounded-2xl p-4">
           <div class="font-extrabold text-center text-lg">LOCALIZAÇÃO</div>
           <div class="mt-3">
             <div id="map" class="w-full h-[360px]"></div>
           </div>
           <div class="mt-2 text-[11px] text-graphite/55">
-            * Para mapa real por endereço, você pode salvar latitude/longitude na coleta ou geocodificar.
+            * Mapa está “base” (sem lat/lng nas coletas).
           </div>
         </div>
 
-        <!-- Quality donut -->
         <div class="panel rounded-2xl p-4">
           <div class="font-extrabold text-center text-lg">QUALIDADE DO RESÍDUO</div>
           <div class="mt-4">
             <canvas id="chartQualidade" height="220"></canvas>
-            <div class="mt-3 flex items-center justify-center gap-5 text-xs">
-              <div class="flex items-center gap-2">
-                <span class="legend-dot" style="background:#1B7F5A"></span> LIMPO
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="legend-dot" style="background:#F2C94C"></span> MÉDIO
-              </div>
-              <div class="flex items-center gap-2">
-                <span class="legend-dot" style="background:#EF4444"></span> RUIM
-              </div>
-            </div>
           </div>
         </div>
       </aside>
 
-      <!-- RIGHT CONTENT -->
+      <!-- RIGHT -->
       <section class="space-y-4">
-        <!-- Summary row -->
+        <!-- Summary -->
         <div class="panel rounded-2xl p-4">
           <div class="grid grid-cols-12 gap-4 items-stretch">
-            <div class="col-span-12 md:col-span-2 flex items-center justify-center font-extrabold text-lg">
-              GERAL
-            </div>
-
-            <div class="col-span-12 md:col-span-7 border-l border-black/10 pl-4">
+            <div class="col-span-12 md:col-span-7">
               <div class="flex items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                  <div class="h-12 w-12 rounded-2xl bg-regen/10 border border-regen/15 flex items-center justify-center">
-                    ♻️
-                  </div>
-                  <div>
-                    <div class="text-xl font-extrabold">
-                      <span id="sumRecKg">0,0</span> kg <span class="ml-2">RECICLÁVEL</span>
-                    </div>
-                    <div class="text-sm text-graphite/70">
-                      <span class="text-regen font-extrabold" id="sumRecPct">0,0%</span> do total
-                    </div>
-                    <div class="text-sm text-graphite/70">
-                      Receita total = <span class="font-extrabold">R$</span> <span class="font-extrabold" id="sumReceita">0,0</span>
-                    </div>
-                  </div>
+                <div>
+                  <div class="text-xl font-extrabold"><span id="sumRecKg">0,0</span> kg RECICLÁVEL</div>
+                  <div class="text-sm text-graphite/70"><span class="text-regen font-extrabold" id="sumRecPct">0,0%</span> do total</div>
                 </div>
-
-                <div class="hidden md:block w-px bg-black/10"></div>
-
-                <div class="flex items-center gap-3">
-                  <div class="h-12 w-12 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center">
-                    🗑️
-                  </div>
-                  <div class="text-right">
-                    <div class="text-xl font-extrabold">
-                      <span id="sumRejKg">0,0</span> kg <span class="ml-2 text-red-600">REJEITO</span>
-                    </div>
-                    <div class="text-sm text-graphite/70">
-                      <span class="text-red-600 font-extrabold" id="sumRejPct">0,0%</span> do total
-                    </div>
-                  </div>
+                <div class="w-px bg-black/10 hidden md:block"></div>
+                <div class="text-right">
+                  <div class="text-xl font-extrabold"><span id="sumRejKg">0,0</span> kg <span class="text-red-600">REJEITO</span></div>
+                  <div class="text-sm text-graphite/70"><span class="text-red-600 font-extrabold" id="sumRejPct">0,0%</span> do total</div>
                 </div>
               </div>
             </div>
 
-            <div class="col-span-12 md:col-span-3">
+            <div class="col-span-12 md:col-span-5">
               <div class="rounded-2xl bg-grayClean border border-black/10 p-4 h-full">
                 <div class="text-xs font-extrabold text-graphite/70">RESUMO</div>
                 <div class="mt-2 space-y-2 text-sm">
-                  <div class="flex items-center justify-between">
-                    <span class="text-graphite/70">Total (kg)</span>
-                    <span class="font-extrabold" id="sumTotalKg">0,0</span>
-                  </div>
-                  <div class="flex items-center justify-between">
-                    <span class="text-graphite/70">Operações</span>
-                    <span class="font-extrabold" id="sumOps">0</span>
-                  </div>
-                  <div class="flex items-center justify-between">
-                    <span class="text-graphite/70">Dias (no filtro)</span>
-                    <span class="font-extrabold" id="sumDiasFiltro">—</span>
-                  </div>
+                  <div class="flex items-center justify-between"><span class="text-graphite/70">Total (kg)</span><span class="font-extrabold" id="sumTotalKg">0,0</span></div>
+                  <div class="flex items-center justify-between"><span class="text-graphite/70">Operações</span><span class="font-extrabold" id="sumOps">0</span></div>
+                  <div class="flex items-center justify-between"><span class="text-graphite/70">Dias</span><span class="font-extrabold" id="sumDiasFiltro">—</span></div>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-3 text-[11px] text-graphite/60">
-            Firestore: <span id="dbStatus" class="font-semibold">conectando…</span>
-          </div>
-        </div>
-
-        <!-- Middle: bubbles + right reject breakdown -->
-        <div class="grid grid-cols-12 gap-4">
-          <!-- Bubbles materials -->
-          <div class="col-span-12 lg:col-span-8 panel rounded-2xl p-4">
-            <div class="text-center font-extrabold text-lg">TIPO DE MATERIAL RECICLÁVEL</div>
-            <div class="text-center text-xs text-graphite/60 mt-1">(% sobre o total de recicláveis)</div>
-
-            <div id="bubblesGrid" class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4"></div>
-
-            <div class="mt-3 text-[11px] text-graphite/55 text-center">
-              * Aqui agregamos principalmente pelo “final_turno”. O “recebimento” entra como “Reciclável total”, mas não tem breakdown por material.
-            </div>
-          </div>
-
-          <!-- Right reject types -->
-          <div class="col-span-12 lg:col-span-4 space-y-4">
-            <div class="panel rounded-2xl p-4">
-              <div class="text-center font-extrabold text-lg">TIPO DE REJEITO</div>
-              <div class="text-center text-xs text-graphite/60 mt-1">(% sobre o total do rejeito)</div>
-
-              <div class="mt-4 space-y-4">
-                <div class="rounded-2xl bg-red-50 border border-red-100 p-4 text-center">
-                  <div class="flex items-center justify-center gap-2 text-3xl">🐀</div>
-                  <div class="text-3xl font-extrabold text-red-600" id="rejNaoRecPct">0,0%</div>
-                  <div class="text-sm font-extrabold">NÃO RECICLÁVEL</div>
-                  <div class="text-sm text-graphite/70"><span id="rejNaoRecKg">0,0</span> kg</div>
-                </div>
-
-                <div class="rounded-2xl bg-white border border-black/10 p-4 text-center">
-                  <div class="flex items-center justify-center gap-2 text-3xl">🚫💰</div>
-                  <div class="text-3xl font-extrabold text-red-600" id="rejNaoComPct">0,0%</div>
-                  <div class="text-sm font-extrabold">NÃO COMERCIALIZADO</div>
-                  <div class="text-sm text-graphite/70"><span id="rejNaoComKg">0,0</span> kg</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="panel rounded-2xl p-4 dashed">
-              <div class="text-center font-extrabold">OUTRO</div>
-              <div class="mt-3 flex items-center justify-center text-5xl">🧴</div>
-              <div class="mt-2 text-center">
-                <div class="text-3xl font-extrabold" id="outroKg">0,0</div>
-                <div class="text-xs text-graphite/70">kg</div>
-                <div class="mt-2 text-sm font-extrabold">ÓLEO DE COZINHA</div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Bottom chart -->
+        <!-- Bar chart -->
         <div class="panel rounded-2xl p-4">
           <div class="flex items-center gap-6 text-sm justify-center">
-            <div class="flex items-center gap-2">
-              <span class="legend-dot" style="background:#EF4444"></span> Peso do rejeito
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="legend-dot" style="background:#22C55E"></span> Peso do Reciclável
-            </div>
+            <div class="flex items-center gap-2"><span class="legend-dot" style="background:#EF4444"></span> Rejeito</div>
+            <div class="flex items-center gap-2"><span class="legend-dot" style="background:#22C55E"></span> Reciclável</div>
           </div>
-
-          <div class="mt-3">
-            <canvas id="chartBar" height="120"></canvas>
-          </div>
-          <div class="soft-divider mt-3 pt-2 text-xs text-center text-graphite/60">
-            Total de famílias/condomínios participantes (no período)
-          </div>
+          <div class="mt-3"><canvas id="chartBar" height="120"></canvas></div>
         </div>
 
-        <!-- Table (PLANILHA) -->
+        <!-- PLANILHA -->
         <div class="panel rounded-2xl p-4">
           <div class="grid grid-cols-12 gap-3 text-xs font-extrabold text-graphite/70 pb-2 border-b border-black/10">
             <div class="col-span-2">Código/ID</div>
             <div class="col-span-2">Fluxo</div>
-            <div class="col-span-2">Data de coleta</div>
-            <div class="col-span-2">Rejeito (kg)</div>
-            <div class="col-span-2">Não com. (kg)</div>
-            <div class="col-span-2">Tipo</div>
+            <div class="col-span-2">Data</div>
+            <div class="col-span-2 text-right">Reciclável (kg)</div>
+            <div class="col-span-2 text-right">Rejeito (kg)</div>
+            <div class="col-span-2 text-right">Não com. (kg)</div>
           </div>
 
-          <div id="rows" class="divide-y divide-black/5 text-sm">
-            <!-- Firestore preenche -->
-          </div>
+          <div id="rows" class="divide-y divide-black/5 text-sm"></div>
 
-          <div class="mt-3 text-[11px] text-right text-graphite/50">
-            Desenvolvido por você • Recicla Bonja
-          </div>
+          <div class="mt-3 text-[11px] text-right text-graphite/50">Recicla Bonja</div>
         </div>
       </section>
     </div>
   </main>
 
-  <!-- DASHBOARD SCRIPT (Firestore + Render) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      onSnapshot
-    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-    // ===========================
-    // FIREBASE
-    // ===========================
-       const firebaseConfig = {
-  apiKey: "AIzaSyAe5E7M8Jednj1xGRjNrV0oD4wQwv6b-WM",
-  authDomain: "reciclabonja-3dee7.firebaseapp.com",
-  projectId: "reciclabonja-3dee7",
-  storageBucket: "reciclabonja-3dee7.firebasestorage.app",
-  messagingSenderId: "590941010829",
-  appId: "1:590941010829:web:9b8e4703df54cc8b0a9bc4"
-};
+const firebaseConfig = {
+      apiKey: "AIzaSyAQBmh8uwLTkyabQc_GznBBV1X2dPhActE",
+      authDomain: "recicla-bonja.firebaseapp.com",
+      projectId: "recicla-bonja",
+      storageBucket: "recicla-bonja.firebasestorage.app",
+      messagingSenderId: "557210456406",
+      appId: "1:557210456406:web:4eebf082cc0d15580c86f7"
+    };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // ===========================
-    // UI helpers
-    // ===========================
-    const fmt = (n, dec=1) => Number(n || 0).toLocaleString("pt-BR", {
-      minimumFractionDigits: dec,
-      maximumFractionDigits: dec
-    });
-
-    const setText = (id, value) => {
-      const el = document.getElementById(id);
-      if(el) el.textContent = value;
-    };
-
-    const toNumber = (x) => {
-      const n = Number(x);
-      return Number.isFinite(n) ? n : 0;
-    };
+    const fmt = (n, dec=1) => Number(n || 0).toLocaleString("pt-BR", { minimumFractionDigits: dec, maximumFractionDigits: dec });
+    const toNum = (x) => { const n = Number(x); return Number.isFinite(n) ? n : 0; };
+    const setText = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
 
     function setDbStatus(text, ok=true){
       const el = document.getElementById("dbStatus");
@@ -403,211 +198,134 @@
       el.className = ok ? "font-semibold text-regen" : "font-semibold text-red-700";
     }
 
-    // ===========================
-    // Charts
-    // ===========================
+    // map base
+    const map = L.map('map', { zoomControl: true }).setView([-30.0346, -51.2177], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
+
+    // charts
     let chartQualidade, chartBar;
 
     function drawQualidade(limpo, medio, ruim){
       if(chartQualidade) chartQualidade.destroy();
-      const ctx = document.getElementById("chartQualidade");
-      chartQualidade = new Chart(ctx, {
+      chartQualidade = new Chart(document.getElementById("chartQualidade"), {
         type: "doughnut",
-        data: {
-          labels: ["LIMPO", "MÉDIO", "RUIM"],
-          datasets: [{
-            data: [limpo, medio, ruim],
-            backgroundColor: ["#1B7F5A", "#F2C94C", "#EF4444"],
-            borderWidth: 0
-          }]
-        },
-        options: {
-          cutout: "70%",
-          plugins: { legend: { display:false }, tooltip: { enabled:true } }
-        }
+        data: { labels:["LIMPO","MÉDIO","RUIM"], datasets:[{ data:[limpo, medio, ruim], backgroundColor:["#1B7F5A","#F2C94C","#EF4444"], borderWidth:0 }] },
+        options: { cutout:"70%", plugins:{ legend:{display:false} } }
       });
     }
 
     function drawBar(labels, rejeito, reciclavel){
       if(chartBar) chartBar.destroy();
-      const ctx = document.getElementById("chartBar");
-      chartBar = new Chart(ctx, {
-        type: "bar",
-        data: {
+      chartBar = new Chart(document.getElementById("chartBar"), {
+        type:"bar",
+        data:{
           labels,
-          datasets: [
-            { label:"Peso do rejeito", data: rejeito, backgroundColor:"#EF4444", stack:"stack1", borderWidth:0 },
-            { label:"Peso do reciclável", data: reciclavel, backgroundColor:"#22C55E", stack:"stack1", borderWidth:0 },
+          datasets:[
+            { label:"Rejeito", data: rejeito, backgroundColor:"#EF4444", stack:"s1", borderWidth:0 },
+            { label:"Reciclável", data: reciclavel, backgroundColor:"#22C55E", stack:"s1", borderWidth:0 }
           ]
         },
-        options: {
-          responsive: true,
-          plugins: { legend: { display:false } },
-          scales: {
-            x: { stacked:true, grid: { display:false }, ticks: { maxRotation:0, autoSkip:true, maxTicksLimit:18, font:{size:10} } },
-            y: { stacked:true, grid: { color: "rgba(0,0,0,.06)" }, ticks: { font:{size:10} } }
+        options:{
+          responsive:true,
+          plugins:{ legend:{display:false} },
+          scales:{
+            x:{ stacked:true, grid:{display:false}, ticks:{ maxRotation:0, autoSkip:true, maxTicksLimit:18, font:{size:10} } },
+            y:{ stacked:true, grid:{ color:"rgba(0,0,0,.06)" }, ticks:{ font:{size:10} } }
           }
         }
       });
     }
 
-    // ===========================
-    // Map (placeholder)
-    // ===========================
-    let map;
-    function initMap(){
-      map = L.map('map', { zoomControl: true }).setView([-30.0346, -51.2177], 12);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap'
-      }).addTo(map);
+    function calcRecFinal(d){
+      // soma materiais + extras
+      let rec =
+        toNum(d.plasticoKg)+toNum(d.papelMistoKg)+toNum(d.papelaoKg)+toNum(d.aluminioMetalKg)+
+        toNum(d.vidroKg)+toNum(d.sacariaKg)+toNum(d.isoporKg)+toNum(d.oleoKg);
+
+      if(Array.isArray(d.materiaisExtras)){
+        rec += d.materiaisExtras.reduce((acc, it)=> acc + toNum(it?.kg), 0);
+      }
+      return rec;
     }
 
-    // ===========================
-    // Render table (planilha)
-    // ===========================
-    function renderTabela(items){
-      const container = document.getElementById("rows");
-      container.innerHTML = "";
+    function renderTable(items){
+      const rows = document.getElementById("rows");
+      rows.innerHTML = "";
 
-      // ordena por data (opDate) desc, sem depender de index Firestore
-      items.sort((a,b)=>{
-        const ad = String(a.opDate || "");
-        const bd = String(b.opDate || "");
-        return bd.localeCompare(ad);
-      });
+      // ordena por data desc
+      items.sort((a,b)=> String(b.opDate||"").localeCompare(String(a.opDate||"")));
 
-      items.forEach(item=>{
+      if(!items.length){
+        rows.innerHTML = `<div class="py-4 text-sm text-graphite/60">Nenhuma coleta encontrada.</div>`;
+        return;
+      }
+
+      items.slice(0, 200).forEach(d=>{
+        const codigo = d.linkedId || d.codigoFamilia || d.codigoCondominio || "-";
+        const fluxo = d.flowType === "recebimento" ? "Recebimento" : "Final turno";
+        const data = d.opDate || "-";
+
+        let recKg = 0, rejKg = 0, naoComKg = 0;
+
+        if(d.flowType === "recebimento"){
+          recKg = toNum(d.pesoResiduoSecoKg);
+          rejKg = toNum(d.pesoRejeitoKg);
+          naoComKg = toNum(d.pesoNaoComercializadoKg);
+        } else {
+          recKg = calcRecFinal(d);
+          rejKg = toNum(d.pesoRejeitoGeralKg);
+          naoComKg = 0;
+        }
+
         const row = document.createElement("div");
         row.className = "grid grid-cols-12 gap-3 py-2 text-xs";
-
-        const codigo = item.linkedId || item.codigoFamilia || item.codigoCondominio || "-";
-        const fluxo = item.flowType === "recebimento" ? "Recebimento" : "Final turno";
-        const data = item.opDate || "-";
-
-        const rejeitoKg = item.flowType === "recebimento"
-          ? toNumber(item.pesoRejeitoKg)
-          : toNumber(item.pesoRejeitoGeralKg);
-
-        const naoComKg = item.flowType === "recebimento"
-          ? toNumber(item.pesoNaoComercializadoKg)
-          : 0;
-
         row.innerHTML = `
           <div class="col-span-2 font-semibold">${codigo}</div>
           <div class="col-span-2">${fluxo}</div>
           <div class="col-span-2">${data}</div>
-          <div class="col-span-2 text-right">${fmt(rejeitoKg)}</div>
-          <div class="col-span-2 text-right">${item.flowType === "recebimento" ? fmt(naoComKg) : "-"}</div>
-          <div class="col-span-2">${item.deliveryType || "-"}</div>
+          <div class="col-span-2 text-right">${fmt(recKg)}</div>
+          <div class="col-span-2 text-right">${fmt(rejKg)}</div>
+          <div class="col-span-2 text-right">${d.flowType === "recebimento" ? fmt(naoComKg) : "-"}</div>
         `;
-
-        container.appendChild(row);
+        rows.appendChild(row);
       });
-
-      if(!items.length){
-        container.innerHTML = `<div class="py-4 text-sm text-graphite/60">Nenhuma coleta encontrada ainda.</div>`;
-      }
     }
 
-    // ===========================
-    // Aggregate + UI update
-    // ===========================
     function renderAll(items){
-      // KPIs
       setText("kpiOps", items.length);
       setText("sumOps", items.length);
 
-      // totals
-      let totalRec = 0;
-      let totalRej = 0;
-
-      // qualidade contagem (só recebimento tem qualidadeNota)
-      let q1 = 0, q2 = 0, q3 = 0;
-
-      // rejeito breakdown: aqui vamos assumir
-      // - "não reciclável" = rejeito geral (final_turno) + rejeito (recebimento)
-      // - "não comercializado" = pesoNaoComercializadoKg (recebimento)
-      let naoRecKg = 0;
-      let naoComKg = 0;
-
-      // materiais (somente final_turno)
-      const mats = {
-        "PLÁSTICO": { kg:0, icon:"🧴" },
-        "PAPEL MISTO": { kg:0, icon:"📄" },
-        "PAPELÃO": { kg:0, icon:"📦" },
-        "ALUMÍNIO/METAL": { kg:0, icon:"🥫" },
-        "VIDRO": { kg:0, icon:"🍾" },
-        "SACARIA/SACOLINHA": { kg:0, icon:"🛍️" },
-        "ISOPOR": { kg:0, icon:"🍱" },
-        "ÓLEO": { kg:0, icon:"🧴" },
-      };
-
-      // série por data opDate (YYYY-MM-DD)
-      const seriesMap = new Map(); // date -> {rec, rej}
+      // agregações
+      let totalRec = 0, totalRej = 0;
+      let q1=0, q2=0, q3=0;
+      const perDay = new Map(); // date => {rec, rej}
 
       items.forEach(d=>{
         const date = d.opDate || "sem-data";
-
-        if(!seriesMap.has(date)) seriesMap.set(date, { rec:0, rej:0 });
+        if(!perDay.has(date)) perDay.set(date, {rec:0, rej:0});
 
         if(d.flowType === "recebimento"){
-          const rec = toNumber(d.pesoResiduoSecoKg);
-          const rej = toNumber(d.pesoRejeitoKg);
+          const rec = toNum(d.pesoResiduoSecoKg);
+          const rej = toNum(d.pesoRejeitoKg);
+
           totalRec += rec;
           totalRej += rej;
 
-          naoRecKg += rej;
-          naoComKg += toNumber(d.pesoNaoComercializadoKg);
-
-          seriesMap.get(date).rec += rec;
-          seriesMap.get(date).rej += rej;
+          perDay.get(date).rec += rec;
+          perDay.get(date).rej += rej;
 
           if(d.qualidadeNota === 1) q1++;
           if(d.qualidadeNota === 2) q2++;
           if(d.qualidadeNota === 3) q3++;
-        }
-
-        if(d.flowType === "final_turno"){
-          const rej = toNumber(d.pesoRejeitoGeralKg);
-          totalRej += rej;
-          naoRecKg += rej;
-
-          // recicláveis por materiais
-          const rec =
-            toNumber(d.plasticoKg) +
-            toNumber(d.papelMistoKg) +
-            toNumber(d.papelaoKg) +
-            toNumber(d.aluminioMetalKg) +
-            toNumber(d.vidroKg) +
-            toNumber(d.sacariaKg) +
-            toNumber(d.isoporKg) +
-            toNumber(d.oleoKg);
+        } else {
+          const rec = calcRecFinal(d);
+          const rej = toNum(d.pesoRejeitoGeralKg);
 
           totalRec += rec;
+          totalRej += rej;
 
-          mats["PLÁSTICO"].kg += toNumber(d.plasticoKg);
-          mats["PAPEL MISTO"].kg += toNumber(d.papelMistoKg);
-          mats["PAPELÃO"].kg += toNumber(d.papelaoKg);
-          mats["ALUMÍNIO/METAL"].kg += toNumber(d.aluminioMetalKg);
-          mats["VIDRO"].kg += toNumber(d.vidroKg);
-          mats["SACARIA/SACOLINHA"].kg += toNumber(d.sacariaKg);
-          mats["ISOPOR"].kg += toNumber(d.isoporKg);
-          mats["ÓLEO"].kg += toNumber(d.oleoKg);
-
-          // extras
-          if(Array.isArray(d.materiaisExtras)){
-            d.materiaisExtras.forEach(x=>{
-              const name = String(x?.name || "").trim();
-              const kg = toNumber(x?.kg);
-              if(!name) return;
-              if(!mats[name]) mats[name] = { kg:0, icon:"♻️" };
-              mats[name].kg += kg;
-            });
-          }
-
-          seriesMap.get(date).rec += rec;
-          seriesMap.get(date).rej += rej;
+          perDay.get(date).rec += rec;
+          perDay.get(date).rej += rej;
         }
       });
 
@@ -618,93 +336,44 @@
       setText("sumRecKg", fmt(totalRec));
       setText("sumRejKg", fmt(totalRej));
       setText("sumTotalKg", fmt(total));
-      setText("sumDiasFiltro", seriesMap.size);
-
       setText("sumRecPct", recPct.toFixed(1).replace(".", ",") + "%");
       setText("sumRejPct", rejPct.toFixed(1).replace(".", ",") + "%");
 
-      // receita (placeholder)
-      setText("sumReceita", fmt(0));
+      const dates = Array.from(perDay.keys()).filter(x=>x!=="sem-data");
+      setText("kpiDias", dates.length);
+      setText("sumDiasFiltro", dates.length);
 
-      // rejeito breakdown
-      const rejTotal = naoRecKg + naoComKg;
-      const naoRecPct = rejTotal ? (naoRecKg/rejTotal)*100 : 0;
-      const naoComPct = rejTotal ? (naoComKg/rejTotal)*100 : 0;
-
-      setText("rejNaoRecKg", fmt(naoRecKg));
-      setText("rejNaoComKg", fmt(naoComKg));
-      setText("rejNaoRecPct", naoRecPct.toFixed(1).replace(".", ",") + "%");
-      setText("rejNaoComPct", naoComPct.toFixed(1).replace(".", ",") + "%");
-      setText("outroKg", fmt(mats["ÓLEO"]?.kg || 0));
-
-      // qualidade donut (map: 1=ruim,2=medio,3=limpo)
       drawQualidade(q3, q2, q1);
 
-      // materiais bubbles (% sobre reciclável)
-      const bubbles = document.getElementById("bubblesGrid");
-      bubbles.innerHTML = "";
-      const matsArr = Object.entries(mats)
-        .map(([k,v]) => ({ key:k, kg:v.kg, icon:v.icon }))
-        .filter(x => x.kg > 0.0001)
-        .sort((a,b)=> b.kg - a.kg)
-        .slice(0, 9);
+      const labels = dates.sort((a,b)=> a.localeCompare(b));
+      const recArr = labels.map(d=> perDay.get(d).rec);
+      const rejArr = labels.map(d=> perDay.get(d).rej);
+      drawBar(labels, rejArr, recArr);
 
-      matsArr.forEach(m=>{
-        const pct = totalRec ? (m.kg/totalRec)*100 : 0;
-        const el = document.createElement("div");
-        el.className = "bubble rounded-full p-4 md:p-5 flex flex-col items-center justify-center text-center min-h-[150px]";
-        el.innerHTML = `
-          <div class="text-3xl">${m.icon}</div>
-          <div class="mt-1 text-2xl font-extrabold">${pct.toFixed(1).replace(".", ",")}%</div>
-          <div class="text-sm text-graphite/70">${fmt(m.kg)} kg</div>
-          <div class="mt-2 text-xs font-extrabold">${m.key}</div>
-        `;
-        bubbles.appendChild(el);
-      });
-
-      if(!matsArr.length){
-        bubbles.innerHTML = `<div class="col-span-full text-center text-sm text-graphite/60 py-6">
-          Sem dados de materiais ainda (faça um “Final do turno” para aparecer o breakdown).
-        </div>`;
-      }
-
-      // series chart (ordena datas)
-      const labels = Array.from(seriesMap.keys()).sort((a,b)=> a.localeCompare(b));
-      const recSeries = labels.map(d => seriesMap.get(d).rec);
-      const rejSeries = labels.map(d => seriesMap.get(d).rej);
-      drawBar(labels, rejSeries, recSeries);
-
-      // planilha
-      renderTabela(items);
+      renderTable(items);
     }
 
-    // ===========================
-    // Firestore Listener
-    // ===========================
-    initMap();
     setDbStatus("conectando…", true);
 
-    const colRef = collection(db, "coletasSeletivas");
-
-    onSnapshot(colRef, (snapshot)=>{
-      const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    onSnapshot(collection(db, "coletasSeletivas"), (snap)=>{
+      const items = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       console.log("🔥 Coletas carregadas:", items);
-      setDbStatus(`conectado ✅ (${items.length} registros)`, true);
+      setDbStatus(`conectado ✅ (${items.length})`, true);
       renderAll(items);
     }, (err)=>{
-      console.error("Firestore error:", err);
-      setDbStatus("erro (rules/bloqueio)", false);
-      alert("Erro ao ler Firestore. Verifique suas regras de leitura (read).");
+      console.error(err);
+      setDbStatus("erro (rules)", false);
+      alert("Erro ao ler Firestore. Verifique as regras e publique.");
     });
 
-    // ===========================
-    // Pequeno apoio: se veio do cadastro
-    // ===========================
+    // toast simples ao voltar do cadastro
     try{
-      const last = localStorage.getItem("rb_last_coleta");
-      if(last){
-        const obj = JSON.parse(last);
-        console.log("🟢 Última coleta (cache):", obj);
+      const url = new URL(window.location.href);
+      const newId = url.searchParams.get("new");
+      if(newId){
+        console.log("✅ Nova coleta:", newId);
+        url.searchParams.delete("new");
+        window.history.replaceState({}, "", url.toString());
       }
     }catch{}
   </script>

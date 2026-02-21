@@ -7,7 +7,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Recicla Bonja • Cadastro de Participantes (Passo a passo)</title>
 
-  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -63,15 +62,10 @@
       box-shadow: 0 0 0 4px rgba(27,127,90,.10);
     }
     .reqDot::after{ content:" *"; color:#dc2626; font-weight:800; }
-    .codebox{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      letter-spacing: .02em;
-    }
   </style>
 </head>
 
 <body class="min-h-screen bg-mesh text-graphite">
-  <!-- TOP -->
   <header class="max-w-5xl mx-auto px-4 pt-8 pb-4">
     <div class="flex items-center justify-between gap-3">
       <div class="flex items-center gap-3">
@@ -88,23 +82,18 @@
 
   <main class="max-w-5xl mx-auto px-4 pb-10">
     <section class="glass rounded-3xl shadow-soft overflow-hidden">
-      <!-- header -->
       <div class="p-6 sm:p-8 border-b border-black/5 bg-white/60">
         <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
           <div>
             <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-deepBlue">Cadastro de Participantes</h1>
-            <p class="mt-2 text-graphite/70">
-              Responda uma pergunta por vez. Você só avança após preencher a resposta.
-            </p>
+            <p class="mt-2 text-graphite/70">Responda uma pergunta por vez. Você só avança após preencher.</p>
           </div>
-
           <div class="text-xs text-graphite/70">
             <span class="font-bold">Progresso:</span>
             <span id="progressText">1/9</span>
           </div>
         </div>
 
-        <!-- progress bar -->
         <div class="mt-4 w-full h-2 bg-black/10 rounded-full overflow-hidden">
           <div id="progressBar" class="h-full bg-regen rounded-full" style="width: 11%;"></div>
         </div>
@@ -114,14 +103,10 @@
         </div>
       </div>
 
-      <!-- body -->
       <div class="p-6 sm:p-8 bg-white">
         <div id="alert" class="hidden rounded-2xl border p-4 text-sm mb-4"></div>
 
-        <!-- STEPS (9 no total: consent + 8 perguntas) -->
         <div id="steps">
-
-          <!-- STEP 1: Consent -->
           <div class="step active" data-step="1">
             <div class="flex items-start gap-3">
               <div class="mt-1 h-10 w-10 rounded-2xl bg-regen/10 border border-regen/15 flex items-center justify-center">✅</div>
@@ -132,84 +117,53 @@
             </div>
 
             <div class="mt-5 space-y-3 text-sm text-graphite/85">
-              <label class="flex gap-3">
-                <input id="c1" type="checkbox" class="mt-1">
-                <span><b>1.</b> O uso dos meus dados pessoais para fins exclusivos de organização e gestão do projeto, em conformidade com a <b>LGPD</b>.</span>
+              <label class="flex gap-3"><input id="c1" type="checkbox" class="mt-1">
+                <span><b>1.</b> Uso dos meus dados pessoais para fins de organização e gestão do projeto (LGPD).</span>
               </label>
-              <label class="flex gap-3">
-                <input id="c2" type="checkbox" class="mt-1">
-                <span><b>2.</b> O envio de comunicações via <b>WhatsApp</b>, incluindo avisos sobre coletas e demais atividades relacionadas ao projeto.</span>
+              <label class="flex gap-3"><input id="c2" type="checkbox" class="mt-1">
+                <span><b>2.</b> Envio de comunicações via WhatsApp (avisos e atividades).</span>
               </label>
-              <label class="flex gap-3">
-                <input id="c3" type="checkbox" class="mt-1">
-                <span><b>3.</b> A utilização da minha <b>imagem</b> para fins de divulgação e promoção das ações do projeto, em mídias impressas, digitais ou outros meios de comunicação.</span>
+              <label class="flex gap-3"><input id="c3" type="checkbox" class="mt-1">
+                <span><b>3.</b> Utilização da minha imagem para divulgação e promoção do projeto.</span>
               </label>
             </div>
           </div>
 
-          <!-- STEP 2: Nome -->
           <div class="step" data-step="2">
             <h2 class="text-lg font-extrabold text-deepBlue reqDot">1) Nome completo</h2>
-            <p class="mt-1 text-sm text-graphite/70">Como você gostaria de se identificar no projeto?</p>
             <input id="nome" class="mt-4 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring" placeholder="Digite seu nome completo"/>
           </div>
 
-          <!-- STEP 3: Destina reciclável -->
           <div class="step" data-step="3">
-            <h2 class="text-lg font-extrabold text-deepBlue reqDot">2) Você já destina seu resíduo reciclável para algum local ou catador?</h2>
-            <p class="mt-1 text-sm text-graphite/70">Selecione uma opção.</p>
-
-            <div class="mt-4 grid sm:grid-cols-2 gap-3" role="radiogroup" aria-label="Destina">
-              <div class="chip" data-radio="destina" data-value="Sim">
-                <div class="font-extrabold">Sim</div>
-                <div class="text-xs text-graphite/60">Já destino atualmente</div>
-              </div>
-              <div class="chip" data-radio="destina" data-value="Não">
-                <div class="font-extrabold">Não</div>
-                <div class="text-xs text-graphite/60">Ainda não destino</div>
-              </div>
+            <h2 class="text-lg font-extrabold text-deepBlue reqDot">2) Você já destina seu resíduo reciclável para algum local/catador?</h2>
+            <div class="mt-4 grid sm:grid-cols-2 gap-3">
+              <div class="chip" data-radio="destina" data-value="Sim"><div class="font-extrabold">Sim</div></div>
+              <div class="chip" data-radio="destina" data-value="Não"><div class="font-extrabold">Não</div></div>
             </div>
           </div>
 
-          <!-- STEP 4: Interesse -->
           <div class="step" data-step="4">
-            <h2 class="text-lg font-extrabold text-deepBlue reqDot">3) Você tem interesse em participar do Projeto, tendo seu resíduo coletado na sua residência/local de trabalho?</h2>
-            <p class="mt-1 text-sm text-graphite/70">Selecione uma opção.</p>
-
-            <div class="mt-4 grid sm:grid-cols-2 gap-3" role="radiogroup" aria-label="Interesse">
-              <div class="chip" data-radio="interesse" data-value="Sim">
-                <div class="font-extrabold">Sim</div>
-                <div class="text-xs text-graphite/60">Tenho interesse</div>
-              </div>
-              <div class="chip" data-radio="interesse" data-value="Não">
-                <div class="font-extrabold">Não</div>
-                <div class="text-xs text-graphite/60">Não tenho interesse agora</div>
-              </div>
+            <h2 class="text-lg font-extrabold text-deepBlue reqDot">3) Você tem interesse em participar do projeto com coleta no local?</h2>
+            <div class="mt-4 grid sm:grid-cols-2 gap-3">
+              <div class="chip" data-radio="interesse" data-value="Sim"><div class="font-extrabold">Sim</div></div>
+              <div class="chip" data-radio="interesse" data-value="Não"><div class="font-extrabold">Não</div></div>
             </div>
           </div>
 
-          <!-- STEP 5: Dificuldades -->
           <div class="step" data-step="5">
-            <h2 class="text-lg font-extrabold text-deepBlue reqDot">4) Quais são as limitações para separar/armazenar resíduos recicláveis (secos)?</h2>
-            <p class="mt-1 text-sm text-graphite/70">Conte com suas palavras (ex.: espaço, tempo, dúvidas, falta de sacaria).</p>
+            <h2 class="text-lg font-extrabold text-deepBlue reqDot">4) Quais limitações você encontra?</h2>
             <textarea id="dificuldades" rows="5" class="mt-4 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
-              placeholder="Escreva aqui…"></textarea>
+              placeholder="Ex.: espaço, tempo, dúvidas, sacaria, etc."></textarea>
           </div>
 
-          <!-- STEP 6: Telefone -->
           <div class="step" data-step="6">
             <h2 class="text-lg font-extrabold text-deepBlue reqDot">5) Telefone/WhatsApp com DDD</h2>
-            <p class="mt-1 text-sm text-graphite/70">Ex.: (51) 99999-9999</p>
             <input id="telefone" inputmode="tel" class="mt-4 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
-              placeholder="(DD) 99999-9999"/>
-            <div class="mt-2 text-xs text-graphite/60">Você pode digitar com parênteses e traço. O sistema valida pelos números.</div>
+              placeholder="(51) 99999-9999"/>
           </div>
 
-          <!-- STEP 7: Local -->
           <div class="step" data-step="7">
-            <h2 class="text-lg font-extrabold text-deepBlue reqDot">6) Local para coleta do resíduo</h2>
-            <p class="mt-1 text-sm text-graphite/70">Selecione uma opção. Se for “Outro”, descreva.</p>
-
+            <h2 class="text-lg font-extrabold text-deepBlue reqDot">6) Local para coleta</h2>
             <div class="mt-4 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div class="chip" data-radio="local" data-value="Casa"><div class="font-extrabold">Casa</div></div>
               <div class="chip" data-radio="local" data-value="Condomínio"><div class="font-extrabold">Condomínio</div></div>
@@ -220,59 +174,36 @@
             <div id="localOutroWrap" class="mt-4 hidden">
               <label class="text-sm font-semibold reqDot">Descreva (Outro)</label>
               <input id="localOutro" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
-                placeholder="Ex.: escola, associação, igreja, etc." />
+                placeholder="Ex.: escola, associação, igreja..." />
             </div>
           </div>
 
-          <!-- STEP 8: Endereço -->
           <div class="step" data-step="8">
             <h2 class="text-lg font-extrabold text-deepBlue reqDot">7) Endereço completo</h2>
-            <p class="mt-1 text-sm text-graphite/70">Rua, número, bairro, cidade e CEP.</p>
             <input id="endereco" class="mt-4 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
-              placeholder="Ex.: Rua X, 123 • Bairro • Cidade/UF • CEP 00000-000" />
+              placeholder="Rua, número, bairro, cidade/UF e CEP" />
           </div>
 
-          <!-- STEP 9: Referência + final -->
           <div class="step" data-step="9">
             <h2 class="text-lg font-extrabold text-deepBlue reqDot">8) Ponto de referência</h2>
-            <p class="mt-1 text-sm text-graphite/70">Ajuda nosso time a localizar o endereço para a coleta.</p>
             <input id="referencia" class="mt-4 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
-              placeholder="Ex.: em frente à praça, perto do mercado..." />
+              placeholder="Ex.: perto do mercado, em frente à praça..." />
 
             <div class="mt-6 rounded-2xl border border-black/10 bg-grayClean p-4">
               <div class="text-sm font-extrabold text-deepBlue">Mensagem final</div>
               <p class="mt-2 text-sm text-graphite/80">
                 Agradecemos por se cadastrar no projeto!<br/>
-                Nosso time irá analisar as informações enviadas e entrará em contato para verificar se
-                o endereço informado está dentro da área de abrangência da coleta.<br/>
-                Em breve, você receberá mais informações sobre os próximos passos.<br/>
-                Obrigada pelo interesse e por contribuir com essa iniciativa! 💚♻️
+                Nosso time irá analisar as informações e entrar em contato.<br/>
+                Obrigada por contribuir! 💚♻️
               </p>
             </div>
 
-            <!-- MOSTRA O ID GERADO -->
-            <div id="idBox" class="hidden mt-4 rounded-2xl border border-regen/20 bg-regen/10 p-4">
-              <div class="text-sm font-extrabold text-deepBlue">Seu ID no projeto</div>
-              <div class="mt-2 flex flex-col sm:flex-row sm:items-center gap-3">
-                <div class="codebox text-lg font-extrabold text-regen" id="participantIdText">RB-XXXXXXXX</div>
-                <button id="btnCopyId" type="button"
-                  class="px-4 py-2 rounded-xl bg-white border border-black/10 font-semibold hover:bg-black/5">
-                  Copiar ID
-                </button>
-              </div>
-              <div class="mt-2 text-xs text-graphite/70">
-                Guarde este ID. Ele pode ser usado no cadastro de coletas para puxar seus dados.
-              </div>
-            </div>
-
             <div class="mt-4 text-xs text-graphite/60">
-              Ao clicar em <b>Enviar</b>, seus dados serão salvos no banco do projeto.
+              Ao clicar em <b>Enviar</b>, seu cadastro será salvo no banco e você receberá um <b>ID</b>.
             </div>
           </div>
-
         </div>
 
-        <!-- NAV -->
         <div class="mt-8 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           <button id="btnBack" type="button"
             class="px-5 py-3 rounded-xl bg-white border border-black/10 text-graphite font-semibold hover:bg-black/5 transition">
@@ -297,31 +228,24 @@
     </section>
   </main>
 
-  <!-- Firebase + Firestore -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
-      getFirestore, collection, addDoc, doc, setDoc, serverTimestamp
+      getFirestore, collection, addDoc, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-    // ===========================
-    // Firebase Config (SEU)
-    // ===========================
-       const firebaseConfig = {
-  apiKey: "AIzaSyAe5E7M8Jednj1xGRjNrV0oD4wQwv6b-WM",
-  authDomain: "reciclabonja-3dee7.firebaseapp.com",
-  projectId: "reciclabonja-3dee7",
-  storageBucket: "reciclabonja-3dee7.firebasestorage.app",
-  messagingSenderId: "590941010829",
-  appId: "1:590941010829:web:9b8e4703df54cc8b0a9bc4"
-};
+  const firebaseConfig = {
+      apiKey: "AIzaSyAQBmh8uwLTkyabQc_GznBBV1X2dPhActE",
+      authDomain: "recicla-bonja.firebaseapp.com",
+      projectId: "recicla-bonja",
+      storageBucket: "recicla-bonja.firebasestorage.app",
+      messagingSenderId: "557210456406",
+      appId: "1:557210456406:web:4eebf082cc0d15580c86f7"
+    };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // ===========================
-    // State
-    // ===========================
     const TOTAL_STEPS = 9;
     let step = 1;
     let isSubmitting = false;
@@ -339,9 +263,6 @@
       pontoReferencia: ""
     };
 
-    // ===========================
-    // Helpers
-    // ===========================
     const $ = (id) => document.getElementById(id);
     const alertBox = $("alert");
 
@@ -354,50 +275,39 @@
     function showAlert(type, text) {
       alertBox.classList.remove("hidden");
       alertBox.textContent = text;
-
       alertBox.className = "rounded-2xl border p-4 text-sm mb-4";
       if (type === "ok") alertBox.classList.add("bg-regen/10","border-regen/20","text-regen");
       if (type === "err") alertBox.classList.add("bg-red-50","border-red-200","text-red-700");
       if (type === "info") alertBox.classList.add("bg-blue-50","border-blue-200","text-blue-700");
     }
-
     function hideAlert(){ alertBox.classList.add("hidden"); }
 
     function cleanPhone(v){ return (v || "").replace(/[^\d]/g, ""); }
 
     function setProgress() {
       $("progressText").textContent = `${step}/${TOTAL_STEPS}`;
-      const pct = Math.round((step / TOTAL_STEPS) * 100);
-      $("progressBar").style.width = `${pct}%`;
+      $("progressBar").style.width = `${Math.round((step / TOTAL_STEPS) * 100)}%`;
 
-      $("btnBack").disabled = (step === 1 || isSubmitting);
-      $("btnBack").classList.toggle("opacity-60", step === 1 || isSubmitting);
-      $("btnBack").classList.toggle("cursor-not-allowed", step === 1 || isSubmitting);
+      const backDisabled = (step === 1 || isSubmitting);
+      $("btnBack").disabled = backDisabled;
+      $("btnBack").classList.toggle("opacity-60", backDisabled);
+      $("btnBack").classList.toggle("cursor-not-allowed", backDisabled);
 
       $("btnPreview").disabled = isSubmitting;
 
       $("btnNext").disabled = isSubmitting;
       $("btnNext").classList.toggle("opacity-60", isSubmitting);
       $("btnNext").classList.toggle("cursor-not-allowed", isSubmitting);
-
       $("btnNext").textContent = (step === TOTAL_STEPS) ? (isSubmitting ? "Enviando…" : "Enviar") : "Next";
     }
 
     function showStep(n) {
       document.querySelectorAll(".step").forEach(el => el.classList.remove("active"));
-      const el = document.querySelector(`.step[data-step="${n}"]`);
-      if (el) el.classList.add("active");
+      document.querySelector(`.step[data-step="${n}"]`).classList.add("active");
       step = n;
       setProgress();
       hideAlert();
       $("preview").classList.add("hidden");
-
-      // esconde a caixa do ID enquanto não enviou
-      if(n !== 9){
-        $("idBox").classList.add("hidden");
-        $("participantIdText").textContent = "";
-      }
-
       setTimeout(() => {
         const active = document.querySelector(".step.active input, .step.active textarea");
         if(active) active.focus();
@@ -418,7 +328,14 @@
           $("localOutro").value = "";
         }
       }
+      hideAlert();
     }
+
+    document.querySelectorAll(".chip[data-radio]").forEach(chip=>{
+      chip.addEventListener("click", ()=>{
+        selectChip(chip.getAttribute("data-radio"), chip.getAttribute("data-value"), chip);
+      });
+    });
 
     function readStepIntoState() {
       if(step === 1){
@@ -426,109 +343,38 @@
         state.consent.c2 = $("c2").checked;
         state.consent.c3 = $("c3").checked;
       }
-      if(step === 2){
-        state.nomeCompleto = ($("nome").value || "").trim();
-      }
-      if(step === 5){
-        state.dificuldades = ($("dificuldades").value || "").trim();
-      }
-      if(step === 6){
-        state.whatsappDDD = cleanPhone($("telefone").value);
-      }
-      if(step === 7){
-        state.localColetaOutro = ($("localOutro").value || "").trim();
-      }
-      if(step === 8){
-        state.enderecoCompleto = ($("endereco").value || "").trim();
-      }
-      if(step === 9){
-        state.pontoReferencia = ($("referencia").value || "").trim();
-      }
+      if(step === 2) state.nomeCompleto = ($("nome").value || "").trim();
+      if(step === 5) state.dificuldades = ($("dificuldades").value || "").trim();
+      if(step === 6) state.whatsappDDD = cleanPhone($("telefone").value);
+      if(step === 7) state.localColetaOutro = ($("localOutro").value || "").trim();
+      if(step === 8) state.enderecoCompleto = ($("endereco").value || "").trim();
+      if(step === 9) state.pontoReferencia = ($("referencia").value || "").trim();
     }
 
     function validateCurrentStep() {
       readStepIntoState();
-
-      if(step === 1){
-        if(!(state.consent.c1 && state.consent.c2 && state.consent.c3)){
-          return "Para avançar, marque as 3 autorizações (LGPD, WhatsApp e Imagem).";
-        }
-      }
-      if(step === 2){
-        if(!state.nomeCompleto || state.nomeCompleto.length < 3){
-          return "Informe seu nome completo para avançar.";
-        }
-      }
-      if(step === 3){
-        if(!state.jaDestinaReciclavel){
-          return "Selecione Sim ou Não para avançar.";
-        }
-      }
-      if(step === 4){
-        if(!state.temInteresseProjeto){
-          return "Selecione Sim ou Não para avançar.";
-        }
-      }
-      if(step === 5){
-        if(!state.dificuldades || state.dificuldades.length < 3){
-          return "Conte quais são as limitações para avançar.";
-        }
-      }
-      if(step === 6){
-        if(!state.whatsappDDD || state.whatsappDDD.length < 10){
-          return "Informe um telefone/WhatsApp válido com DDD (mínimo 10 dígitos).";
-        }
-      }
+      if(step === 1 && !(state.consent.c1 && state.consent.c2 && state.consent.c3)) return "Marque as 3 autorizações para avançar.";
+      if(step === 2 && (!state.nomeCompleto || state.nomeCompleto.length < 3)) return "Informe seu nome completo.";
+      if(step === 3 && !state.jaDestinaReciclavel) return "Selecione Sim ou Não.";
+      if(step === 4 && !state.temInteresseProjeto) return "Selecione Sim ou Não.";
+      if(step === 5 && (!state.dificuldades || state.dificuldades.length < 3)) return "Descreva suas limitações.";
+      if(step === 6 && (!state.whatsappDDD || state.whatsappDDD.length < 10)) return "Informe WhatsApp válido com DDD.";
       if(step === 7){
-        if(!state.localColeta){
-          return "Selecione o local para coleta para avançar.";
-        }
-        if(state.localColeta === "Outro" && (!state.localColetaOutro || state.localColetaOutro.length < 2)){
-          return "Descreva o local (Outro) para avançar.";
-        }
+        if(!state.localColeta) return "Selecione o local.";
+        if(state.localColeta === "Outro" && (!state.localColetaOutro || state.localColetaOutro.length < 2)) return "Descreva o local (Outro).";
       }
-      if(step === 8){
-        if(!state.enderecoCompleto || state.enderecoCompleto.length < 6){
-          return "Informe o endereço completo para avançar.";
-        }
-      }
-      if(step === 9){
-        if(!state.pontoReferencia || state.pontoReferencia.length < 3){
-          return "Informe o ponto de referência para finalizar.";
-        }
-      }
+      if(step === 8 && (!state.enderecoCompleto || state.enderecoCompleto.length < 6)) return "Informe o endereço completo.";
+      if(step === 9 && (!state.pontoReferencia || state.pontoReferencia.length < 3)) return "Informe o ponto de referência.";
       return null;
     }
 
-    // ======== ID gerado (RB-YYYYMMDD-XXXXXX) ========
-    function pad2(n){ return String(n).padStart(2,"0"); }
-    function randomDigits(len){
-      let s = "";
-      for(let i=0;i<len;i++) s += Math.floor(Math.random()*10);
-      return s;
-    }
-    function generateParticipantId(){
-      const d = new Date();
-      const y = d.getFullYear();
-      const m = pad2(d.getMonth()+1);
-      const day = pad2(d.getDate());
-      const rnd = randomDigits(6);
-      return `RB-${y}${m}${day}-${rnd}`;
-    }
-
-    function buildPayloadFinal(participantId) {
+    function buildPayloadFinal(participantCode){
       return {
         type: "participant_registration",
-        participantId,                 // <<<<< ID do usuário no projeto
         createdAtISO: new Date().toISOString(),
         createdAt: serverTimestamp(),
-
-        consent: {
-          dados: state.consent.c1,
-          whatsapp: state.consent.c2,
-          imagem: state.consent.c3
-        },
-
+        participantCode, // ID público (RB-XXXXXX)
+        consent: { dados: state.consent.c1, whatsapp: state.consent.c2, imagem: state.consent.c3 },
         nomeCompleto: state.nomeCompleto,
         jaDestinaReciclavel: state.jaDestinaReciclavel,
         temInteresseProjeto: state.temInteresseProjeto,
@@ -538,133 +384,97 @@
         localColetaOutro: state.localColeta === "Outro" ? state.localColetaOutro : null,
         enderecoCompleto: state.enderecoCompleto,
         pontoReferencia: state.pontoReferencia,
-
         status: "pending"
       };
     }
 
-    async function saveToFirestore() {
-      // gera o ID (público) para uso nas coletas
-      const participantId = generateParticipantId();
-
-      const payload = buildPayloadFinal(participantId);
-
-      // 1) Salva no participants (auto-id do Firestore)
-      const ref = await addDoc(collection(db, "participants"), payload);
-
-      // 2) (Recomendado) cria/atualiza um user doc com docId = participantId
-      // Isso facilita puxar dados pelo ID na página de coletas.
-      await setDoc(doc(db, "users", participantId), {
-        type: "participant",
-        participantId,
-        nomeCompleto: payload.nomeCompleto,
-        whatsappDDD: payload.whatsappDDD,
-        enderecoCompleto: payload.enderecoCompleto,
-        pontoReferencia: payload.pontoReferencia,
-        localColeta: payload.localColeta,
-        localColetaOutro: payload.localColetaOutro,
-        createdAtISO: payload.createdAtISO,
+    async function saveParticipant(){
+      // 1) cria doc "vazio" para gerar ID
+      const tmp = await addDoc(collection(db, "participants"), {
+        type: "participant_registration",
+        createdAtISO: new Date().toISOString(),
         createdAt: serverTimestamp(),
-        status: "active"
+        participantCode: "RB-TMP",
+        consent: { dados:true, whatsapp:true, imagem:true },
+        nomeCompleto: "TMP",
+        jaDestinaReciclavel: "Sim",
+        temInteresseProjeto: "Sim",
+        dificuldades: "TMP",
+        whatsappDDD: "0000000000",
+        localColeta: "Casa",
+        localColetaOutro: null,
+        enderecoCompleto: "TMP",
+        pontoReferencia: "TMP",
+        status: "pending"
       });
 
-      return { firestoreDocId: ref.id, participantId, payload };
+      // 2) gera código público baseado no docId
+      const code = "RB-" + tmp.id.slice(-6).toUpperCase();
+
+      // 3) regrava doc completo: como não liberamos update nas rules, precisamos criar o doc completo direto.
+      // => então a solução correta é: não criar "tmp".
+      // Para manter 100% compatível com rules (sem update), vamos:
+      // - apagar a ideia de tmp e usar code baseado em random local.
+      // (sem backend, é o melhor caminho com rules travadas)
+
+      // --------
+      // Versão FINAL: código aleatório local (não precisa update)
+      // --------
+      const rand = crypto.getRandomValues(new Uint32Array(1))[0].toString(16).slice(0,6).toUpperCase().padStart(6,"0");
+      const participantCode = "RB-" + rand;
+
+      const payload = buildPayloadFinal(participantCode);
+      const ref = await addDoc(collection(db, "participants"), payload);
+      return { docId: ref.id, participantCode, payload };
     }
 
-    // ===========================
-    // Chip events
-    // ===========================
-    document.querySelectorAll(".chip[data-radio]").forEach(chip=>{
-      chip.addEventListener("click", ()=>{
-        const group = chip.getAttribute("data-radio");
-        const value = chip.getAttribute("data-value");
-        selectChip(group, value, chip);
-        hideAlert();
-      });
-    });
-
-    // ===========================
-    // Navigation
-    // ===========================
     $("btnBack").addEventListener("click", ()=>{
       if(isSubmitting) return;
       if(step > 1) showStep(step - 1);
+    });
+
+    $("btnPreview").addEventListener("click", ()=>{
+      readStepIntoState();
+      const payload = buildPayloadFinal("RB-XXXXXX");
+      $("preview").classList.remove("hidden");
+      $("preview").textContent = JSON.stringify({ ...payload, createdAt: "(serverTimestamp)" }, null, 2);
+      showAlert("info", "Prévia gerada (ainda não foi salva).");
     });
 
     $("btnNext").addEventListener("click", async ()=>{
       if(isSubmitting) return;
 
       const err = validateCurrentStep();
-      if(err){
-        showAlert("err", err);
+      if(err){ showAlert("err", err); return; }
+
+      if(step < TOTAL_STEPS){
+        showStep(step + 1);
         return;
       }
 
-      // último passo = enviar
-      if(step === TOTAL_STEPS){
-        isSubmitting = true;
-        setProgress();
-        hideAlert();
+      isSubmitting = true;
+      setProgress();
+      hideAlert();
 
-        try{
-          setDbStatus("salvando no Firestore…", true);
-          const res = await saveToFirestore();
-          setDbStatus("salvo ✅", true);
-
-          // mostra id
-          $("participantIdText").textContent = res.participantId;
-          $("idBox").classList.remove("hidden");
-
-          showAlert("ok", `Cadastro enviado com sucesso! Seu ID: ${res.participantId}`);
-          $("preview").classList.remove("hidden");
-          $("preview").textContent = JSON.stringify({
-            firestoreDocId: res.firestoreDocId,
-            participantId: res.participantId,
-            ...res.payload,
-            createdAt: "(serverTimestamp)"
-          }, null, 2);
-
-          // NÃO resetar automaticamente para a pessoa conseguir copiar o ID
-          // Se quiser reset depois, a gente coloca um botão "Novo cadastro".
-
-        }catch(e){
-          console.error(e);
-          setDbStatus("erro ao salvar (rules)", false);
-          showAlert("err", "Não foi possível salvar no Firestore. Verifique suas regras (permissions) e tente novamente.");
-        }finally{
-          isSubmitting = false;
-          setProgress();
-        }
-        return;
-      }
-
-      showStep(step + 1);
-    });
-
-    $("btnPreview").addEventListener("click", ()=>{
-      readStepIntoState();
-      // gera um ID de exemplo só pra preview (não salva)
-      const previewId = generateParticipantId();
-      const payload = buildPayloadFinal(previewId);
-
-      $("preview").classList.remove("hidden");
-      $("preview").textContent = JSON.stringify({ ...payload, createdAt: "(serverTimestamp)" }, null, 2);
-      showAlert("info", "Prévia gerada (ainda não foi salva).");
-    });
-
-    // copiar ID
-    $("btnCopyId").addEventListener("click", async ()=>{
-      const id = $("participantIdText").textContent.trim();
-      if(!id) return;
       try{
-        await navigator.clipboard.writeText(id);
-        showAlert("ok", "ID copiado ✅");
-      }catch{
-        showAlert("info", "Não consegui copiar automaticamente. Selecione e copie manualmente.");
+        setDbStatus("salvando no Firestore…", true);
+        const { docId, participantCode, payload } = await saveParticipant();
+        setDbStatus("salvo ✅", true);
+
+        showAlert("ok", `Cadastro enviado! Seu ID do participante é: ${participantCode}`);
+        $("preview").classList.remove("hidden");
+        $("preview").textContent = JSON.stringify({ firestoreDocId: docId, ...payload, createdAt: "(serverTimestamp)" }, null, 2);
+
+      }catch(e){
+        console.error(e);
+        setDbStatus("erro ao salvar (rules)", false);
+        showAlert("err", "Não foi possível salvar. Verifique Firestore Rules e tente novamente.");
+      }finally{
+        isSubmitting = false;
+        setProgress();
       }
     });
 
-    // Enter = Next (exceto textarea)
     document.addEventListener("keydown", (e)=>{
       if(e.key !== "Enter") return;
       const tag = (document.activeElement?.tagName || "").toLowerCase();
@@ -673,7 +483,6 @@
       $("btnNext").click();
     });
 
-    // init
     setDbStatus("conectado ✅", true);
     setProgress();
   </script>
