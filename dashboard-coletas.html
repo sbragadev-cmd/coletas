@@ -52,40 +52,6 @@
     .legend-dot { width: 18px; height: 10px; border-radius: 3px; }
     .leaflet-container { border-radius: 14px; }
     .soft-divider { border-top: 1px dashed rgba(0,0,0,.10); }
-
-    /* dropdown */
-    .dd { position: relative; }
-    .dd-menu {
-      position:absolute; top: 46px; left:0;
-      background:#fff; border:1px solid rgba(0,0,0,.08);
-      box-shadow: 0 14px 40px rgba(13,59,102,.12);
-      border-radius: 14px; padding: 10px;
-      min-width: 230px;
-      z-index: 50;
-      display:none;
-    }
-    .dd.open .dd-menu { display:block; }
-    .dd-item { padding:10px 10px; border-radius: 12px; cursor:pointer; font-size: 13px; }
-    .dd-item:hover { background: rgba(0,0,0,.04); }
-    .dd-label { font-size: 11px; color: rgba(46,46,46,.65); margin-bottom: 6px; }
-    .input {
-      width: 100%;
-      border:1px solid rgba(0,0,0,.10);
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-size: 13px;
-      outline:none;
-    }
-    .input:focus{ box-shadow: 0 0 0 4px rgba(27,127,90,.12); border-color: rgba(27,127,90,.35); }
-    .btn-clear{
-      border: 1px solid rgba(0,0,0,.10);
-      background:#fff;
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-size: 13px;
-      font-weight: 700;
-    }
-    .btn-clear:hover{ background: rgba(0,0,0,.03); }
   </style>
 </head>
 
@@ -105,98 +71,28 @@
         </div>
       </div>
 
-      <!-- Pills (Filtros) -->
+      <!-- Pills (placeholders) -->
       <div class="flex-1 flex items-center justify-center gap-3 flex-wrap">
-        <!-- DATA -->
-        <div class="dd" id="ddData">
-          <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2" data-dd-btn>
-            DATA <span class="text-white/90">▾</span>
-          </button>
-          <div class="dd-menu">
-            <div class="dd-label">Período (opDate)</div>
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <div class="text-[11px] text-graphite/60 mb-1">De</div>
-                <input id="fStart" class="input" type="date">
-              </div>
-              <div>
-                <div class="text-[11px] text-graphite/60 mb-1">Até</div>
-                <input id="fEnd" class="input" type="date">
-              </div>
-            </div>
-            <div class="mt-2 flex gap-2">
-              <button class="btn-clear w-full" id="btnApplyDate">Aplicar</button>
-              <button class="btn-clear w-full" id="btnClearDate">Limpar</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- MÊS -->
-        <div class="dd" id="ddMes">
-          <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2" data-dd-btn>
-            MÊS <span class="text-white/90">▾</span>
-          </button>
-          <div class="dd-menu">
-            <div class="dd-label">Selecione um mês</div>
-            <div class="grid grid-cols-2 gap-2">
-              <input id="fMonth" class="input" type="month">
-              <button class="btn-clear" id="btnApplyMonth">Aplicar</button>
-            </div>
-            <button class="btn-clear w-full mt-2" id="btnClearMonth">Limpar</button>
-          </div>
-        </div>
-
-        <!-- CICLO -->
-        <div class="dd" id="ddCiclo">
-          <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2" data-dd-btn>
-            CICLO <span class="text-white/90">▾</span>
-          </button>
-          <div class="dd-menu">
-            <div class="dd-label">Campo: cycle (se existir)</div>
-            <input id="fCycle" class="input" placeholder="Ex.: C1, C2, 2026-01...">
-            <button class="btn-clear w-full mt-2" id="btnApplyCycle">Aplicar</button>
-            <button class="btn-clear w-full mt-2" id="btnClearCycle">Limpar</button>
-          </div>
-        </div>
-
-        <!-- TIPO -->
-        <div class="dd" id="ddTipo">
-          <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2" data-dd-btn>
-            TIPO DE COLETA <span class="text-white/90">▾</span>
-          </button>
-          <div class="dd-menu">
-            <div class="dd-label">deliveryType</div>
-            <div class="dd-item" data-type="">Todos</div>
-            <div class="dd-item" data-type="Coleta domiciliar pelo triciclo">Coleta domiciliar pelo triciclo</div>
-            <div class="dd-item" data-type="Coleta condomínio">Coleta condomínio</div>
-            <div class="dd-item" data-type="Entrega voluntária">Entrega voluntária</div>
-            <div class="dd-item" data-type="Coleta Comércio">Coleta Comércio</div>
-          </div>
-        </div>
-
-        <!-- CÓDIGO -->
-        <div class="dd" id="ddCodigo">
-          <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2" data-dd-btn>
-            CÓDIGO <span class="text-white/90">▾</span>
-          </button>
-          <div class="dd-menu">
-            <div class="dd-label">linkedId (RB-xxxxxx / COND-xxxxxx)</div>
-            <input id="fCodigo" class="input" placeholder="Ex.: RB-000123">
-            <button class="btn-clear w-full mt-2" id="btnApplyCodigo">Aplicar</button>
-            <button class="btn-clear w-full mt-2" id="btnClearCodigo">Limpar</button>
-          </div>
-        </div>
-
-        <!-- limpar tudo -->
-        <button class="btn-clear" id="btnClearAll">Limpar filtros</button>
+        <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
+          DATA <span class="text-white/90">▾</span>
+        </button>
+        <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
+          MÊS <span class="text-white/90">▾</span>
+        </button>
+        <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
+          CICLO <span class="text-white/90">▾</span>
+        </button>
+        <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
+          TIPO DE COLETA <span class="text-white/90">▾</span>
+        </button>
+        <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
+          CÓDIGO <span class="text-white/90">▾</span>
+        </button>
       </div>
 
-      <!-- Right -->
-      <div class="min-w-[260px] flex justify-end">
-        <div class="text-right">
-          <div class="text-xs text-graphite/55">Dashboard • Coletas</div>
-          <div class="text-[11px] text-graphite/50">Banco: <span id="dbStatus">conectando…</span></div>
-        </div>
+      <div class="min-w-[260px] flex justify-end items-center gap-3">
+        <span class="text-xs text-graphite/55">Dashboard • Coletas</span>
+        <a href="cadastro-coletas.html" class="text-xs font-bold text-regen hover:underline">Cadastrar coleta</a>
       </div>
     </div>
   </header>
@@ -215,14 +111,13 @@
               <div class="text-[11px] text-graphite/60">Início: <span class="font-semibold" id="kpiInicio">—</span></div>
             </div>
             <div class="p-4 bg-regen/10">
-              <div class="text-3xl font-extrabold text-graphite" id="kpiOps">—</div>
+              <div class="text-3xl font-extrabold text-graphite" id="kpiOps">0</div>
               <div class="text-xs text-graphite/70">operações realizadas</div>
-              <div class="text-[11px] text-graphite/60">No filtro: <span class="font-semibold" id="kpiOpsFiltro">—</span></div>
             </div>
           </div>
         </div>
 
-        <!-- Families / Condo -->
+        <!-- Families / Condo (placeholders simples) -->
         <div class="panel rounded-2xl p-4">
           <div class="grid grid-cols-2 gap-3">
             <div>
@@ -263,7 +158,7 @@
           </div>
 
           <div class="mt-3 text-[11px] text-graphite/55">
-            * Famílias/Condomínios = baseado no prefixo do linkedId (RB-/COND-) nas coletas.
+            * Esses blocos podem ser refinados depois quando você cadastrar “famílias/condomínios” em coleções próprias.
           </div>
         </div>
 
@@ -273,8 +168,8 @@
           <div class="mt-3">
             <div id="map" class="w-full h-[360px]"></div>
           </div>
-          <div class="mt-2 text-[11px] text-center text-graphite/55">
-            * Marcadores = coletas com latitude/longitude (se existirem no doc)
+          <div class="mt-2 text-[11px] text-graphite/55">
+            * Para mapa real por endereço, você pode salvar latitude/longitude na coleta ou geocodificar.
           </div>
         </div>
 
@@ -315,13 +210,13 @@
                   </div>
                   <div>
                     <div class="text-xl font-extrabold">
-                      <span id="sumRecKg">—</span> kg <span class="ml-2">RECICLÁVEL</span>
+                      <span id="sumRecKg">0,0</span> kg <span class="ml-2">RECICLÁVEL</span>
                     </div>
                     <div class="text-sm text-graphite/70">
-                      <span class="text-regen font-extrabold" id="sumRecPct">—</span> do total
+                      <span class="text-regen font-extrabold" id="sumRecPct">0,0%</span> do total
                     </div>
                     <div class="text-sm text-graphite/70">
-                      Receita total = <span class="font-extrabold">R$</span> <span class="font-extrabold" id="sumReceita">—</span>
+                      Receita total = <span class="font-extrabold">R$</span> <span class="font-extrabold" id="sumReceita">0,0</span>
                     </div>
                   </div>
                 </div>
@@ -334,10 +229,10 @@
                   </div>
                   <div class="text-right">
                     <div class="text-xl font-extrabold">
-                      <span id="sumRejKg">—</span> kg <span class="ml-2 text-red-600">REJEITO</span>
+                      <span id="sumRejKg">0,0</span> kg <span class="ml-2 text-red-600">REJEITO</span>
                     </div>
                     <div class="text-sm text-graphite/70">
-                      <span class="text-red-600 font-extrabold" id="sumRejPct">—</span> do total
+                      <span class="text-red-600 font-extrabold" id="sumRejPct">0,0%</span> do total
                     </div>
                   </div>
                 </div>
@@ -350,11 +245,11 @@
                 <div class="mt-2 space-y-2 text-sm">
                   <div class="flex items-center justify-between">
                     <span class="text-graphite/70">Total (kg)</span>
-                    <span class="font-extrabold" id="sumTotalKg">—</span>
+                    <span class="font-extrabold" id="sumTotalKg">0,0</span>
                   </div>
                   <div class="flex items-center justify-between">
                     <span class="text-graphite/70">Operações</span>
-                    <span class="font-extrabold" id="sumOps">—</span>
+                    <span class="font-extrabold" id="sumOps">0</span>
                   </div>
                   <div class="flex items-center justify-between">
                     <span class="text-graphite/70">Dias (no filtro)</span>
@@ -364,20 +259,23 @@
               </div>
             </div>
           </div>
-          <div class="mt-3 text-[11px] text-center text-graphite/55">
-            Dica: preencha filtros acima para ver recortes. Sem filtros, mostra os últimos 500 registros.
+
+          <div class="mt-3 text-[11px] text-graphite/60">
+            Firestore: <span id="dbStatus" class="font-semibold">conectando…</span>
           </div>
         </div>
 
-        <!-- Middle -->
+        <!-- Middle: bubbles + right reject breakdown -->
         <div class="grid grid-cols-12 gap-4">
           <!-- Bubbles materials -->
           <div class="col-span-12 lg:col-span-8 panel rounded-2xl p-4">
             <div class="text-center font-extrabold text-lg">TIPO DE MATERIAL RECICLÁVEL</div>
             <div class="text-center text-xs text-graphite/60 mt-1">(% sobre o total de recicláveis)</div>
 
-            <div id="bubblesGrid" class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
-              <!-- JS preenche bolhas -->
+            <div id="bubblesGrid" class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4"></div>
+
+            <div class="mt-3 text-[11px] text-graphite/55 text-center">
+              * Aqui agregamos principalmente pelo “final_turno”. O “recebimento” entra como “Reciclável total”, mas não tem breakdown por material.
             </div>
           </div>
 
@@ -390,16 +288,16 @@
               <div class="mt-4 space-y-4">
                 <div class="rounded-2xl bg-red-50 border border-red-100 p-4 text-center">
                   <div class="flex items-center justify-center gap-2 text-3xl">🐀</div>
-                  <div class="text-3xl font-extrabold text-red-600" id="rejNaoRecPct">—</div>
+                  <div class="text-3xl font-extrabold text-red-600" id="rejNaoRecPct">0,0%</div>
                   <div class="text-sm font-extrabold">NÃO RECICLÁVEL</div>
-                  <div class="text-sm text-graphite/70"><span id="rejNaoRecKg">—</span> kg</div>
+                  <div class="text-sm text-graphite/70"><span id="rejNaoRecKg">0,0</span> kg</div>
                 </div>
 
                 <div class="rounded-2xl bg-white border border-black/10 p-4 text-center">
                   <div class="flex items-center justify-center gap-2 text-3xl">🚫💰</div>
-                  <div class="text-3xl font-extrabold text-red-600" id="rejNaoComPct">—</div>
+                  <div class="text-3xl font-extrabold text-red-600" id="rejNaoComPct">0,0%</div>
                   <div class="text-sm font-extrabold">NÃO COMERCIALIZADO</div>
-                  <div class="text-sm text-graphite/70"><span id="rejNaoComKg">—</span> kg</div>
+                  <div class="text-sm text-graphite/70"><span id="rejNaoComKg">0,0</span> kg</div>
                 </div>
               </div>
             </div>
@@ -408,9 +306,9 @@
               <div class="text-center font-extrabold">OUTRO</div>
               <div class="mt-3 flex items-center justify-center text-5xl">🧴</div>
               <div class="mt-2 text-center">
-                <div class="text-3xl font-extrabold" id="outroKg">—</div>
+                <div class="text-3xl font-extrabold" id="outroKg">0,0</div>
                 <div class="text-xs text-graphite/70">kg</div>
-                <div class="mt-2 text-sm font-extrabold" id="outroLabel">ÓLEO DE COZINHA</div>
+                <div class="mt-2 text-sm font-extrabold">ÓLEO DE COZINHA</div>
               </div>
             </div>
           </div>
@@ -431,49 +329,46 @@
             <canvas id="chartBar" height="120"></canvas>
           </div>
           <div class="soft-divider mt-3 pt-2 text-xs text-center text-graphite/60">
-            Participantes únicos (no período): <span id="uniqParticipants">—</span>
+            Total de famílias/condomínios participantes (no período)
           </div>
         </div>
 
-        <!-- Table -->
+        <!-- Table (PLANILHA) -->
         <div class="panel rounded-2xl p-4">
           <div class="grid grid-cols-12 gap-3 text-xs font-extrabold text-graphite/70 pb-2 border-b border-black/10">
-            <div class="col-span-1">Código</div>
-            <div class="col-span-2">Tipo de material reciclável</div>
+            <div class="col-span-2">Código/ID</div>
+            <div class="col-span-2">Fluxo</div>
             <div class="col-span-2">Data de coleta</div>
-            <div class="col-span-2">Qualidade</div>
-            <div class="col-span-3">Observação</div>
-            <div class="col-span-1 text-right">Não reciclável (kg)</div>
-            <div class="col-span-1 text-right">Não comercializado (kg)</div>
+            <div class="col-span-2">Rejeito (kg)</div>
+            <div class="col-span-2">Não com. (kg)</div>
+            <div class="col-span-2">Tipo</div>
           </div>
 
           <div id="rows" class="divide-y divide-black/5 text-sm">
-            <!-- JS preenche -->
+            <!-- Firestore preenche -->
           </div>
 
           <div class="mt-3 text-[11px] text-right text-graphite/50">
-            Desenvolvido por você • Hub Resiliência Climática
+            Desenvolvido por você • Recicla Bonja
           </div>
         </div>
       </section>
     </div>
   </main>
 
-  <!-- ===========================
-       FIREBASE + DASHBOARD LOGIC
-       =========================== -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  onSnapshot
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+  <!-- DASHBOARD SCRIPT (Firestore + Render) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-/* ===========================
-   FIREBASE
-=========================== */
-      const firebaseConfig = {
+    // ===========================
+    // FIREBASE
+    // ===========================
+       const firebaseConfig = {
   apiKey: "AIzaSyAe5E7M8Jednj1xGRjNrV0oD4wQwv6b-WM",
   authDomain: "reciclabonja-3dee7.firebaseapp.com",
   projectId: "reciclabonja-3dee7",
@@ -481,129 +376,337 @@ import {
   messagingSenderId: "590941010829",
   appId: "1:590941010829:web:9b8e4703df54cc8b0a9bc4"
 };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+    // ===========================
+    // UI helpers
+    // ===========================
+    const fmt = (n, dec=1) => Number(n || 0).toLocaleString("pt-BR", {
+      minimumFractionDigits: dec,
+      maximumFractionDigits: dec
+    });
 
-/* ===========================
-   HELPERS
-=========================== */
+    const setText = (id, value) => {
+      const el = document.getElementById(id);
+      if(el) el.textContent = value;
+    };
 
-const fmt = (n) => Number(n || 0).toLocaleString("pt-BR", {
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 1
-});
+    const toNumber = (x) => {
+      const n = Number(x);
+      return Number.isFinite(n) ? n : 0;
+    };
 
-function setText(id, value){
-  const el = document.getElementById(id);
-  if(el) el.textContent = value;
-}
-
-function toNumber(x){
-  const n = Number(x);
-  return Number.isFinite(n) ? n : 0;
-}
-
-/* ===========================
-   RENDER TABELA (PLANILHA)
-=========================== */
-
-function renderTabela(items){
-
-  const container = document.getElementById("rows");
-  container.innerHTML = "";
-
-  items.forEach(item => {
-
-    const row = document.createElement("div");
-    row.className = "grid grid-cols-12 gap-3 py-2 text-xs border-b border-black/5";
-
-    const codigo = item.linkedId || item.codigoFamilia || item.codigoCondominio || "-";
-    const tipo = item.flowType === "recebimento" ? "Recebimento" : "Final turno";
-    const data = item.opDate || "-";
-
-    const rejeito = item.flowType === "recebimento"
-      ? fmt(item.pesoRejeitoKg)
-      : fmt(item.pesoRejeitoGeralKg);
-
-    const naoCom = item.pesoNaoComercializadoKg
-      ? fmt(item.pesoNaoComercializadoKg)
-      : "-";
-
-    row.innerHTML = `
-      <div class="col-span-2 font-semibold">${codigo}</div>
-      <div class="col-span-2">${tipo}</div>
-      <div class="col-span-2">${data}</div>
-      <div class="col-span-2">${rejeito}</div>
-      <div class="col-span-2">${naoCom}</div>
-      <div class="col-span-2">${item.deliveryType || "-"}</div>
-    `;
-
-    container.appendChild(row);
-  });
-}
-
-/* ===========================
-   RENDER KPI
-=========================== */
-
-function renderKPIs(items){
-
-  let totalRec = 0;
-  let totalRej = 0;
-
-  items.forEach(d => {
-
-    if(d.flowType === "recebimento"){
-      totalRec += toNumber(d.pesoResiduoSecoKg);
-      totalRej += toNumber(d.pesoRejeitoKg);
+    function setDbStatus(text, ok=true){
+      const el = document.getElementById("dbStatus");
+      el.textContent = text;
+      el.className = ok ? "font-semibold text-regen" : "font-semibold text-red-700";
     }
 
-    if(d.flowType === "final_turno"){
-      totalRej += toNumber(d.pesoRejeitoGeralKg);
+    // ===========================
+    // Charts
+    // ===========================
+    let chartQualidade, chartBar;
 
-      totalRec +=
-        toNumber(d.plasticoKg) +
-        toNumber(d.papelMistoKg) +
-        toNumber(d.papelaoKg) +
-        toNumber(d.aluminioMetalKg) +
-        toNumber(d.vidroKg) +
-        toNumber(d.sacariaKg) +
-        toNumber(d.isoporKg) +
-        toNumber(d.oleoKg);
+    function drawQualidade(limpo, medio, ruim){
+      if(chartQualidade) chartQualidade.destroy();
+      const ctx = document.getElementById("chartQualidade");
+      chartQualidade = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: ["LIMPO", "MÉDIO", "RUIM"],
+          datasets: [{
+            data: [limpo, medio, ruim],
+            backgroundColor: ["#1B7F5A", "#F2C94C", "#EF4444"],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          cutout: "70%",
+          plugins: { legend: { display:false }, tooltip: { enabled:true } }
+        }
+      });
     }
 
-  });
+    function drawBar(labels, rejeito, reciclavel){
+      if(chartBar) chartBar.destroy();
+      const ctx = document.getElementById("chartBar");
+      chartBar = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            { label:"Peso do rejeito", data: rejeito, backgroundColor:"#EF4444", stack:"stack1", borderWidth:0 },
+            { label:"Peso do reciclável", data: reciclavel, backgroundColor:"#22C55E", stack:"stack1", borderWidth:0 },
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display:false } },
+          scales: {
+            x: { stacked:true, grid: { display:false }, ticks: { maxRotation:0, autoSkip:true, maxTicksLimit:18, font:{size:10} } },
+            y: { stacked:true, grid: { color: "rgba(0,0,0,.06)" }, ticks: { font:{size:10} } }
+          }
+        }
+      });
+    }
 
-  setText("kpiOps", items.length);
-  setText("sumRecKg", fmt(totalRec));
-  setText("sumRejKg", fmt(totalRej));
-  setText("sumTotalKg", fmt(totalRec + totalRej));
-}
+    // ===========================
+    // Map (placeholder)
+    // ===========================
+    let map;
+    function initMap(){
+      map = L.map('map', { zoomControl: true }).setView([-30.0346, -51.2177], 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(map);
+    }
 
-/* ===========================
-   FIRESTORE LISTENER
-=========================== */
+    // ===========================
+    // Render table (planilha)
+    // ===========================
+    function renderTabela(items){
+      const container = document.getElementById("rows");
+      container.innerHTML = "";
 
-const colRef = collection(db, "coletasSeletivas");
+      // ordena por data (opDate) desc, sem depender de index Firestore
+      items.sort((a,b)=>{
+        const ad = String(a.opDate || "");
+        const bd = String(b.opDate || "");
+        return bd.localeCompare(ad);
+      });
 
-onSnapshot(colRef, (snapshot) => {
+      items.forEach(item=>{
+        const row = document.createElement("div");
+        row.className = "grid grid-cols-12 gap-3 py-2 text-xs";
 
-  const items = snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }));
+        const codigo = item.linkedId || item.codigoFamilia || item.codigoCondominio || "-";
+        const fluxo = item.flowType === "recebimento" ? "Recebimento" : "Final turno";
+        const data = item.opDate || "-";
 
-  console.log("🔥 Dados carregados:", items);
+        const rejeitoKg = item.flowType === "recebimento"
+          ? toNumber(item.pesoRejeitoKg)
+          : toNumber(item.pesoRejeitoGeralKg);
 
-  renderKPIs(items);
-  renderTabela(items);
+        const naoComKg = item.flowType === "recebimento"
+          ? toNumber(item.pesoNaoComercializadoKg)
+          : 0;
 
-}, (error) => {
-  console.error("Erro ao carregar Firestore:", error);
-  alert("Erro ao carregar dados do Firestore.\nVerifique regras ou conexão.");
-});
+        row.innerHTML = `
+          <div class="col-span-2 font-semibold">${codigo}</div>
+          <div class="col-span-2">${fluxo}</div>
+          <div class="col-span-2">${data}</div>
+          <div class="col-span-2 text-right">${fmt(rejeitoKg)}</div>
+          <div class="col-span-2 text-right">${item.flowType === "recebimento" ? fmt(naoComKg) : "-"}</div>
+          <div class="col-span-2">${item.deliveryType || "-"}</div>
+        `;
 
-</script>
+        container.appendChild(row);
+      });
+
+      if(!items.length){
+        container.innerHTML = `<div class="py-4 text-sm text-graphite/60">Nenhuma coleta encontrada ainda.</div>`;
+      }
+    }
+
+    // ===========================
+    // Aggregate + UI update
+    // ===========================
+    function renderAll(items){
+      // KPIs
+      setText("kpiOps", items.length);
+      setText("sumOps", items.length);
+
+      // totals
+      let totalRec = 0;
+      let totalRej = 0;
+
+      // qualidade contagem (só recebimento tem qualidadeNota)
+      let q1 = 0, q2 = 0, q3 = 0;
+
+      // rejeito breakdown: aqui vamos assumir
+      // - "não reciclável" = rejeito geral (final_turno) + rejeito (recebimento)
+      // - "não comercializado" = pesoNaoComercializadoKg (recebimento)
+      let naoRecKg = 0;
+      let naoComKg = 0;
+
+      // materiais (somente final_turno)
+      const mats = {
+        "PLÁSTICO": { kg:0, icon:"🧴" },
+        "PAPEL MISTO": { kg:0, icon:"📄" },
+        "PAPELÃO": { kg:0, icon:"📦" },
+        "ALUMÍNIO/METAL": { kg:0, icon:"🥫" },
+        "VIDRO": { kg:0, icon:"🍾" },
+        "SACARIA/SACOLINHA": { kg:0, icon:"🛍️" },
+        "ISOPOR": { kg:0, icon:"🍱" },
+        "ÓLEO": { kg:0, icon:"🧴" },
+      };
+
+      // série por data opDate (YYYY-MM-DD)
+      const seriesMap = new Map(); // date -> {rec, rej}
+
+      items.forEach(d=>{
+        const date = d.opDate || "sem-data";
+
+        if(!seriesMap.has(date)) seriesMap.set(date, { rec:0, rej:0 });
+
+        if(d.flowType === "recebimento"){
+          const rec = toNumber(d.pesoResiduoSecoKg);
+          const rej = toNumber(d.pesoRejeitoKg);
+          totalRec += rec;
+          totalRej += rej;
+
+          naoRecKg += rej;
+          naoComKg += toNumber(d.pesoNaoComercializadoKg);
+
+          seriesMap.get(date).rec += rec;
+          seriesMap.get(date).rej += rej;
+
+          if(d.qualidadeNota === 1) q1++;
+          if(d.qualidadeNota === 2) q2++;
+          if(d.qualidadeNota === 3) q3++;
+        }
+
+        if(d.flowType === "final_turno"){
+          const rej = toNumber(d.pesoRejeitoGeralKg);
+          totalRej += rej;
+          naoRecKg += rej;
+
+          // recicláveis por materiais
+          const rec =
+            toNumber(d.plasticoKg) +
+            toNumber(d.papelMistoKg) +
+            toNumber(d.papelaoKg) +
+            toNumber(d.aluminioMetalKg) +
+            toNumber(d.vidroKg) +
+            toNumber(d.sacariaKg) +
+            toNumber(d.isoporKg) +
+            toNumber(d.oleoKg);
+
+          totalRec += rec;
+
+          mats["PLÁSTICO"].kg += toNumber(d.plasticoKg);
+          mats["PAPEL MISTO"].kg += toNumber(d.papelMistoKg);
+          mats["PAPELÃO"].kg += toNumber(d.papelaoKg);
+          mats["ALUMÍNIO/METAL"].kg += toNumber(d.aluminioMetalKg);
+          mats["VIDRO"].kg += toNumber(d.vidroKg);
+          mats["SACARIA/SACOLINHA"].kg += toNumber(d.sacariaKg);
+          mats["ISOPOR"].kg += toNumber(d.isoporKg);
+          mats["ÓLEO"].kg += toNumber(d.oleoKg);
+
+          // extras
+          if(Array.isArray(d.materiaisExtras)){
+            d.materiaisExtras.forEach(x=>{
+              const name = String(x?.name || "").trim();
+              const kg = toNumber(x?.kg);
+              if(!name) return;
+              if(!mats[name]) mats[name] = { kg:0, icon:"♻️" };
+              mats[name].kg += kg;
+            });
+          }
+
+          seriesMap.get(date).rec += rec;
+          seriesMap.get(date).rej += rej;
+        }
+      });
+
+      const total = totalRec + totalRej;
+      const recPct = total ? (totalRec/total)*100 : 0;
+      const rejPct = total ? (totalRej/total)*100 : 0;
+
+      setText("sumRecKg", fmt(totalRec));
+      setText("sumRejKg", fmt(totalRej));
+      setText("sumTotalKg", fmt(total));
+      setText("sumDiasFiltro", seriesMap.size);
+
+      setText("sumRecPct", recPct.toFixed(1).replace(".", ",") + "%");
+      setText("sumRejPct", rejPct.toFixed(1).replace(".", ",") + "%");
+
+      // receita (placeholder)
+      setText("sumReceita", fmt(0));
+
+      // rejeito breakdown
+      const rejTotal = naoRecKg + naoComKg;
+      const naoRecPct = rejTotal ? (naoRecKg/rejTotal)*100 : 0;
+      const naoComPct = rejTotal ? (naoComKg/rejTotal)*100 : 0;
+
+      setText("rejNaoRecKg", fmt(naoRecKg));
+      setText("rejNaoComKg", fmt(naoComKg));
+      setText("rejNaoRecPct", naoRecPct.toFixed(1).replace(".", ",") + "%");
+      setText("rejNaoComPct", naoComPct.toFixed(1).replace(".", ",") + "%");
+      setText("outroKg", fmt(mats["ÓLEO"]?.kg || 0));
+
+      // qualidade donut (map: 1=ruim,2=medio,3=limpo)
+      drawQualidade(q3, q2, q1);
+
+      // materiais bubbles (% sobre reciclável)
+      const bubbles = document.getElementById("bubblesGrid");
+      bubbles.innerHTML = "";
+      const matsArr = Object.entries(mats)
+        .map(([k,v]) => ({ key:k, kg:v.kg, icon:v.icon }))
+        .filter(x => x.kg > 0.0001)
+        .sort((a,b)=> b.kg - a.kg)
+        .slice(0, 9);
+
+      matsArr.forEach(m=>{
+        const pct = totalRec ? (m.kg/totalRec)*100 : 0;
+        const el = document.createElement("div");
+        el.className = "bubble rounded-full p-4 md:p-5 flex flex-col items-center justify-center text-center min-h-[150px]";
+        el.innerHTML = `
+          <div class="text-3xl">${m.icon}</div>
+          <div class="mt-1 text-2xl font-extrabold">${pct.toFixed(1).replace(".", ",")}%</div>
+          <div class="text-sm text-graphite/70">${fmt(m.kg)} kg</div>
+          <div class="mt-2 text-xs font-extrabold">${m.key}</div>
+        `;
+        bubbles.appendChild(el);
+      });
+
+      if(!matsArr.length){
+        bubbles.innerHTML = `<div class="col-span-full text-center text-sm text-graphite/60 py-6">
+          Sem dados de materiais ainda (faça um “Final do turno” para aparecer o breakdown).
+        </div>`;
+      }
+
+      // series chart (ordena datas)
+      const labels = Array.from(seriesMap.keys()).sort((a,b)=> a.localeCompare(b));
+      const recSeries = labels.map(d => seriesMap.get(d).rec);
+      const rejSeries = labels.map(d => seriesMap.get(d).rej);
+      drawBar(labels, rejSeries, recSeries);
+
+      // planilha
+      renderTabela(items);
+    }
+
+    // ===========================
+    // Firestore Listener
+    // ===========================
+    initMap();
+    setDbStatus("conectando…", true);
+
+    const colRef = collection(db, "coletasSeletivas");
+
+    onSnapshot(colRef, (snapshot)=>{
+      const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      console.log("🔥 Coletas carregadas:", items);
+      setDbStatus(`conectado ✅ (${items.length} registros)`, true);
+      renderAll(items);
+    }, (err)=>{
+      console.error("Firestore error:", err);
+      setDbStatus("erro (rules/bloqueio)", false);
+      alert("Erro ao ler Firestore. Verifique suas regras de leitura (read).");
+    });
+
+    // ===========================
+    // Pequeno apoio: se veio do cadastro
+    // ===========================
+    try{
+      const last = localStorage.getItem("rb_last_coleta");
+      if(last){
+        const obj = JSON.parse(last);
+        console.log("🟢 Última coleta (cache):", obj);
+      }
+    }catch{}
+  </script>
 </body>
 </html>
