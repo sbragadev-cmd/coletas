@@ -5,10 +5,17 @@
   <meta http-equiv="Content-Language" content="pt-BR">
   <meta name="google" content="notranslate">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Recicla Bonja • Dashboard Coletas</title>
+  <title>Dashboard • Coletas Seletivas</title>
 
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Leaflet (Mapa) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script>
     tailwind.config = {
@@ -23,8 +30,8 @@
             grayClean: "#F5F7F6",
           },
           boxShadow: {
-            soft: "0 14px 40px rgba(13,59,102,.14)",
-            card: "0 10px 26px rgba(46,46,46,.10)"
+            soft: "0 14px 40px rgba(46,46,46,.10)",
+            card: "0 10px 26px rgba(13,59,102,.10)"
           }
         }
       }
@@ -32,454 +39,1093 @@
   </script>
 
   <style>
-    .bg-mesh{
-      background:
-        radial-gradient(900px 500px at 12% 10%, rgba(76,175,143,.25), transparent 55%),
-        radial-gradient(780px 520px at 88% 12%, rgba(242,201,76,.22), transparent 56%),
-        radial-gradient(900px 600px at 70% 88%, rgba(13,59,102,.14), transparent 58%),
-        linear-gradient(135deg, #0D3B66 0%, #1B7F5A 55%, #4CAF8F 100%);
+    .panel { background: #fff; border: 1px solid rgba(0,0,0,.06); box-shadow: 0 10px 26px rgba(13,59,102,.06); }
+    .pill { background: #2ea86d; }
+    .pill:hover{ filter: brightness(.97); }
+    .dash-grid { grid-template-columns: 320px 1fr; }
+    .dashed { border: 2px dashed rgba(0,0,0,.12); }
+    .bubble {
+      background: #edf6ef;
+      border: 1px solid rgba(27,127,90,.12);
+      box-shadow: 0 10px 18px rgba(27,127,90,.06);
     }
-    .glass{
-      background: rgba(255,255,255,.86);
-      -webkit-backdrop-filter: blur(10px);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,.55);
+    .legend-dot { width: 18px; height: 10px; border-radius: 3px; }
+    .leaflet-container { border-radius: 14px; }
+    .soft-divider { border-top: 1px dashed rgba(0,0,0,.10); }
+
+    /* dropdown */
+    .dd { position: relative; }
+    .dd-menu {
+      position:absolute; top: 46px; left:0;
+      background:#fff; border:1px solid rgba(0,0,0,.08);
+      box-shadow: 0 14px 40px rgba(13,59,102,.12);
+      border-radius: 14px; padding: 10px;
+      min-width: 230px;
+      z-index: 50;
+      display:none;
     }
-    .panel { background:#fff; border:1px solid rgba(0,0,0,.06); box-shadow:0 10px 26px rgba(0,0,0,.06); }
-    .dashed { border:1px dashed rgba(0,0,0,.18); }
-    .focus-ring:focus{
+    .dd.open .dd-menu { display:block; }
+    .dd-item { padding:10px 10px; border-radius: 12px; cursor:pointer; font-size: 13px; }
+    .dd-item:hover { background: rgba(0,0,0,.04); }
+    .dd-label { font-size: 11px; color: rgba(46,46,46,.65); margin-bottom: 6px; }
+    .input {
+      width: 100%;
+      border:1px solid rgba(0,0,0,.10);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 13px;
       outline:none;
-      box-shadow: 0 0 0 4px rgba(27,127,90,.14);
-      border-color: rgba(27,127,90,.45);
     }
+    .input:focus{ box-shadow: 0 0 0 4px rgba(27,127,90,.12); border-color: rgba(27,127,90,.35); }
+    .btn-clear{
+      border: 1px solid rgba(0,0,0,.10);
+      background:#fff;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .btn-clear:hover{ background: rgba(0,0,0,.03); }
   </style>
 </head>
 
-<body class="min-h-screen bg-mesh text-graphite">
-  <!-- TOP -->
-  <header class="max-w-[1200px] mx-auto px-4 pt-8 pb-4">
-    <div class="flex items-center justify-between gap-3">
-      <div class="flex items-center gap-3">
-        <div class="h-12 w-12 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center text-white font-extrabold">RB</div>
+<body class="bg-grayClean text-graphite">
+  <!-- TOP BAR -->
+  <header class="bg-white border-b border-black/5">
+    <div class="max-w-[1400px] mx-auto px-4 py-3 flex items-center gap-3">
+      <!-- Brand -->
+      <div class="flex items-center gap-3 min-w-[260px]">
+        <div class="h-10 w-10 rounded-xl bg-regen/10 flex items-center justify-center border border-regen/15">
+          <span class="text-regen font-extrabold">RB</span>
+        </div>
         <div class="leading-tight">
-          <div class="text-white/85 text-xs">vila do futuro</div>
-          <div class="text-white text-xl font-extrabold tracking-tight">RECICLA BONJA</div>
-          <div class="text-white/75 text-xs">Dashboard • Coletas</div>
+          <div class="text-xs text-graphite/70">vila do futuro</div>
+          <div class="font-extrabold tracking-tight">RECICLA BONJA</div>
+          <div class="text-[11px] text-graphite/55">Sustentabilidade na Quebrada</div>
         </div>
       </div>
-      <div class="flex items-center gap-3">
-        <a href="cadastro-coleta.html"
-          class="px-4 py-2 rounded-xl bg-white/15 text-white border border-white/20 hover:bg-white/20 transition text-sm font-semibold">
-          + Nova coleta
-        </a>
-        <a href="index.html" class="text-white/90 text-sm font-semibold hover:underline">Menu</a>
+
+      <!-- Pills (Filtros) -->
+      <div class="flex-1 flex items-center justify-center gap-3 flex-wrap">
+        <!-- DATA -->
+        <div class="dd" id="ddData">
+          <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2" data-dd-btn>
+            DATA <span class="text-white/90">▾</span>
+          </button>
+          <div class="dd-menu">
+            <div class="dd-label">Período (opDate)</div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <div class="text-[11px] text-graphite/60 mb-1">De</div>
+                <input id="fStart" class="input" type="date">
+              </div>
+              <div>
+                <div class="text-[11px] text-graphite/60 mb-1">Até</div>
+                <input id="fEnd" class="input" type="date">
+              </div>
+            </div>
+            <div class="mt-2 flex gap-2">
+              <button class="btn-clear w-full" id="btnApplyDate">Aplicar</button>
+              <button class="btn-clear w-full" id="btnClearDate">Limpar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MÊS -->
+        <div class="dd" id="ddMes">
+          <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2" data-dd-btn>
+            MÊS <span class="text-white/90">▾</span>
+          </button>
+          <div class="dd-menu">
+            <div class="dd-label">Selecione um mês</div>
+            <div class="grid grid-cols-2 gap-2">
+              <input id="fMonth" class="input" type="month">
+              <button class="btn-clear" id="btnApplyMonth">Aplicar</button>
+            </div>
+            <button class="btn-clear w-full mt-2" id="btnClearMonth">Limpar</button>
+          </div>
+        </div>
+
+        <!-- CICLO -->
+        <div class="dd" id="ddCiclo">
+          <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2" data-dd-btn>
+            CICLO <span class="text-white/90">▾</span>
+          </button>
+          <div class="dd-menu">
+            <div class="dd-label">Campo: cycle (se existir)</div>
+            <input id="fCycle" class="input" placeholder="Ex.: C1, C2, 2026-01...">
+            <button class="btn-clear w-full mt-2" id="btnApplyCycle">Aplicar</button>
+            <button class="btn-clear w-full mt-2" id="btnClearCycle">Limpar</button>
+          </div>
+        </div>
+
+        <!-- TIPO -->
+        <div class="dd" id="ddTipo">
+          <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2" data-dd-btn>
+            TIPO DE COLETA <span class="text-white/90">▾</span>
+          </button>
+          <div class="dd-menu">
+            <div class="dd-label">deliveryType</div>
+            <div class="dd-item" data-type="">Todos</div>
+            <div class="dd-item" data-type="Coleta domiciliar pelo triciclo">Coleta domiciliar pelo triciclo</div>
+            <div class="dd-item" data-type="Coleta condomínio">Coleta condomínio</div>
+            <div class="dd-item" data-type="Entrega voluntária">Entrega voluntária</div>
+            <div class="dd-item" data-type="Coleta Comércio">Coleta Comércio</div>
+          </div>
+        </div>
+
+        <!-- CÓDIGO -->
+        <div class="dd" id="ddCodigo">
+          <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2" data-dd-btn>
+            CÓDIGO <span class="text-white/90">▾</span>
+          </button>
+          <div class="dd-menu">
+            <div class="dd-label">linkedId (RB-xxxxxx / COND-xxxxxx)</div>
+            <input id="fCodigo" class="input" placeholder="Ex.: RB-000123">
+            <button class="btn-clear w-full mt-2" id="btnApplyCodigo">Aplicar</button>
+            <button class="btn-clear w-full mt-2" id="btnClearCodigo">Limpar</button>
+          </div>
+        </div>
+
+        <!-- limpar tudo -->
+        <button class="btn-clear" id="btnClearAll">Limpar filtros</button>
+      </div>
+
+      <!-- Right -->
+      <div class="min-w-[260px] flex justify-end">
+        <div class="text-right">
+          <div class="text-xs text-graphite/55">Dashboard • Coletas</div>
+          <div class="text-[11px] text-graphite/50">Banco: <span id="dbStatus">conectando…</span></div>
+        </div>
       </div>
     </div>
   </header>
 
-  <main class="max-w-[1200px] mx-auto px-4 pb-10">
-    <section class="glass rounded-3xl shadow-soft overflow-hidden">
-      <!-- Header -->
-      <div class="p-6 sm:p-8 border-b border-black/5 bg-white/60">
-        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
-          <div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-deepBlue">Dashboard de Coletas</h1>
-            <p class="mt-2 text-graphite/70">
-              Dados carregados direto do Firestore (<b>coletasSeletivas</b>). Atualiza automaticamente conforme novos registros entram.
-            </p>
-          </div>
-
-          <div class="text-xs text-graphite/60">
-            Status: <span id="status" class="font-bold">conectando…</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Filters -->
-      <div class="p-6 sm:p-8 bg-white/60 border-b border-black/5">
-        <div class="grid lg:grid-cols-12 gap-3">
-          <div class="lg:col-span-3">
-            <label class="text-xs font-extrabold">Data inicial</label>
-            <input id="fStart" type="date" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white"/>
-          </div>
-
-          <div class="lg:col-span-3">
-            <label class="text-xs font-extrabold">Data final</label>
-            <input id="fEnd" type="date" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white"/>
-          </div>
-
-          <div class="lg:col-span-3">
-            <label class="text-xs font-extrabold">Tipo de entrega</label>
-            <select id="fDelivery" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white">
-              <option value="all">Todos</option>
-            </select>
-          </div>
-
-          <div class="lg:col-span-3">
-            <label class="text-xs font-extrabold">Fluxo</label>
-            <select id="fFlow" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white">
-              <option value="all">Todos</option>
-              <option value="recebimento">Recebimento</option>
-              <option value="final_turno">Final do turno</option>
-            </select>
-          </div>
-
-          <div class="lg:col-span-9">
-            <label class="text-xs font-extrabold">Buscar por ID vinculado</label>
-            <input id="fLinkedId" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring bg-white"
-              placeholder="Ex.: RB-000123 ou COND-000045 (opcional)"/>
-          </div>
-
-          <div class="lg:col-span-3 flex items-end gap-2">
-            <button id="btnApply" class="w-full px-4 py-3 rounded-xl bg-deepBlue text-white font-extrabold hover:brightness-95 transition shadow-soft">
-              Aplicar
-            </button>
-            <button id="btnReset" class="px-4 py-3 rounded-xl bg-white border border-black/10 font-extrabold hover:bg-black/5 transition">
-              Limpar
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- KPIs -->
-      <div class="p-6 sm:p-8 bg-white">
-        <div class="grid md:grid-cols-4 gap-4">
-          <div class="panel dashed rounded-2xl p-4">
-            <div class="text-xs text-graphite/60 font-bold">Total de coletas</div>
-            <div id="kTotal" class="text-3xl font-extrabold text-deepBlue">0</div>
-          </div>
-
-          <div class="panel dashed rounded-2xl p-4">
-            <div class="text-xs text-graphite/60 font-bold">Total resíduo seco (kg)</div>
-            <div id="kSeco" class="text-3xl font-extrabold text-regen">0</div>
-          </div>
-
-          <div class="panel dashed rounded-2xl p-4">
-            <div class="text-xs text-graphite/60 font-bold">Total rejeito (kg)</div>
-            <div id="kRejeito" class="text-3xl font-extrabold text-red-700">0</div>
-          </div>
-
-          <div class="panel dashed rounded-2xl p-4">
-            <div class="text-xs text-graphite/60 font-bold">Total não comercializado (kg)</div>
-            <div id="kNaoCom" class="text-3xl font-extrabold text-graphite">0</div>
-          </div>
-        </div>
-
-        <!-- Charts -->
-        <div class="mt-6 grid lg:grid-cols-2 gap-4">
-          <div class="panel dashed rounded-2xl p-4">
-            <div class="flex items-end justify-between gap-3">
-              <div>
-                <div class="text-sm font-extrabold text-deepBlue">Coletas por dia</div>
-                <div class="text-xs text-graphite/60">Quantidade de registros por data (opDate)</div>
-              </div>
-              <div class="text-xs text-graphite/60" id="rangeLabel">—</div>
+  <!-- MAIN -->
+  <main class="max-w-[1400px] mx-auto px-4 py-4">
+    <div class="grid dash-grid gap-4">
+      <!-- LEFT SIDEBAR -->
+      <aside class="space-y-4">
+        <!-- KPIs -->
+        <div class="panel rounded-2xl overflow-hidden">
+          <div class="grid grid-cols-2">
+            <div class="p-4 bg-regen/15 border-r border-black/5">
+              <div class="text-3xl font-extrabold text-graphite" id="kpiDias">—</div>
+              <div class="text-xs text-graphite/70">total de dias do projeto</div>
+              <div class="text-[11px] text-graphite/60">Início: <span class="font-semibold" id="kpiInicio">—</span></div>
             </div>
-            <canvas id="chartDaily" height="180" class="mt-2"></canvas>
-          </div>
-
-          <div class="panel dashed rounded-2xl p-4">
-            <div class="text-sm font-extrabold text-deepBlue">Distribuição por tipo de entrega</div>
-            <div class="text-xs text-graphite/60">Quantidade por deliveryType</div>
-            <canvas id="chartDelivery" height="180" class="mt-2"></canvas>
+            <div class="p-4 bg-regen/10">
+              <div class="text-3xl font-extrabold text-graphite" id="kpiOps">—</div>
+              <div class="text-xs text-graphite/70">operações realizadas</div>
+              <div class="text-[11px] text-graphite/60">No filtro: <span class="font-semibold" id="kpiOpsFiltro">—</span></div>
+            </div>
           </div>
         </div>
 
-        <div class="mt-4 panel dashed rounded-2xl p-4">
-          <div class="text-sm font-extrabold text-deepBlue">Últimas coletas</div>
-          <div class="text-xs text-graphite/60">Tabela (mais recentes primeiro)</div>
+        <!-- Families / Condo -->
+        <div class="panel rounded-2xl p-4">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <div class="font-extrabold text-center">FAMÍLIAS</div>
+              <div class="mt-3 space-y-2 text-sm">
+                <div class="flex items-center justify-between">
+                  <span class="text-graphite/70">cadastradas</span>
+                  <span class="font-bold" id="famCadastradas">—</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-graphite/70">participantes</span>
+                  <span class="font-bold" id="famParticipantes">—</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-graphite/70">coletas realizadas</span>
+                  <span class="font-bold" id="famColetas">—</span>
+                </div>
+              </div>
+            </div>
 
-          <div class="mt-3 overflow-x-auto">
-            <table class="w-full text-xs border border-black/10 rounded-xl overflow-hidden">
-              <thead class="bg-black/5">
-                <tr>
-                  <th class="p-2 text-left">Data</th>
-                  <th class="p-2 text-left">Tipo entrega</th>
-                  <th class="p-2 text-left">Fluxo</th>
-                  <th class="p-2 text-left">ID vinculado</th>
-                  <th class="p-2 text-right">Seco (kg)</th>
-                  <th class="p-2 text-right">Rejeito (kg)</th>
-                  <th class="p-2 text-right">Não com. (kg)</th>
-                </tr>
-              </thead>
-              <tbody id="tbl"></tbody>
-            </table>
+            <div class="border-l border-black/10 pl-3">
+              <div class="font-extrabold text-center">CONDOMÍNIO</div>
+              <div class="mt-3 space-y-2 text-sm">
+                <div class="flex items-center justify-between">
+                  <span class="text-graphite/70">cadastrados</span>
+                  <span class="font-bold" id="condCadastrados">—</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-graphite/70">participantes</span>
+                  <span class="font-bold" id="condParticipantes">—</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-graphite/70">coletas realizadas</span>
+                  <span class="font-bold" id="condColetas">—</span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div class="mt-3 text-[11px] text-graphite/60 text-right">
-            Dica: quer detalhar por material? Eu adiciono um gráfico de materiais do “final do turno” (plástico, papelão, vidro…).
+          <div class="mt-3 text-[11px] text-graphite/55">
+            * Famílias/Condomínios = baseado no prefixo do linkedId (RB-/COND-) nas coletas.
           </div>
         </div>
 
-      </div>
-    </section>
+        <!-- Map -->
+        <div class="panel rounded-2xl p-4">
+          <div class="font-extrabold text-center text-lg">LOCALIZAÇÃO</div>
+          <div class="mt-3">
+            <div id="map" class="w-full h-[360px]"></div>
+          </div>
+          <div class="mt-2 text-[11px] text-center text-graphite/55">
+            * Marcadores = coletas com latitude/longitude (se existirem no doc)
+          </div>
+        </div>
+
+        <!-- Quality donut -->
+        <div class="panel rounded-2xl p-4">
+          <div class="font-extrabold text-center text-lg">QUALIDADE DO RESÍDUO</div>
+          <div class="mt-4">
+            <canvas id="chartQualidade" height="220"></canvas>
+            <div class="mt-3 flex items-center justify-center gap-5 text-xs">
+              <div class="flex items-center gap-2">
+                <span class="legend-dot" style="background:#1B7F5A"></span> LIMPO
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="legend-dot" style="background:#F2C94C"></span> MÉDIO
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="legend-dot" style="background:#EF4444"></span> RUIM
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- RIGHT CONTENT -->
+      <section class="space-y-4">
+        <!-- Summary row -->
+        <div class="panel rounded-2xl p-4">
+          <div class="grid grid-cols-12 gap-4 items-stretch">
+            <div class="col-span-12 md:col-span-2 flex items-center justify-center font-extrabold text-lg">
+              GERAL
+            </div>
+
+            <div class="col-span-12 md:col-span-7 border-l border-black/10 pl-4">
+              <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                  <div class="h-12 w-12 rounded-2xl bg-regen/10 border border-regen/15 flex items-center justify-center">
+                    ♻️
+                  </div>
+                  <div>
+                    <div class="text-xl font-extrabold">
+                      <span id="sumRecKg">—</span> kg <span class="ml-2">RECICLÁVEL</span>
+                    </div>
+                    <div class="text-sm text-graphite/70">
+                      <span class="text-regen font-extrabold" id="sumRecPct">—</span> do total
+                    </div>
+                    <div class="text-sm text-graphite/70">
+                      Receita total = <span class="font-extrabold">R$</span> <span class="font-extrabold" id="sumReceita">—</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="hidden md:block w-px bg-black/10"></div>
+
+                <div class="flex items-center gap-3">
+                  <div class="h-12 w-12 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center">
+                    🗑️
+                  </div>
+                  <div class="text-right">
+                    <div class="text-xl font-extrabold">
+                      <span id="sumRejKg">—</span> kg <span class="ml-2 text-red-600">REJEITO</span>
+                    </div>
+                    <div class="text-sm text-graphite/70">
+                      <span class="text-red-600 font-extrabold" id="sumRejPct">—</span> do total
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-span-12 md:col-span-3">
+              <div class="rounded-2xl bg-grayClean border border-black/10 p-4 h-full">
+                <div class="text-xs font-extrabold text-graphite/70">RESUMO</div>
+                <div class="mt-2 space-y-2 text-sm">
+                  <div class="flex items-center justify-between">
+                    <span class="text-graphite/70">Total (kg)</span>
+                    <span class="font-extrabold" id="sumTotalKg">—</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-graphite/70">Operações</span>
+                    <span class="font-extrabold" id="sumOps">—</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-graphite/70">Dias (no filtro)</span>
+                    <span class="font-extrabold" id="sumDiasFiltro">—</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3 text-[11px] text-center text-graphite/55">
+            Dica: preencha filtros acima para ver recortes. Sem filtros, mostra os últimos 500 registros.
+          </div>
+        </div>
+
+        <!-- Middle -->
+        <div class="grid grid-cols-12 gap-4">
+          <!-- Bubbles materials -->
+          <div class="col-span-12 lg:col-span-8 panel rounded-2xl p-4">
+            <div class="text-center font-extrabold text-lg">TIPO DE MATERIAL RECICLÁVEL</div>
+            <div class="text-center text-xs text-graphite/60 mt-1">(% sobre o total de recicláveis)</div>
+
+            <div id="bubblesGrid" class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+              <!-- JS preenche bolhas -->
+            </div>
+          </div>
+
+          <!-- Right reject types -->
+          <div class="col-span-12 lg:col-span-4 space-y-4">
+            <div class="panel rounded-2xl p-4">
+              <div class="text-center font-extrabold text-lg">TIPO DE REJEITO</div>
+              <div class="text-center text-xs text-graphite/60 mt-1">(% sobre o total do rejeito)</div>
+
+              <div class="mt-4 space-y-4">
+                <div class="rounded-2xl bg-red-50 border border-red-100 p-4 text-center">
+                  <div class="flex items-center justify-center gap-2 text-3xl">🐀</div>
+                  <div class="text-3xl font-extrabold text-red-600" id="rejNaoRecPct">—</div>
+                  <div class="text-sm font-extrabold">NÃO RECICLÁVEL</div>
+                  <div class="text-sm text-graphite/70"><span id="rejNaoRecKg">—</span> kg</div>
+                </div>
+
+                <div class="rounded-2xl bg-white border border-black/10 p-4 text-center">
+                  <div class="flex items-center justify-center gap-2 text-3xl">🚫💰</div>
+                  <div class="text-3xl font-extrabold text-red-600" id="rejNaoComPct">—</div>
+                  <div class="text-sm font-extrabold">NÃO COMERCIALIZADO</div>
+                  <div class="text-sm text-graphite/70"><span id="rejNaoComKg">—</span> kg</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel rounded-2xl p-4 dashed">
+              <div class="text-center font-extrabold">OUTRO</div>
+              <div class="mt-3 flex items-center justify-center text-5xl">🧴</div>
+              <div class="mt-2 text-center">
+                <div class="text-3xl font-extrabold" id="outroKg">—</div>
+                <div class="text-xs text-graphite/70">kg</div>
+                <div class="mt-2 text-sm font-extrabold" id="outroLabel">ÓLEO DE COZINHA</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom chart -->
+        <div class="panel rounded-2xl p-4">
+          <div class="flex items-center gap-6 text-sm justify-center">
+            <div class="flex items-center gap-2">
+              <span class="legend-dot" style="background:#EF4444"></span> Peso do rejeito
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="legend-dot" style="background:#22C55E"></span> Peso do Reciclável
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <canvas id="chartBar" height="120"></canvas>
+          </div>
+          <div class="soft-divider mt-3 pt-2 text-xs text-center text-graphite/60">
+            Participantes únicos (no período): <span id="uniqParticipants">—</span>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="panel rounded-2xl p-4">
+          <div class="grid grid-cols-12 gap-3 text-xs font-extrabold text-graphite/70 pb-2 border-b border-black/10">
+            <div class="col-span-1">Código</div>
+            <div class="col-span-2">Tipo de material reciclável</div>
+            <div class="col-span-2">Data de coleta</div>
+            <div class="col-span-2">Qualidade</div>
+            <div class="col-span-3">Observação</div>
+            <div class="col-span-1 text-right">Não reciclável (kg)</div>
+            <div class="col-span-1 text-right">Não comercializado (kg)</div>
+          </div>
+
+          <div id="rows" class="divide-y divide-black/5 text-sm">
+            <!-- JS preenche -->
+          </div>
+
+          <div class="mt-3 text-[11px] text-right text-graphite/50">
+            Desenvolvido por você • Hub Resiliência Climática
+          </div>
+        </div>
+      </section>
+    </div>
   </main>
 
+  <!-- ===========================
+       FIREBASE + DASHBOARD LOGIC
+       =========================== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
-      getFirestore, collection, query, where, orderBy, limit, onSnapshot
+      getFirestore,
+      collection,
+      query,
+      where,
+      orderBy,
+      limit,
+      getDocs
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-    // =========================
-    // Firebase config (PREENCHA)
-    // =========================
-      const firebaseConfig = {
-  apiKey: "AIzaSyAQBmh8uwLTkyabQc_GznBBV1X2dPhActE",
-  authDomain: "recicla-bonja.firebaseapp.com",
-  projectId: "recicla-bonja",
-  storageBucket: "recicla-bonja.firebasestorage.app",
-  messagingSenderId: "557210456406",
-  appId: "1:557210456406:web:4eebf082cc0d15580c86f7"
+    // ===========================
+    // CONFIG
+    // ===========================
+     const firebaseConfig = {
+  apiKey: "AIzaSyAe5E7M8Jednj1xGRjNrV0oD4wQwv6b-WM",
+  authDomain: "reciclabonja-3dee7.firebaseapp.com",
+  projectId: "reciclabonja-3dee7",
+  storageBucket: "reciclabonja-3dee7.firebasestorage.app",
+  messagingSenderId: "590941010829",
+  appId: "1:590941010829:web:9b8e4703df54cc8b0a9bc4"
 };
 
+    const PROJECT_START = "2026-01-01"; // ajuste quando quiser (YYYY-MM-DD)
+
+    // Mapeamento de materiais (do seu formulário "final do turno")
+    const MATERIAL_FIELDS = [
+      { key:"PLÁSTICO", field:"plasticoKg", icon:"🧴", receitaField:"plasticoReceita" },
+      { key:"VIDRO", field:"vidroKg", icon:"🍾", receitaField:"vidroReceita" },
+      { key:"ALUMÍNIO/METAL", field:"aluminioMetalKg", icon:"🥫", receitaField:"metalReceita" },
+      { key:"SACARIA/SACOLINHA", field:"sacariaKg", icon:"🛍️", receitaField:"sacariaReceita" },
+      { key:"PAPEL MISTO", field:"papelMistoKg", icon:"📄", receitaField:"papelMistoReceita" },
+      { key:"PAPELÃO", field:"papelaoKg", icon:"📦", receitaField:"papelaoReceita" },
+      { key:"ISOPOR", field:"isoporKg", icon:"🍱", receitaField:"isoporReceita" },
+      { key:"ÓLEO", field:"oleoKg", icon:"🧴", receitaField:"oleoReceita" },
+    ];
+
+    // ===========================
+    // INIT FIREBASE
+    // ===========================
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // =========================
-    // UI
-    // =========================
     const $ = (id) => document.getElementById(id);
+    const fmtPt = (n, dec=1) => (Number(n)||0).toLocaleString("pt-BR", {minimumFractionDigits: dec, maximumFractionDigits: dec});
 
-    const statusEl = $("status");
-    const fStart = $("fStart");
-    const fEnd = $("fEnd");
-    const fDelivery = $("fDelivery");
-    const fFlow = $("fFlow");
-    const fLinkedId = $("fLinkedId");
-    const btnApply = $("btnApply");
-    const btnReset = $("btnReset");
-
-    const kTotal = $("kTotal");
-    const kSeco = $("kSeco");
-    const kRejeito = $("kRejeito");
-    const kNaoCom = $("kNaoCom");
-    const tbl = $("tbl");
-    const rangeLabel = $("rangeLabel");
-
-    // charts
-    let dailyChart = null;
-    let deliveryChart = null;
-
-    Chart.defaults.font.family = "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial";
-    Chart.defaults.color = "#2E2E2E";
-
-    // =========================
-    // Helpers
-    // =========================
-    function toNum(v){
-      const n = Number(v);
-      return Number.isFinite(n) ? n : 0;
-    }
-    function normId(v){
-      return (v || "").trim().toUpperCase();
+    function setDbStatus(txt, ok=true){
+      const el = $("dbStatus");
+      el.textContent = txt;
+      el.className = ok ? "text-regen font-semibold" : "text-red-600 font-semibold";
     }
 
-    function setStatus(text, ok=true){
-      statusEl.textContent = text;
-      statusEl.className = ok ? "font-bold text-regen" : "font-bold text-red-700";
+    function toDateKey(d){
+      // Date -> YYYY-MM-DD local
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,"0");
+      const da = String(d.getDate()).padStart(2,"0");
+      return `${y}-${m}-${da}`;
     }
 
-    function todayISO(){
-      const d = new Date();
-      const mm = String(d.getMonth()+1).padStart(2,"0");
-      const dd = String(d.getDate()).padStart(2,"0");
-      return `${d.getFullYear()}-${mm}-${dd}`;
+    function parseYYYYMMDD(s){
+      // assume "YYYY-MM-DD"
+      if(!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
+      const [y,m,d] = s.split("-").map(Number);
+      const dt = new Date(y, m-1, d);
+      return isNaN(dt.getTime()) ? null : dt;
     }
 
-    function daysAgoISO(n){
-      const d = new Date();
-      d.setDate(d.getDate() - n);
-      const mm = String(d.getMonth()+1).padStart(2,"0");
-      const dd = String(d.getDate()).padStart(2,"0");
-      return `${d.getFullYear()}-${mm}-${dd}`;
+    function daysBetween(aStr, bStr){
+      const a = parseYYYYMMDD(aStr);
+      const b = parseYYYYMMDD(bStr);
+      if(!a || !b) return 0;
+      const ms = (b.getTime() - a.getTime());
+      return Math.max(0, Math.floor(ms / (1000*60*60*24)) + 1);
     }
 
-    // default filter (últimos 30 dias)
-    fEnd.value = todayISO();
-    fStart.value = daysAgoISO(30);
+    // ===========================
+    // DROPDOWNS
+    // ===========================
+    function initDropdowns(){
+      document.querySelectorAll("[data-dd-btn]").forEach(btn=>{
+        btn.addEventListener("click", (e)=>{
+          e.stopPropagation();
+          const parent = btn.closest(".dd");
+          document.querySelectorAll(".dd").forEach(d => { if(d !== parent) d.classList.remove("open"); });
+          parent.classList.toggle("open");
+        });
+      });
+      document.addEventListener("click", ()=> document.querySelectorAll(".dd").forEach(d=>d.classList.remove("open")));
+    }
 
-    // =========================
-    // Firestore subscription (realtime)
-    // =========================
-    let unsub = null;
-    let allRows = []; // snapshot em memória (filtrado por query base)
+    // ===========================
+    // FILTER STATE
+    // ===========================
+    const filterState = {
+      start: "",    // YYYY-MM-DD
+      end: "",      // YYYY-MM-DD
+      month: "",    // YYYY-MM
+      cycle: "",    // string
+      type: "",     // deliveryType
+      codigo: ""    // linkedId
+    };
 
-    function buildBaseQuery(){
-      // Como opDate é string YYYY-MM-DD, dá pra filtrar com where range
-      const col = collection(db, "coletasSeletivas");
+    function syncFilterInputs(){
+      $("fStart").value = filterState.start || "";
+      $("fEnd").value = filterState.end || "";
+      $("fMonth").value = filterState.month || "";
+      $("fCycle").value = filterState.cycle || "";
+      $("fCodigo").value = filterState.codigo || "";
+    }
+
+    function clearDate(){
+      filterState.start = "";
+      filterState.end = "";
+    }
+    function clearMonth(){ filterState.month = ""; }
+    function clearCycle(){ filterState.cycle = ""; }
+    function clearType(){ filterState.type = ""; }
+    function clearCodigo(){ filterState.codigo = ""; }
+
+    // ===========================
+    // FETCH COLETAS (Firestore)
+    // ===========================
+    async function fetchColetas(){
+      // Estratégia:
+      // - Sempre limitamos para não travar: 500 docs.
+      // - Se tiver filtro de data: usa opDate >= start e <= end (string YYYY-MM-DD)
+      // - Se tiver month: define start/end do mês
+      // - Se tiver type/codigo/cycle: adiciona where
+      // Obs: Firestore pode exigir índices compostos dependendo dos filtros.
+      let start = filterState.start;
+      let end = filterState.end;
+
+      if(filterState.month){
+        const [y,m] = filterState.month.split("-").map(Number);
+        const first = new Date(y, m-1, 1);
+        const last = new Date(y, m, 0);
+        start = toDateKey(first);
+        end = toDateKey(last);
+      }
+
+      const ref = collection(db, "coletasSeletivas");
       const clauses = [];
 
-      const start = fStart.value || null;
-      const end = fEnd.value || null;
-
+      // where date
       if(start) clauses.push(where("opDate", ">=", start));
       if(end) clauses.push(where("opDate", "<=", end));
 
-      // Atenção: para usar orderBy com where range no mesmo campo, ok
-      // Ordenando por opDate desc e limitando
-      return query(col, ...clauses, orderBy("opDate", "desc"), limit(1000));
+      // other filters
+      if(filterState.type) clauses.push(where("deliveryType", "==", filterState.type));
+      if(filterState.codigo) clauses.push(where("linkedId", "==", filterState.codigo));
+      if(filterState.cycle) clauses.push(where("cycle", "==", filterState.cycle)); // se você não usa "cycle", pode remover
+
+      // orderBy (necessário se usar range)
+      // opDate é string YYYY-MM-DD => ordena bem
+      clauses.push(orderBy("opDate", "desc"));
+
+      // limit
+      clauses.push(limit(500));
+
+      const q = query(ref, ...clauses);
+      const snap = await getDocs(q);
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
     }
 
-    function applyClientFilters(rows){
-      const del = fDelivery.value;
-      const flow = fFlow.value;
-      const lid = normId(fLinkedId.value);
+    // ===========================
+    // AGGREGATION
+    // ===========================
+    function sumNum(v){ return (typeof v === "number" && isFinite(v)) ? v : 0; }
 
-      return rows.filter(r=>{
-        if(del !== "all" && (r.deliveryType || "") !== del) return false;
-        if(flow !== "all" && (r.flowType || "") !== flow) return false;
-        if(lid && normId(r.linkedId || "") !== lid) return false;
-        return true;
+    function qualityBucket(v){
+      // seu form: "1 2 3" (sujo -> limpo). Também pode vir "SUJO/LIMPO".
+      if(v == null) return "medio";
+      if(typeof v === "number"){
+        if(v >= 3) return "limpo";
+        if(v <= 1) return "ruim";
+        return "medio";
+      }
+      const s = String(v).toLowerCase();
+      if(s.includes("limpo") || s === "3") return "limpo";
+      if(s.includes("sujo") || s === "1") return "ruim";
+      if(s === "2") return "medio";
+      return "medio";
+    }
+
+    function buildDashboardFromColetas(coletas){
+      // Considera dois tipos:
+      // - flowType == "recebimento": usa pesoResiduoSecoKg / pesoRejeitoKg / pesoNaoComercializadoKg + qualidade + observação
+      // - flowType == "final_turno": usa materiais (plasticoKg, papelMistoKg, etc) + pesoRejeitoGeralKg + oleoKg
+      // Materiais:
+      //  - Para "reciclável" usaremos soma de MATERIAL_FIELDS (exceto oleo? aqui inclui, mas também exibimos em "OUTRO")
+      // Rejeitos:
+      //  - não reciclável = pesoRejeitoKg (recebimento) + pesoRejeitoGeralKg (final_turno)
+      //  - não comercializado = pesoNaoComercializadoKg (recebimento)
+      // OUTRO:
+      //  - óleo = oleoKg (final_turno) ou outro campo que você colocar
+
+      const today = toDateKey(new Date());
+      const diasProjeto = daysBetween(PROJECT_START, today);
+
+      // KPIs baseados em coletas + linkedId
+      const ops = coletas.length;
+
+      const uniqRB = new Set();
+      const uniqCOND = new Set();
+      const uniqAll = new Set();
+
+      let recKg = 0;
+      let rejKg = 0;
+      let naoRecKg = 0;
+      let naoComKg = 0;
+      let outroKg = 0; // óleo
+
+      const quality = { limpo:0, medio:0, ruim:0 };
+
+      // por dia (para o gráfico)
+      const byDay = new Map(); // day -> {rec, rej}
+
+      // materiais (bolhas): soma kg por material
+      const matSum = new Map(); // key -> kg
+
+      // tabela: vamos listar as últimas 30 coletas "recebimento" (faz mais sentido)
+      const tableRows = [];
+
+      // map points: coletas com lat/lng (se existirem)
+      const mapPoints = [];
+
+      for(const c of coletas){
+        const linkedId = (c.linkedId || "").trim();
+        if(linkedId){
+          uniqAll.add(linkedId);
+          if(linkedId.startsWith("RB-")) uniqRB.add(linkedId);
+          if(linkedId.startsWith("COND-")) uniqCOND.add(linkedId);
+        }
+
+        const dateKey = (c.opDate && /^\d{4}-\d{2}-\d{2}$/.test(c.opDate)) ? c.opDate : null;
+        if(dateKey && !byDay.has(dateKey)) byDay.set(dateKey, { rec:0, rej:0 });
+
+        // mapa
+        if(typeof c.lat === "number" && typeof c.lng === "number"){
+          mapPoints.push({ lat:c.lat, lng:c.lng, label: linkedId ? `Coleta ${linkedId}` : "Coleta" });
+        } else if(c.location && typeof c.location.lat === "number" && typeof c.location.lng === "number"){
+          mapPoints.push({ lat:c.location.lat, lng:c.location.lng, label: linkedId ? `Coleta ${linkedId}` : "Coleta" });
+        }
+
+        if(c.flowType === "recebimento"){
+          const r = sumNum(c.pesoResiduoSecoKg);
+          const rej = sumNum(c.pesoRejeitoKg);
+          const nc = sumNum(c.pesoNaoComercializadoKg);
+
+          recKg += r;
+          rejKg += (rej + nc);
+
+          naoRecKg += rej;
+          naoComKg += nc;
+
+          // qualidade
+          const qb = qualityBucket(c.qualidadeNota ?? c.qualidade ?? c.qualidadeResiduo);
+          quality[qb]++;
+
+          // series by day
+          if(dateKey){
+            const d = byDay.get(dateKey);
+            d.rec += r;
+            d.rej += (rej + nc);
+          }
+
+          // tabela (últimas)
+          tableRows.push({
+            codigo: linkedId || "",
+            tipo: c.deliveryType || "—",
+            data: dateKey ? dateKey.split("-").reverse().join("/") : "—",
+            qualidade: qb.toUpperCase(),
+            obs: (c.observacao || c.obs || "").toString().slice(0, 80) || "—",
+            naoRec: fmtPt(rej,1),
+            naoCom: fmtPt(nc,1)
+          });
+
+        } else if(c.flowType === "final_turno"){
+          // soma materiais
+          let recTurno = 0;
+          for(const m of MATERIAL_FIELDS){
+            const kg = sumNum(c[m.field]);
+            if(kg > 0){
+              matSum.set(m.key, (matSum.get(m.key)||0) + kg);
+              recTurno += kg;
+            }
+          }
+
+          // óleo como OUTRO (além de entrar no recTurno se você quiser)
+          const oleo = sumNum(c.oleoKg);
+          outroKg += oleo;
+
+          const rejGeral = sumNum(c.pesoRejeitoGeralKg);
+          naoRecKg += rejGeral;
+          rejKg += rejGeral;
+          recKg += recTurno;
+
+          if(dateKey){
+            const d = byDay.get(dateKey);
+            d.rec += recTurno;
+            d.rej += rejGeral;
+          }
+        }
+      }
+
+      // materiais: completar com zero para todos
+      const materials = MATERIAL_FIELDS
+        .filter(m => m.key !== "ÓLEO") // óleo fica no card OUTRO
+        .map(m => ({ ...m, kg: matSum.get(m.key)||0 }))
+        .filter(m => m.kg > 0);
+
+      const total = recKg + rejKg;
+      const recPct = total ? (recKg/total)*100 : 0;
+      const rejPct = total ? (rejKg/total)*100 : 0;
+
+      const rejTotal = (naoRecKg + naoComKg);
+      const naoRecPct = rejTotal ? (naoRecKg/rejTotal)*100 : 0;
+      const naoComPct = rejTotal ? (naoComKg/rejTotal)*100 : 0;
+
+      // bolhas: percentual do total reciclável (sem óleo)
+      const totalMat = materials.reduce((a,m)=>a+m.kg,0) || 1;
+      const bubbles = materials
+        .sort((a,b)=>b.kg - a.kg)
+        .slice(0, 9)
+        .map(m => ({
+          key: m.key,
+          icon: m.icon,
+          kg: m.kg,
+          pct: (m.kg/totalMat)*100,
+          receita: 0 // se você tiver receita por material, preenche aqui
+        }));
+
+      // series: ordenar dias asc
+      const days = Array.from(byDay.keys()).sort();
+      const labels = days.map((d, i)=> String(i+1));
+      const reciclavel = days.map(d => +(byDay.get(d).rec.toFixed(2)));
+      const rejeito = days.map(d => +(byDay.get(d).rej.toFixed(2)));
+
+      return {
+        kpis: {
+          diasProjeto,
+          inicio: PROJECT_START,
+          opsTotal: ops,
+          famCadastradas: uniqRB.size, // aproximado pelo que apareceu em coletas
+          famParticipantes: uniqRB.size,
+          famColetas: coletas.filter(c => (c.linkedId||"").startsWith("RB-")).length,
+          condCadastrados: uniqCOND.size,
+          condParticipantes: uniqCOND.size,
+          condColetas: coletas.filter(c => (c.linkedId||"").startsWith("COND-")).length
+        },
+        summary: { recKg, rejKg, receita: 0, totalKg: total, recPct, rejPct, ops, diasFiltro: days.length },
+        rejectBreakdown: { naoRecKg, naoRecPct, naoComKg, naoComPct, outroKg },
+        qualidade: {
+          limpo: quality.limpo,
+          medio: quality.medio,
+          ruim: quality.ruim
+        },
+        bubbles,
+        series: { labels, reciclavel, rejeito },
+        table: tableRows.slice(0, 40),
+        uniqParticipants: uniqAll.size,
+        mapPoints
+      };
+    }
+
+    // ===========================
+    // RENDERERS
+    // ===========================
+    function setText(id, v){ const el = $(id); if(el) el.textContent = v; }
+
+    function renderKpis(d){
+      setText("kpiDias", d.kpis.diasProjeto);
+      setText("kpiInicio", d.kpis.inicio.split("-").reverse().join("/"));
+      setText("kpiOps", d.kpis.opsTotal);
+      setText("kpiOpsFiltro", d.summary.ops);
+
+      setText("famCadastradas", d.kpis.famCadastradas);
+      setText("famParticipantes", d.kpis.famParticipantes);
+      setText("famColetas", d.kpis.famColetas);
+
+      setText("condCadastrados", d.kpis.condCadastrados);
+      setText("condParticipantes", d.kpis.condParticipantes);
+      setText("condColetas", d.kpis.condColetas);
+    }
+
+    function renderSummary(d){
+      setText("sumRecKg", fmtPt(d.summary.recKg, 1));
+      setText("sumRejKg", fmtPt(d.summary.rejKg, 1));
+      setText("sumReceita", fmtPt(d.summary.receita, 1));
+      setText("sumTotalKg", fmtPt(d.summary.totalKg, 1));
+      setText("sumOps", d.summary.ops);
+      setText("sumDiasFiltro", d.summary.diasFiltro || 0);
+
+      setText("sumRecPct", d.summary.recPct.toFixed(1).replace(".", ",") + "%");
+      setText("sumRejPct", d.summary.rejPct.toFixed(1).replace(".", ",") + "%");
+
+      setText("rejNaoRecPct", d.rejectBreakdown.naoRecPct.toFixed(1).replace(".", ",") + "%");
+      setText("rejNaoRecKg", fmtPt(d.rejectBreakdown.naoRecKg, 1));
+      setText("rejNaoComPct", d.rejectBreakdown.naoComPct.toFixed(1).replace(".", ",") + "%");
+      setText("rejNaoComKg", fmtPt(d.rejectBreakdown.naoComKg, 1));
+
+      setText("outroKg", fmtPt(d.rejectBreakdown.outroKg, 1));
+      setText("outroLabel", "ÓLEO DE COZINHA");
+      setText("uniqParticipants", d.uniqParticipants);
+    }
+
+    function renderBubbles(d){
+      const grid = $("bubblesGrid");
+      grid.innerHTML = "";
+
+      if(!d.bubbles.length){
+        const empty = document.createElement("div");
+        empty.className = "col-span-2 md:col-span-3 rounded-2xl border border-black/10 bg-grayClean p-6 text-center text-sm text-graphite/70";
+        empty.innerHTML = "Sem materiais (final do turno) no período selecionado.";
+        grid.appendChild(empty);
+        return;
+      }
+
+      d.bubbles.forEach(m=>{
+        const el = document.createElement("div");
+        el.className = "bubble rounded-full p-4 md:p-5 flex flex-col items-center justify-center text-center min-h-[150px]";
+        el.innerHTML = `
+          <div class="text-3xl">${m.icon}</div>
+          <div class="mt-1 text-2xl font-extrabold">${m.pct.toFixed(1).replace(".", ",")}%</div>
+          <div class="text-sm text-graphite/70">${fmtPt(m.kg,1)} kg</div>
+          <div class="text-[11px] text-graphite/60 mt-1">Receita = <span class="font-bold">R$ ${fmtPt(m.receita,1)}</span></div>
+          <div class="mt-2 text-xs font-extrabold">${m.key}</div>
+        `;
+        grid.appendChild(el);
       });
     }
 
-    function computeAndRender(rows){
-      // KPIs (adaptável: se no seu cadastro de coletas o nome dos campos for diferente, eu ajusto)
-      let total = rows.length;
-      let sumSeco = 0;
-      let sumRejeito = 0;
-      let sumNaoCom = 0;
+    function renderTable(d){
+      const wrap = $("rows");
+      wrap.innerHTML = "";
 
-      // agregações para gráficos
-      const byDay = {};      // opDate -> count
-      const byDelivery = {}; // deliveryType -> count
-      const deliverySet = new Set();
+      if(!d.table.length){
+        const row = document.createElement("div");
+        row.className = "py-6 text-center text-sm text-graphite/60";
+        row.textContent = "Nenhuma coleta encontrada para os filtros selecionados.";
+        wrap.appendChild(row);
+        return;
+      }
 
-      rows.forEach(r=>{
-        const d = r.opDate || "—";
-        byDay[d] = (byDay[d] || 0) + 1;
-
-        const del = r.deliveryType || "Não informado";
-        byDelivery[del] = (byDelivery[del] || 0) + 1;
-        deliverySet.add(del);
-
-        // pesos: tentamos vários nomes (para não quebrar)
-        // Recebimento (ex.: 5,8,9)
-        sumSeco += toNum(r.pesoResiduoSecoKg ?? r.pesoResiduoSeco ?? r.pesoSecoKg ?? r.secoKg);
-        sumRejeito += toNum(r.pesoRejeitoKg ?? r.pesoRejeito ?? r.rejeitoKg);
-        sumNaoCom += toNum(r.pesoNaoComercializadoKg ?? r.pesoNaoComercializado ?? r.naoComercializadoKg);
-        // Final do turno: você tem 2.1 rejeito geral e materiais — (se quiser somar aqui também, me diga)
-        sumRejeito += toNum(r.pesoRejeitoGeralKg ?? r.rejeitoGeralKg);
+      d.table.forEach(r=>{
+        const row = document.createElement("div");
+        row.className = "grid grid-cols-12 gap-3 py-2 text-xs";
+        row.innerHTML = `
+          <div class="col-span-1 font-semibold">${r.codigo || ""}</div>
+          <div class="col-span-2">${r.tipo}</div>
+          <div class="col-span-2">${r.data}</div>
+          <div class="col-span-2 font-semibold">${r.qualidade}</div>
+          <div class="col-span-3 text-graphite/70">${r.obs}</div>
+          <div class="col-span-1 text-right">${r.naoRec}</div>
+          <div class="col-span-1 text-right">${r.naoCom}</div>
+        `;
+        wrap.appendChild(row);
       });
+    }
 
-      kTotal.textContent = String(total);
-      kSeco.textContent = String(sumSeco.toFixed(1)).replace(".",",");
-      kRejeito.textContent = String(sumRejeito.toFixed(1)).replace(".",",");
-      kNaoCom.textContent = String(sumNaoCom.toFixed(1)).replace(".",",");
+    // ===========================
+    // CHARTS
+    // ===========================
+    let chartQualidade, chartBar;
 
-      // range label
-      const ds = rows.map(r=>r.opDate).filter(Boolean);
-      const max = ds[0] || "—";
-      const min = ds[ds.length-1] || "—";
-      rangeLabel.textContent = `${min} → ${max}`;
-
-      // Chart daily
-      const dayKeys = Object.keys(byDay).sort(); // asc
-      const dayVals = dayKeys.map(k=>byDay[k]);
-
-      if(dailyChart) dailyChart.destroy();
-      dailyChart = new Chart($("chartDaily"), {
-        type: "bar",
+    function drawQualidade(d){
+      if(chartQualidade) chartQualidade.destroy();
+      const ctx = $("chartQualidade");
+      chartQualidade = new Chart(ctx, {
+        type: "doughnut",
         data: {
-          labels: dayKeys,
+          labels: ["LIMPO", "MÉDIO", "RUIM"],
           datasets: [{
-            label: "Coletas",
-            data: dayVals,
-            borderWidth: 0,
-            borderRadius: 6
+            data: [d.qualidade.limpo, d.qualidade.medio, d.qualidade.ruim],
+            backgroundColor: ["#1B7F5A", "#F2C94C", "#EF4444"],
+            borderWidth: 0
           }]
         },
         options: {
+          cutout: "70%",
+          plugins: { legend: { display:false }, tooltip: { enabled:true } }
+        }
+      });
+    }
+
+    function drawBar(d){
+      if(chartBar) chartBar.destroy();
+      const ctx = $("chartBar");
+      chartBar = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: d.series.labels,
+          datasets: [
+            { label: "Peso do rejeito", data: d.series.rejeito, backgroundColor: "#EF4444", stack: "stack1", borderWidth: 0 },
+            { label: "Peso do reciclável", data: d.series.reciclavel, backgroundColor: "#22C55E", stack: "stack1", borderWidth: 0 }
+          ]
+        },
+        options: {
+          responsive: true,
           plugins: { legend: { display:false } },
           scales: {
-            x: { grid:{ display:false }, ticks:{ font:{ size:10 } } },
-            y: { grid:{ color:"rgba(0,0,0,.07)" }, ticks:{ font:{ size:10 } } }
+            x: { stacked:true, grid: { display:false }, ticks: { maxRotation:0, autoSkip:true, maxTicksLimit:18, font:{size:10} } },
+            y: { stacked:true, grid: { color: "rgba(0,0,0,.06)" }, ticks: { font:{size:10} } }
           }
         }
       });
-
-      // Chart delivery
-      const delKeys = Object.keys(byDelivery);
-      const delVals = delKeys.map(k=>byDelivery[k]);
-
-      if(deliveryChart) deliveryChart.destroy();
-      deliveryChart = new Chart($("chartDelivery"), {
-        type: "doughnut",
-        data: {
-          labels: delKeys,
-          datasets: [{ data: delVals, borderWidth: 0 }]
-        },
-        options: {
-          cutout: "70%",
-          plugins: { legend: { position:"bottom", labels:{ boxWidth:10, usePointStyle:true, pointStyle:"circle" } } }
-        }
-      });
-
-      // Preencher dropdown delivery dinamicamente (sem duplicar)
-      const existing = new Set([...fDelivery.options].map(o=>o.value));
-      Array.from(deliverySet).sort().forEach(v=>{
-        if(!existing.has(v)){
-          const op = document.createElement("option");
-          op.value = v;
-          op.textContent = v;
-          fDelivery.appendChild(op);
-        }
-      });
-
-      // Table
-      tbl.innerHTML = "";
-      rows.slice(0, 40).forEach(r=>{
-        const tr = document.createElement("tr");
-        tr.className = "border-t border-black/10";
-        tr.innerHTML = `
-          <td class="p-2 font-semibold">${r.opDate || "—"}</td>
-          <td class="p-2">${r.deliveryType || "—"}</td>
-          <td class="p-2">${r.flowType || "—"}</td>
-          <td class="p-2">${r.linkedId || "—"}</td>
-          <td class="p-2 text-right font-semibold">${toNum(r.pesoResiduoSecoKg ?? r.pesoResiduoSeco ?? r.pesoSecoKg ?? r.secoKg).toFixed(1).replace(".",",")}</td>
-          <td class="p-2 text-right font-semibold">${toNum(r.pesoRejeitoKg ?? r.pesoRejeito ?? r.rejeitoKg ?? r.pesoRejeitoGeralKg ?? r.rejeitoGeralKg).toFixed(1).replace(".",",")}</td>
-          <td class="p-2 text-right font-semibold">${toNum(r.pesoNaoComercializadoKg ?? r.pesoNaoComercializado ?? r.naoComercializadoKg).toFixed(1).replace(".",",")}</td>
-        `;
-        tbl.appendChild(tr);
-      });
     }
 
-    function subscribe(){
-      if(unsub) unsub();
+    // ===========================
+    // MAP
+    // ===========================
+    let map, layer;
+    function initMap(){
+      map = L.map('map', { zoomControl: true }).setView([-30.0346, -51.2177], 12);
 
-      setStatus("conectando…", true);
-      const q = buildBaseQuery();
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(map);
 
-      unsub = onSnapshot(q, (snap)=>{
-        const rows = [];
-        snap.forEach(doc=>{
-          rows.push({ id: doc.id, ...doc.data() });
-        });
-        allRows = rows;
+      layer = L.layerGroup().addTo(map);
+    }
 
-        const filtered = applyClientFilters(allRows);
-        computeAndRender(filtered);
+    function renderMap(points){
+      if(!layer) return;
+      layer.clearLayers();
 
-        setStatus(`ok • ${filtered.length} registros`, true);
-      }, (err)=>{
+      if(!points.length){
+        // sem pontos: mantém view default
+        return;
+      }
+
+      const bounds = [];
+      points.slice(0, 200).forEach(p=>{
+        const marker = L.circleMarker([p.lat, p.lng], {
+          radius: 7,
+          color: "#1B7F5A",
+          fillColor: "#4CAF8F",
+          fillOpacity: 0.9,
+          weight: 2
+        }).addTo(layer).bindPopup(p.label || "Coleta");
+        bounds.push([p.lat, p.lng]);
+      });
+
+      if(bounds.length){
+        map.fitBounds(bounds, { padding: [18,18] });
+      }
+    }
+
+    // ===========================
+    // MAIN LOAD
+    // ===========================
+    async function reload(){
+      setDbStatus("carregando…", true);
+
+      try{
+        const coletas = await fetchColetas();
+        setDbStatus(`ok • ${coletas.length} registros`, true);
+
+        const dash = buildDashboardFromColetas(coletas);
+        renderKpis(dash);
+        renderSummary(dash);
+        renderBubbles(dash);
+        renderTable(dash);
+        drawQualidade(dash);
+        drawBar(dash);
+        renderMap(dash.mapPoints);
+
+      }catch(err){
         console.error(err);
-        setStatus("erro ao carregar (rules/config)", false);
+        setDbStatus("erro (rules / índice)", false);
+
+        // fallback UI
+        renderBubbles({ bubbles: [] });
+        renderTable({ table: [] });
+      }
+    }
+
+    // ===========================
+    // FILTER EVENTS
+    // ===========================
+    function wireFilters(){
+      // date
+      $("btnApplyDate").addEventListener("click", ()=>{
+        filterState.start = $("fStart").value || "";
+        filterState.end = $("fEnd").value || "";
+        document.querySelectorAll(".dd").forEach(d=>d.classList.remove("open"));
+        reload();
+      });
+      $("btnClearDate").addEventListener("click", ()=>{
+        clearDate(); syncFilterInputs();
+        document.querySelectorAll(".dd").forEach(d=>d.classList.remove("open"));
+        reload();
+      });
+
+      // month
+      $("btnApplyMonth").addEventListener("click", ()=>{
+        filterState.month = $("fMonth").value || "";
+        // se usar month, zera date range manual para evitar conflito visual
+        clearDate(); syncFilterInputs();
+        document.querySelectorAll(".dd").forEach(d=>d.classList.remove("open"));
+        reload();
+      });
+      $("btnClearMonth").addEventListener("click", ()=>{
+        clearMonth(); syncFilterInputs();
+        document.querySelectorAll(".dd").forEach(d=>d.classList.remove("open"));
+        reload();
+      });
+
+      // cycle
+      $("btnApplyCycle").addEventListener("click", ()=>{
+        filterState.cycle = ($("fCycle").value || "").trim();
+        document.querySelectorAll(".dd").forEach(d=>d.classList.remove("open"));
+        reload();
+      });
+      $("btnClearCycle").addEventListener("click", ()=>{
+        clearCycle(); syncFilterInputs();
+        document.querySelectorAll(".dd").forEach(d=>d.classList.remove("open"));
+        reload();
+      });
+
+      // type items
+      document.querySelectorAll("#ddTipo .dd-item").forEach(item=>{
+        item.addEventListener("click", ()=>{
+          filterState.type = item.getAttribute("data-type") || "";
+          document.querySelectorAll(".dd").forEach(d=>d.classList.remove("open"));
+          reload();
+        });
+      });
+
+      // codigo
+      $("btnApplyCodigo").addEventListener("click", ()=>{
+        filterState.codigo = ($("fCodigo").value || "").trim().toUpperCase();
+        document.querySelectorAll(".dd").forEach(d=>d.classList.remove("open"));
+        reload();
+      });
+      $("btnClearCodigo").addEventListener("click", ()=>{
+        clearCodigo(); syncFilterInputs();
+        document.querySelectorAll(".dd").forEach(d=>d.classList.remove("open"));
+        reload();
+      });
+
+      // clear all
+      $("btnClearAll").addEventListener("click", ()=>{
+        clearDate(); clearMonth(); clearCycle(); clearType(); clearCodigo();
+        syncFilterInputs();
+        reload();
       });
     }
 
-    btnApply.addEventListener("click", ()=> subscribe());
-    btnReset.addEventListener("click", ()=>{
-      fEnd.value = todayISO();
-      fStart.value = daysAgoISO(30);
-      fDelivery.value = "all";
-      fFlow.value = "all";
-      fLinkedId.value = "";
-      subscribe();
-    });
+    // ===========================
+    // Boot
+    // ===========================
+    setDbStatus("conectado ✅", true);
+    initDropdowns();
+    initMap();
+    wireFilters();
+    syncFilterInputs();
 
-    // init
-    subscribe();
+    // inicial: sem filtros, pega últimos 500
+    reload();
+
   </script>
 </body>
 </html>
