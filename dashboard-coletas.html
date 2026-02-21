@@ -1,4 +1,4 @@
-<!doctype html> 
+<!doctype html>
 <html lang="pt-BR" translate="no">
 <head>
   <meta charset="utf-8" />
@@ -40,7 +40,7 @@
 
   <style>
     .panel { background: #fff; border: 1px solid rgba(0,0,0,.06); box-shadow: 0 10px 26px rgba(13,59,102,.06); }
-    .pill { background: #2ea86d; } /* verde botão do print */
+    .pill { background: #2ea86d; }
     .pill:hover{ filter: brightness(.97); }
     .dash-grid { grid-template-columns: 320px 1fr; }
     .dashed { border: 2px dashed rgba(0,0,0,.12); }
@@ -54,6 +54,39 @@
     .legend-dot { width: 18px; height: 10px; border-radius: 3px; }
     .leaflet-container { border-radius: 14px; }
     .soft-divider { border-top: 1px dashed rgba(0,0,0,.10); }
+
+    .pop {
+      position: absolute;
+      top: calc(100% + 10px);
+      left: 50%;
+      transform: translateX(-50%);
+      width: 280px;
+      background: white;
+      border: 1px solid rgba(0,0,0,.10);
+      border-radius: 16px;
+      box-shadow: 0 16px 50px rgba(13,59,102,.18);
+      z-index: 50;
+      overflow: hidden;
+    }
+    .pop-h { background: rgba(245,247,246,.9); border-bottom: 1px solid rgba(0,0,0,.08); }
+    .pop input, .pop select {
+      width: 100%;
+      border: 1px solid rgba(0,0,0,.10);
+      border-radius: 12px;
+      padding: 10px 12px;
+      outline: none;
+    }
+    .pop input:focus, .pop select:focus { box-shadow: 0 0 0 4px rgba(27,127,90,.12); border-color: rgba(27,127,90,.35); }
+    .badge {
+      display:inline-flex; align-items:center; gap:6px;
+      background: rgba(255,255,255,.8);
+      border: 1px solid rgba(0,0,0,.10);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      color: rgba(46,46,46,.8);
+      white-space: nowrap;
+    }
   </style>
 </head>
 
@@ -74,45 +107,130 @@
       </div>
 
       <!-- Pills (Filtros) -->
-      <div class="flex-1 flex items-center justify-center gap-3 flex-wrap">
-        <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
-          DATA <span class="text-white/90">▾</span>
-        </button>
-        <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
-          MÊS <span class="text-white/90">▾</span>
-        </button>
-        <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
-          CICLO <span class="text-white/90">▾</span>
-        </button>
-        <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
-          TIPO DE COLETA <span class="text-white/90">▾</span>
-        </button>
-        <button class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
-          CÓDIGO <span class="text-white/90">▾</span>
-        </button>
+      <div class="flex-1 flex items-center justify-center gap-3 flex-wrap relative">
+
+        <div class="relative">
+          <button id="btnData" class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
+            DATA <span class="text-white/90">▾</span>
+          </button>
+          <div id="popData" class="pop hidden">
+            <div class="pop-h px-4 py-3">
+              <div class="font-extrabold text-sm">Filtrar por data</div>
+              <div class="text-xs text-graphite/60">Escolha um dia específico.</div>
+            </div>
+            <div class="p-4 space-y-3">
+              <input id="fData" type="date" />
+              <div class="flex gap-2">
+                <button id="applyData" class="flex-1 px-4 py-2 rounded-xl bg-regen text-white font-extrabold">Aplicar</button>
+                <button id="clearData" class="px-4 py-2 rounded-xl border border-black/10 font-semibold">Limpar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative">
+          <button id="btnMes" class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
+            MÊS <span class="text-white/90">▾</span>
+          </button>
+          <div id="popMes" class="pop hidden">
+            <div class="pop-h px-4 py-3">
+              <div class="font-extrabold text-sm">Filtrar por mês</div>
+              <div class="text-xs text-graphite/60">Ex.: 2026-02</div>
+            </div>
+            <div class="p-4 space-y-3">
+              <input id="fMes" type="month" />
+              <div class="flex gap-2">
+                <button id="applyMes" class="flex-1 px-4 py-2 rounded-xl bg-regen text-white font-extrabold">Aplicar</button>
+                <button id="clearMes" class="px-4 py-2 rounded-xl border border-black/10 font-semibold">Limpar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative">
+          <button id="btnCiclo" class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
+            CICLO <span class="text-white/90">▾</span>
+          </button>
+          <div id="popCiclo" class="pop hidden">
+            <div class="pop-h px-4 py-3">
+              <div class="font-extrabold text-sm">Filtrar por ciclo</div>
+              <div class="text-xs text-graphite/60">Ciclo = semana ISO (Wxx/AAAA)</div>
+            </div>
+            <div class="p-4 space-y-3">
+              <select id="fCiclo">
+                <option value="">Selecione…</option>
+              </select>
+              <div class="flex gap-2">
+                <button id="applyCiclo" class="flex-1 px-4 py-2 rounded-xl bg-regen text-white font-extrabold">Aplicar</button>
+                <button id="clearCiclo" class="px-4 py-2 rounded-xl border border-black/10 font-semibold">Limpar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative">
+          <button id="btnTipo" class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
+            TIPO DE COLETA <span class="text-white/90">▾</span>
+          </button>
+          <div id="popTipo" class="pop hidden">
+            <div class="pop-h px-4 py-3">
+              <div class="font-extrabold text-sm">Filtrar por tipo</div>
+              <div class="text-xs text-graphite/60">deliveryType</div>
+            </div>
+            <div class="p-4 space-y-3">
+              <select id="fTipo">
+                <option value="">Todos</option>
+                <option>Coleta domiciliar pelo triciclo</option>
+                <option>Coleta condomínio</option>
+                <option>Entrega voluntária</option>
+                <option>Coleta Comércio</option>
+              </select>
+              <div class="flex gap-2">
+                <button id="applyTipo" class="flex-1 px-4 py-2 rounded-xl bg-regen text-white font-extrabold">Aplicar</button>
+                <button id="clearTipo" class="px-4 py-2 rounded-xl border border-black/10 font-semibold">Limpar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative">
+          <button id="btnCodigo" class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
+            CÓDIGO <span class="text-white/90">▾</span>
+          </button>
+          <div id="popCodigo" class="pop hidden">
+            <div class="pop-h px-4 py-3">
+              <div class="font-extrabold text-sm">Filtrar por código/ID</div>
+              <div class="text-xs text-graphite/60">Busca em linkedId, código família e condomínio.</div>
+            </div>
+            <div class="p-4 space-y-3">
+              <input id="fCodigo" placeholder="Ex.: RB-000123 ou COND-000045 ou 028" />
+              <div class="flex gap-2">
+                <button id="applyCodigo" class="flex-1 px-4 py-2 rounded-xl bg-regen text-white font-extrabold">Aplicar</button>
+                <button id="clearCodigo" class="px-4 py-2 rounded-xl border border-black/10 font-semibold">Limpar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Badges ativos -->
+        <div id="badges" class="flex items-center gap-2 flex-wrap justify-center"></div>
       </div>
 
-      <!-- Right slot -->
-      <div class="min-w-[260px] flex justify-end items-center gap-3">
-        <a href="index.html" class="text-xs font-bold text-graphite/70 hover:underline">Menu</a>
-        <a href="cadastro-coleta.html" class="text-xs font-bold text-regen hover:underline">Cadastrar coleta</a>
-        <span class="text-xs text-graphite/55">Firestore: <span id="dbStatus" class="font-semibold">conectando…</span></span>
+      <div class="min-w-[260px] flex justify-end items-center gap-2">
+        <span class="text-xs text-graphite/55">Dashboard • Coletas</span>
       </div>
     </div>
   </header>
 
-  <!-- MAIN -->
   <main class="max-w-[1400px] mx-auto px-4 py-4">
     <div class="grid dash-grid gap-4">
-      <!-- LEFT SIDEBAR -->
       <aside class="space-y-4">
-        <!-- KPIs -->
         <div class="panel rounded-2xl overflow-hidden">
           <div class="grid grid-cols-2">
             <div class="p-4 bg-regen/15 border-r border-black/5">
-              <div class="text-3xl font-extrabold text-graphite" id="kpiDias">—</div>
-              <div class="text-xs text-graphite/70">total de dias com registros</div>
-              <div class="text-[11px] text-graphite/60">Primeiro registro: <span class="font-semibold" id="kpiInicio">—</span></div>
+              <div class="text-3xl font-extrabold text-graphite" id="kpiDias">0</div>
+              <div class="text-xs text-graphite/70">total de dias do projeto</div>
+              <div class="text-[11px] text-graphite/60">Início: <span class="font-semibold" id="kpiInicio">—</span></div>
             </div>
             <div class="p-4 bg-regen/10">
               <div class="text-3xl font-extrabold text-graphite" id="kpiOps">0</div>
@@ -121,22 +239,17 @@
           </div>
         </div>
 
-        <!-- Families / Condo -->
         <div class="panel rounded-2xl p-4">
           <div class="grid grid-cols-2 gap-3">
             <div>
               <div class="font-extrabold text-center">FAMÍLIAS</div>
               <div class="mt-3 space-y-2 text-sm">
                 <div class="flex items-center justify-between">
-                  <span class="text-graphite/70">códigos únicos</span>
-                  <span class="font-bold" id="famCadastradas">0</span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-graphite/70">participantes (est.)</span>
+                  <span class="text-graphite/70">participantes (IDs únicos)</span>
                   <span class="font-bold" id="famParticipantes">0</span>
                 </div>
                 <div class="flex items-center justify-between">
-                  <span class="text-graphite/70">coletas realizadas</span>
+                  <span class="text-graphite/70">coletas (recebimento)</span>
                   <span class="font-bold" id="famColetas">0</span>
                 </div>
               </div>
@@ -146,15 +259,11 @@
               <div class="font-extrabold text-center">CONDOMÍNIO</div>
               <div class="mt-3 space-y-2 text-sm">
                 <div class="flex items-center justify-between">
-                  <span class="text-graphite/70">códigos únicos</span>
-                  <span class="font-bold" id="condCadastrados">0</span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-graphite/70">participantes (est.)</span>
+                  <span class="text-graphite/70">participantes (IDs únicos)</span>
                   <span class="font-bold" id="condParticipantes">0</span>
                 </div>
                 <div class="flex items-center justify-between">
-                  <span class="text-graphite/70">coletas realizadas</span>
+                  <span class="text-graphite/70">coletas (final turno)</span>
                   <span class="font-bold" id="condColetas">0</span>
                 </div>
               </div>
@@ -162,18 +271,16 @@
           </div>
         </div>
 
-        <!-- Map -->
         <div class="panel rounded-2xl p-4">
           <div class="font-extrabold text-center text-lg">LOCALIZAÇÃO</div>
           <div class="mt-3">
             <div id="map" class="w-full h-[360px]"></div>
           </div>
-          <div class="mt-2 text-[11px] text-graphite/55">
-            * Sem lat/lng nas coletas → mapa base (Porto Alegre).
+          <div class="mt-2 text-[11px] text-graphite/55 text-center">
+            (Sem pontos: suas coletas não têm latitude/longitude ainda)
           </div>
         </div>
 
-        <!-- Quality donut -->
         <div class="panel rounded-2xl p-4">
           <div class="font-extrabold text-center text-lg">QUALIDADE DO RESÍDUO</div>
           <div class="mt-4">
@@ -193,9 +300,7 @@
         </div>
       </aside>
 
-      <!-- RIGHT CONTENT -->
       <section class="space-y-4">
-        <!-- Summary row -->
         <div class="panel rounded-2xl p-4">
           <div class="grid grid-cols-12 gap-4 items-stretch">
             <div class="col-span-12 md:col-span-2 flex items-center justify-center font-extrabold text-lg">
@@ -210,13 +315,14 @@
                   </div>
                   <div>
                     <div class="text-xl font-extrabold">
-                      <span id="sumRecKg">0,0</span> kg <span class="ml-2">RECICLÁVEL</span>
+                      <span id="sumRecKg">0</span> kg <span class="ml-2">RECICLÁVEL</span>
                     </div>
                     <div class="text-sm text-graphite/70">
-                      <span class="text-regen font-extrabold" id="sumRecPct">0,0%</span> do total
+                      <span class="text-regen font-extrabold" id="sumRecPct">0%</span> do total
                     </div>
                     <div class="text-sm text-graphite/70">
-                      Receita total = <span class="font-extrabold">R$</span> <span class="font-extrabold" id="sumReceita">0,0</span>
+                      Receita total = <span class="font-extrabold">R$</span> <span class="font-extrabold" id="sumReceita">0</span>
+                      <span class="text-xs text-graphite/50 ml-2">(placeholder)</span>
                     </div>
                   </div>
                 </div>
@@ -229,10 +335,10 @@
                   </div>
                   <div class="text-right">
                     <div class="text-xl font-extrabold">
-                      <span id="sumRejKg">0,0</span> kg <span class="ml-2 text-red-600">REJEITO</span>
+                      <span id="sumRejKg">0</span> kg <span class="ml-2 text-red-600">REJEITO</span>
                     </div>
                     <div class="text-sm text-graphite/70">
-                      <span class="text-red-600 font-extrabold" id="sumRejPct">0,0%</span> do total
+                      <span class="text-red-600 font-extrabold" id="sumRejPct">0%</span> do total
                     </div>
                   </div>
                 </div>
@@ -245,7 +351,7 @@
                 <div class="mt-2 space-y-2 text-sm">
                   <div class="flex items-center justify-between">
                     <span class="text-graphite/70">Total (kg)</span>
-                    <span class="font-extrabold" id="sumTotalKg">0,0</span>
+                    <span class="font-extrabold" id="sumTotalKg">0</span>
                   </div>
                   <div class="flex items-center justify-between">
                     <span class="text-graphite/70">Operações</span>
@@ -261,9 +367,7 @@
           </div>
         </div>
 
-        <!-- Middle: bubbles + right reject breakdown -->
         <div class="grid grid-cols-12 gap-4">
-          <!-- Bubbles materials -->
           <div class="col-span-12 lg:col-span-8 panel rounded-2xl p-4">
             <div class="text-center font-extrabold text-lg">TIPO DE MATERIAL RECICLÁVEL</div>
             <div class="text-center text-xs text-graphite/60 mt-1">(% sobre o total de recicláveis)</div>
@@ -271,7 +375,6 @@
             <div id="bubblesGrid" class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4"></div>
           </div>
 
-          <!-- Right reject types -->
           <div class="col-span-12 lg:col-span-4 space-y-4">
             <div class="panel rounded-2xl p-4">
               <div class="text-center font-extrabold text-lg">TIPO DE REJEITO</div>
@@ -280,16 +383,16 @@
               <div class="mt-4 space-y-4">
                 <div class="rounded-2xl bg-red-50 border border-red-100 p-4 text-center">
                   <div class="flex items-center justify-center gap-2 text-3xl">🐀</div>
-                  <div class="text-3xl font-extrabold text-red-600" id="rejNaoRecPct">0,0%</div>
+                  <div class="text-3xl font-extrabold text-red-600" id="rejNaoRecPct">0%</div>
                   <div class="text-sm font-extrabold">NÃO RECICLÁVEL</div>
-                  <div class="text-sm text-graphite/70"><span id="rejNaoRecKg">0,0</span> kg</div>
+                  <div class="text-sm text-graphite/70"><span id="rejNaoRecKg">0</span> kg</div>
                 </div>
 
                 <div class="rounded-2xl bg-white border border-black/10 p-4 text-center">
                   <div class="flex items-center justify-center gap-2 text-3xl">🚫💰</div>
-                  <div class="text-3xl font-extrabold text-red-600" id="rejNaoComPct">0,0%</div>
+                  <div class="text-3xl font-extrabold text-red-600" id="rejNaoComPct">0%</div>
                   <div class="text-sm font-extrabold">NÃO COMERCIALIZADO</div>
-                  <div class="text-sm text-graphite/70"><span id="rejNaoComKg">0,0</span> kg</div>
+                  <div class="text-sm text-graphite/70"><span id="rejNaoComKg">0</span> kg</div>
                 </div>
               </div>
             </div>
@@ -298,7 +401,7 @@
               <div class="text-center font-extrabold">OUTRO</div>
               <div class="mt-3 flex items-center justify-center text-5xl">🧴</div>
               <div class="mt-2 text-center">
-                <div class="text-3xl font-extrabold" id="outroKg">0,0</div>
+                <div class="text-3xl font-extrabold" id="outroKg">0</div>
                 <div class="text-xs text-graphite/70">kg</div>
                 <div class="mt-2 text-sm font-extrabold">ÓLEO DE COZINHA</div>
               </div>
@@ -306,7 +409,6 @@
           </div>
         </div>
 
-        <!-- Bottom chart -->
         <div class="panel rounded-2xl p-4">
           <div class="flex items-center gap-6 text-sm justify-center">
             <div class="flex items-center gap-2">
@@ -325,7 +427,6 @@
           </div>
         </div>
 
-        <!-- Table (planilha) -->
         <div class="panel rounded-2xl p-4">
           <div class="grid grid-cols-12 gap-3 text-xs font-extrabold text-graphite/70 pb-2 border-b border-black/10">
             <div class="col-span-1">Código</div>
@@ -347,12 +448,13 @@
     </div>
   </main>
 
-  <!-- FIREBASE / DASHBOARD LOGIC -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+    import {
+      getFirestore, collection, onSnapshot, query, orderBy, limit
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
- const firebaseConfig = {
+   const firebaseConfig = {
   apiKey: "AIzaSyAe5E7M8Jednj1xGRjNrV0oD4wQwv6b-WM",
   authDomain: "reciclabonja-3dee7.firebaseapp.com",
   projectId: "reciclabonja-3dee7",
@@ -360,40 +462,52 @@
   messagingSenderId: "590941010829",
   appId: "1:590941010829:web:9b8e4703df54cc8b0a9bc4"
 };
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // ===== helpers
-    const fmtPt = (n, dec=1) => Number(n || 0).toLocaleString("pt-BR", {minimumFractionDigits: dec, maximumFractionDigits: dec});
-    const setText = (id, v) => { const el=document.getElementById(id); if(el) el.textContent = v; };
-    const toNum = (x) => { const n = Number(x); return Number.isFinite(n) ? n : 0; };
+    const $ = (id) => document.getElementById(id);
+    const fmtPt = (n, dec=1) => (Number(n)||0).toLocaleString("pt-BR", {minimumFractionDigits: dec, maximumFractionDigits: dec});
 
-    function setDbStatus(text, ok=true){
-      const el = document.getElementById("dbStatus");
-      el.textContent = text;
-      el.className = ok ? "font-semibold text-regen" : "font-semibold text-red-700";
+    function setText(id, value){ const el=$(id); if(el) el.textContent=value; }
+    function isoToBr(iso){
+      if(!iso || typeof iso !== "string") return "—";
+      const [y,m,d] = iso.split("-");
+      if(!y||!m||!d) return iso;
+      return `${d}/${m}/${y}`;
     }
 
-    // ===== map base (sem lat/lng nas coletas)
-    const map = L.map('map', { zoomControl: true }).setView([-30.0346, -51.2177], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
-    // marcadores “placeholder”
-    [[-30.0346, -51.2177],[-30.0401,-51.2102],[-30.0282,-51.2303]].forEach((p,i)=>{
-      L.circleMarker(p, { radius:7, color:"#1B7F5A", fillColor:"#4CAF8F", fillOpacity:.9, weight:2 })
-        .addTo(map).bindPopup("Ponto "+(i+1));
-    });
+    function getISOWeek(date){
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+      const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+      return { year: d.getUTCFullYear(), week: weekNo };
+    }
+    function getCycleLabel(opDateISO){
+      if(!opDateISO) return "";
+      const dt = new Date(opDateISO + "T00:00:00");
+      if(Number.isNaN(dt.getTime())) return "";
+      const {year, week} = getISOWeek(dt);
+      const w = String(week).padStart(2,"0");
+      return `W${w}/${year}`;
+    }
 
-    // ===== charts
+    const filters = { data:"", mes:"", ciclo:"", tipo:"", codigo:"" };
+    let allDocs = [];
+    let filteredDocs = [];
+
     let chartQualidade, chartBar;
 
-    function drawQualidade(limpo, medio, ruim){
+    function drawQualidade(q){
       if(chartQualidade) chartQualidade.destroy();
-      chartQualidade = new Chart(document.getElementById("chartQualidade"), {
+      chartQualidade = new Chart($("chartQualidade"), {
         type: "doughnut",
         data: {
           labels: ["LIMPO", "MÉDIO", "RUIM"],
           datasets: [{
-            data: [limpo, medio, ruim],
+            data: [q.limpo, q.medio, q.ruim],
             backgroundColor: ["#1B7F5A", "#F2C94C", "#EF4444"],
             borderWidth: 0
           }]
@@ -402,15 +516,15 @@
       });
     }
 
-    function drawBar(labels, rejeito, reciclavel){
+    function drawBar(series){
       if(chartBar) chartBar.destroy();
-      chartBar = new Chart(document.getElementById("chartBar"), {
+      chartBar = new Chart($("chartBar"), {
         type: "bar",
         data: {
-          labels,
+          labels: series.labels,
           datasets: [
-            { label: "Peso do rejeito", data: rejeito, backgroundColor: "#EF4444", stack:"stack1", borderWidth:0 },
-            { label: "Peso do Reciclável", data: reciclavel, backgroundColor: "#22C55E", stack:"stack1", borderWidth:0 }
+            { label: "Peso do rejeito", data: series.rejeito, backgroundColor: "#EF4444", stack:"s", borderWidth:0 },
+            { label: "Peso do reciclável", data: series.reciclavel, backgroundColor: "#22C55E", stack:"s", borderWidth:0 }
           ]
         },
         options: {
@@ -424,247 +538,410 @@
       });
     }
 
-    // ===== cálculos (compatível com cadastro-coletas)
-    const MATERIALS = [
-      { key:"PLÁSTICO", field:"plasticoKg", icon:"🧴" },
-      { key:"VIDRO", field:"vidroKg", icon:"🍾" },
-      { key:"METAL", field:"aluminioMetalKg", icon:"🥫" },
-      { key:"SACARIA", field:"sacariaKg", icon:"🛍️" },
-      { key:"PAPEL MISTO", field:"papelMistoKg", icon:"📄" },
-      { key:"PAPELÃO", field:"papelaoKg", icon:"📦" },
-      { key:"ISOPOR", field:"isoporKg", icon:"🍱" },
-      { key:"ÓLEO", field:"oleoKg", icon:"🧴" },
-    ];
-
-    function calcFinalRecKg(d){
-      let sum = 0;
-      MATERIALS.forEach(m => sum += toNum(d[m.field]));
-      if(Array.isArray(d.materiaisExtras)){
-        sum += d.materiaisExtras.reduce((acc, it)=> acc + toNum(it?.kg), 0);
-      }
-      return sum;
+    let map;
+    function initMap(){
+      map = L.map('map', { zoomControl: true }).setView([-30.0346, -51.2177], 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19, attribution: '&copy; OpenStreetMap'
+      }).addTo(map);
     }
 
-    function normalizeRowForTable(d){
-      // tabela do layout é “tipo de material reciclável”, mas o recebimento não tem tipo.
-      // então:
-      // - recebimento: mostra "Resíduo seco (geral)"
-      // - final_turno: mostra "Final do turno (agregado)"
-      const codigo = d.linkedId || d.codigoFamilia || d.codigoCondominio || "—";
-      const tipo = (d.flowType === "recebimento") ? "Resíduo seco (geral)" : "Final do turno (agregado)";
-      const data = d.opDate ? new Date(d.opDate + "T00:00:00").toLocaleDateString("pt-BR") : "—";
+    function normalizeDoc(d){
+      const num = (x)=> Number(x||0);
+      const opDate = d.opDate || "";
+      const cycle = getCycleLabel(opDate);
+      const month = (opDate && opDate.length>=7) ? opDate.slice(0,7) : "";
+      const code = (d.codigoFamilia || d.codigoCondominio || d.linkedId || "").toString().trim();
 
-      const qualidade = (d.flowType === "recebimento")
-        ? (d.qualidadeNota === 1 ? "RUIM" : d.qualidadeNota === 2 ? "MÉDIO" : d.qualidadeNota === 3 ? "BOM" : "—")
-        : "—";
+      let recKg = 0, rejeitoKg = 0, naoComKg = 0, naoRecKg = 0, oilKg = 0;
+      const mats = {};
 
-      const obs = d.observacao || "—";
-      const naoRecKg = (d.flowType === "recebimento") ? toNum(d.pesoRejeitoKg) : toNum(d.pesoRejeitoGeralKg);
-      const naoComKg = (d.flowType === "recebimento") ? toNum(d.pesoNaoComercializadoKg) : 0;
+      if(d.flowType === "recebimento"){
+        recKg = num(d.pesoResiduoSecoKg);
+        naoRecKg = num(d.pesoRejeitoKg);
+        naoComKg = num(d.pesoNaoComercializadoKg);
+        rejeitoKg = naoRecKg + naoComKg;
+        if(recKg > 0) mats["RECEBIMENTO (MISTO)"] = (mats["RECEBIMENTO (MISTO)"] || 0) + recKg;
+      } else {
+        const plast = num(d.plasticoKg);
+        const papelM = num(d.papelMistoKg);
+        const papelao = num(d.papelaoKg);
+        const metal = num(d.aluminioMetalKg);
+        const vidro = num(d.vidroKg);
+        const sacaria = num(d.sacariaKg);
+        const isopor = num(d.isoporKg);
+        oilKg = num(d.oleoKg);
 
-      return { codigo, tipo, data, qualidade, obs, naoRecKg, naoComKg };
-    }
+        mats["PLÁSTICO"] = plast;
+        mats["PAPEL MISTO"] = papelM;
+        mats["PAPELÃO"] = papelao;
+        mats["METAL"] = metal;
+        mats["VIDRO"] = vidro;
+        mats["SACARIA"] = sacaria;
+        mats["ISOPOR"] = isopor;
 
-    function renderTable(items){
-      const wrap = document.getElementById("rows");
-      wrap.innerHTML = "";
+        if(Array.isArray(d.materiaisExtras)){
+          d.materiaisExtras.forEach(x=>{
+            const name = (x?.name || "").toString().trim().toUpperCase();
+            const kg = num(x?.kg);
+            if(name && kg >= 0) mats[name] = (mats[name] || 0) + kg;
+          });
+        }
 
-      if(!items.length){
-        wrap.innerHTML = `<div class="py-4 text-sm text-graphite/60">Nenhuma coleta encontrada no Firestore.</div>`;
-        return;
+        const extrasSum = Object.entries(mats)
+          .filter(([k,_]) => !["PLÁSTICO","PAPEL MISTO","PAPELÃO","METAL","VIDRO","SACARIA","ISOPOR"].includes(k))
+          .reduce((a,[,v])=> a+(Number(v)||0), 0);
+
+        recKg = plast + papelM + papelao + metal + vidro + sacaria + isopor + oilKg + extrasSum;
+
+        naoRecKg = num(d.pesoRejeitoGeralKg);
+        rejeitoKg = naoRecKg;
+        naoComKg = 0;
       }
 
-      // ordem por data desc
-      items.sort((a,b)=> String(b.opDate||"").localeCompare(String(a.opDate||"")));
+      let topMat = "—";
+      let topVal = 0;
+      Object.entries(mats).forEach(([k,v])=>{
+        if(v > topVal){
+          topVal = v;
+          topMat = k;
+        }
+      });
+      if(d.flowType === "recebimento") topMat = "Misto (recebimento)";
 
-      items.slice(0, 200).forEach(d=>{
-        const r = normalizeRowForTable(d);
-        const row = document.createElement("div");
-        row.className = "grid grid-cols-12 gap-3 py-2 text-xs";
-        row.innerHTML = `
-          <div class="col-span-1 font-semibold">${r.codigo}</div>
-          <div class="col-span-2">${r.tipo}</div>
-          <div class="col-span-2">${r.data}</div>
-          <div class="col-span-2 font-semibold">${r.qualidade}</div>
-          <div class="col-span-3 text-graphite/70">${r.obs}</div>
-          <div class="col-span-1 text-right">${fmtPt(r.naoRecKg,1)}</div>
-          <div class="col-span-1 text-right">${fmtPt(r.naoComKg,1)}</div>
-        `;
-        wrap.appendChild(row);
+      let qualTxt = "—";
+      if(d.flowType === "recebimento"){
+        const q = Number(d.qualidadeNota || 0);
+        qualTxt = (q===3) ? "BOM" : (q===2) ? "MÉDIO" : (q===1) ? "RUIM" : "—";
+      }
+
+      return {
+        id: d.__id,
+        raw: d,
+        opDate, month, cycle,
+        deliveryType: d.deliveryType || "",
+        flowType: d.flowType || "",
+        code,
+        recKg, rejeitoKg, naoRecKg, naoComKg, oilKg,
+        mats,
+        topMat,
+        qualTxt,
+        obs: (d.observacao || "—").toString()
+      };
+    }
+
+    function applyFilters(){
+      const codeSearch = (filters.codigo || "").trim().toLowerCase();
+
+      filteredDocs = allDocs.filter(x=>{
+        if(filters.data && x.opDate !== filters.data) return false;
+        if(filters.mes && x.month !== filters.mes) return false;
+        if(filters.ciclo && x.cycle !== filters.ciclo) return false;
+        if(filters.tipo && x.deliveryType !== filters.tipo) return false;
+
+        if(codeSearch){
+          const a = (x.raw.linkedId || "").toString().toLowerCase();
+          const b = (x.raw.codigoFamilia || "").toString().toLowerCase();
+          const c = (x.raw.codigoCondominio || "").toString().toLowerCase();
+          const d = (x.code || "").toString().toLowerCase();
+          if(!(a.includes(codeSearch) || b.includes(codeSearch) || c.includes(codeSearch) || d.includes(codeSearch))) return false;
+        }
+        return true;
       });
     }
 
-    function renderBubbles(materialTotals, recTotalKg){
-      const grid = document.getElementById("bubblesGrid");
+    function computeDash(){
+      const ops = filteredDocs.length;
+
+      let recTotal = 0, rejTotal = 0, naoRecTotal = 0, naoComTotal = 0, oilTotal = 0;
+      let q1=0,q2=0,q3=0;
+      const matSum = {};
+      const daysSet = new Set();
+
+      const famIds = new Set();
+      const condIds = new Set();
+      let famColetas = 0;
+      let condColetas = 0;
+
+      filteredDocs.forEach(x=>{
+        recTotal += x.recKg;
+        rejTotal += x.rejeitoKg;
+        naoRecTotal += x.naoRecKg;
+        naoComTotal += x.naoComKg;
+        oilTotal += x.oilKg;
+
+        if(x.opDate) daysSet.add(x.opDate);
+
+        if(x.raw.flowType === "recebimento"){
+          const q = Number(x.raw.qualidadeNota||0);
+          if(q===1) q1++;
+          if(q===2) q2++;
+          if(q===3) q3++;
+        }
+
+        Object.entries(x.mats).forEach(([k,v])=>{
+          matSum[k] = (matSum[k]||0) + (Number(v)||0);
+        });
+
+        const code = (x.code||"").trim();
+        if(x.raw.flowType === "recebimento"){
+          famColetas++;
+          if(code) famIds.add(code);
+        } else {
+          condColetas++;
+          if(code) condIds.add(code);
+        }
+      });
+
+      const totalKg = recTotal + rejTotal;
+      const recPct = totalKg ? (recTotal/totalKg)*100 : 0;
+      const rejPct = totalKg ? (rejTotal/totalKg)*100 : 0;
+
+      const naoRecPct = rejTotal ? (naoRecTotal / rejTotal) * 100 : 0;
+      const naoComPct = rejTotal ? (naoComTotal / rejTotal) * 100 : 0;
+
+      const matsArr = Object.entries(matSum)
+        .map(([key,kg])=>({ key, kg }))
+        .filter(x=>x.kg > 0.00001)
+        .sort((a,b)=> b.kg - a.kg);
+
+      const byDay = {};
+      filteredDocs.forEach(x=>{
+        if(!x.opDate) return;
+        byDay[x.opDate] = byDay[x.opDate] || { rec:0, rej:0 };
+        byDay[x.opDate].rec += x.recKg;
+        byDay[x.opDate].rej += x.rejeitoKg;
+      });
+      const dayLabels = Object.keys(byDay).sort();
+      const lastN = dayLabels.slice(-36);
+      const series = {
+        labels: lastN.map((_,i)=> String(i+1)),
+        reciclavel: lastN.map(d=> Number(byDay[d].rec.toFixed(2))),
+        rejeito: lastN.map(d=> Number(byDay[d].rej.toFixed(2)))
+      };
+
+      const qualidade = { limpo: q3, medio: q2, ruim: q1 };
+
+      return {
+        ops,
+        daysInFilter: daysSet.size,
+        recTotal, rejTotal, totalKg,
+        recPct, rejPct,
+        naoRecTotal, naoComTotal, naoRecPct, naoComPct,
+        oilTotal,
+        matsArr,
+        qualidade,
+        series,
+        famIdsCount: famIds.size,
+        condIdsCount: condIds.size,
+        famColetas,
+        condColetas
+      };
+    }
+
+    function renderBubbles(matsArr, recTotal){
+      const grid = $("bubblesGrid");
       grid.innerHTML = "";
 
-      // monta as bolhas do layout (usa os materiais do final_turno; recebimento entra em "PAPEL MISTO" por fallback? aqui não entra)
-      const list = MATERIALS.map(m=>{
-        const kg = toNum(materialTotals[m.field]);
-        const pct = recTotalKg ? (kg/recTotalKg)*100 : 0;
-        return { key:m.key, kg, pct, receita: 0, icon:m.icon };
-      }).filter(x=> x.kg > 0 || x.key); // sempre mostra, mesmo 0 (pra manter grade)
+      if(!matsArr.length){
+        grid.innerHTML = `<div class="col-span-2 md:col-span-3 text-center text-sm text-graphite/60 py-10">
+          Nenhum dado no filtro.
+        </div>`;
+        return;
+      }
 
-      list.slice(0,7).forEach(m=>{
+      const iconFor = (k)=>{
+        const key = k.toUpperCase();
+        if(key.includes("PLÁST")) return "🧴";
+        if(key.includes("VID")) return "🍾";
+        if(key.includes("METAL") || key.includes("ALUM")) return "🥫";
+        if(key.includes("SACAR") || key.includes("SACOL")) return "🛍️";
+        if(key.includes("PAPELÃO") || key.includes("PAPELAO")) return "📦";
+        if(key.includes("PAPEL")) return "📄";
+        if(key.includes("ISOPOR")) return "🍱";
+        if(key.includes("OLEO") || key.includes("ÓLEO")) return "🛢️";
+        if(key.includes("RECEBIMENTO")) return "♻️";
+        return "♻️";
+      };
+
+      matsArr.slice(0, 12).forEach(m=>{
+        const pct = recTotal ? (m.kg/recTotal)*100 : 0;
         const el = document.createElement("div");
         el.className = "bubble rounded-full p-4 md:p-5 flex flex-col items-center justify-center text-center min-h-[150px]";
         el.innerHTML = `
-          <div class="text-3xl">${m.icon}</div>
-          <div class="mt-1 text-2xl font-extrabold">${m.pct.toFixed(1).replace(".", ",")}%</div>
+          <div class="text-3xl">${iconFor(m.key)}</div>
+          <div class="mt-1 text-2xl font-extrabold">${pct.toFixed(1).replace(".", ",")}%</div>
           <div class="text-sm text-graphite/70">${fmtPt(m.kg,1)} kg</div>
-          <div class="text-[11px] text-graphite/60 mt-1">Receita = <span class="font-bold">R$ ${fmtPt(m.receita,1)}</span></div>
           <div class="mt-2 text-xs font-extrabold">${m.key}</div>
         `;
         grid.appendChild(el);
       });
     }
 
-    function renderAll(items){
-      setText("kpiOps", items.length);
-      setText("sumOps", items.length);
+    function renderTable(docs){
+      const wrap = $("rows");
+      wrap.innerHTML = "";
 
-      // dias
-      const uniqueDays = new Set(items.map(d=>d.opDate).filter(Boolean));
-      setText("kpiDias", uniqueDays.size);
-      setText("sumDiasFiltro", uniqueDays.size);
+      const list = docs
+        .slice()
+        .sort((a,b)=> (b.opDate||"").localeCompare(a.opDate||""))
+        .slice(0, 80);
 
-      // início
-      const datesSorted = Array.from(uniqueDays).sort((a,b)=> a.localeCompare(b));
-      setText("kpiInicio", datesSorted.length ? new Date(datesSorted[0]+"T00:00:00").toLocaleDateString("pt-BR") : "—");
+      if(!list.length){
+        wrap.innerHTML = `<div class="py-6 text-center text-sm text-graphite/60">Nenhuma coleta encontrada no filtro.</div>`;
+        return;
+      }
 
-      // famílias vs condomínio (simples)
-      let famColetas = 0, condColetas = 0;
-      const famCodes = new Set();
-      const condCodes = new Set();
+      list.forEach(x=>{
+        const row = document.createElement("div");
+        row.className = "grid grid-cols-12 gap-3 py-2 text-xs";
 
-      // qualidade
-      let q1=0, q2=0, q3=0;
+        const codigo = x.code || "";
+        const tipo = x.topMat || "—";
+        const data = x.opDate ? isoToBr(x.opDate) : "—";
+        const qual = x.qualTxt || "—";
+        const obs = x.obs && x.obs !== "null" ? x.obs : "—";
 
-      // total
-      let totalRec = 0;
-      let totalRej = 0;
-      let totalNaoCom = 0;
-
-      // materiais (final_turno)
-      const materialTotals = {
-        plasticoKg:0, vidroKg:0, aluminioMetalKg:0, sacariaKg:0,
-        papelMistoKg:0, papelaoKg:0, isoporKg:0, oleoKg:0
-      };
-
-      // séries por dia
-      const perDay = new Map(); // date -> {rec, rej}
-      items.forEach(d=>{
-        const date = d.opDate || "sem-data";
-        if(!perDay.has(date)) perDay.set(date, {rec:0, rej:0});
-
-        // contagem fam/cond
-        const isCond = (d.deliveryType === "Coleta condomínio") || !!d.codigoCondominio;
-        if(isCond){
-          condColetas++;
-          if(d.linkedId) condCodes.add(d.linkedId);
-          if(d.codigoCondominio) condCodes.add(d.codigoCondominio);
-        }else{
-          famColetas++;
-          if(d.linkedId) famCodes.add(d.linkedId);
-          if(d.codigoFamilia) famCodes.add(d.codigoFamilia);
-        }
-
-        if(d.flowType === "recebimento"){
-          const rec = toNum(d.pesoResiduoSecoKg);
-          const rej = toNum(d.pesoRejeitoKg);
-          const naoCom = toNum(d.pesoNaoComercializadoKg);
-
-          totalRec += rec;
-          totalRej += rej;
-          totalNaoCom += naoCom;
-
-          perDay.get(date).rec += rec;
-          perDay.get(date).rej += rej;
-
-          if(d.qualidadeNota === 1) q1++;
-          if(d.qualidadeNota === 2) q2++;
-          if(d.qualidadeNota === 3) q3++;
-
-        } else {
-          const rec = calcFinalRecKg(d);
-          const rej = toNum(d.pesoRejeitoGeralKg);
-
-          totalRec += rec;
-          totalRej += rej;
-
-          perDay.get(date).rec += rec;
-          perDay.get(date).rej += rej;
-
-          // soma materiais por categoria
-          Object.keys(materialTotals).forEach(k => materialTotals[k] += toNum(d[k]));
-        }
+        row.innerHTML = `
+          <div class="col-span-1 font-semibold">${codigo}</div>
+          <div class="col-span-2">${tipo}</div>
+          <div class="col-span-2">${data}</div>
+          <div class="col-span-2 font-semibold">${qual}</div>
+          <div class="col-span-3 text-graphite/70">${obs}</div>
+          <div class="col-span-1 text-right">${fmtPt(x.naoRecKg,1)}</div>
+          <div class="col-span-1 text-right">${fmtPt(x.naoComKg,1)}</div>
+        `;
+        wrap.appendChild(row);
       });
-
-      // famílias/cond cards
-      setText("famCadastradas", famCodes.size);
-      setText("famParticipantes", famCodes.size); // estimativa
-      setText("famColetas", famColetas);
-
-      setText("condCadastrados", condCodes.size);
-      setText("condParticipantes", condCodes.size); // estimativa
-      setText("condColetas", condColetas);
-
-      // resumo geral
-      const totalKg = totalRec + totalRej;
-      const recPct = totalKg ? (totalRec/totalKg)*100 : 0;
-      const rejPct = totalKg ? (totalRej/totalKg)*100 : 0;
-
-      setText("sumRecKg", fmtPt(totalRec,1));
-      setText("sumRejKg", fmtPt(totalRej,1));
-      setText("sumTotalKg", fmtPt(totalKg,1));
-      setText("sumRecPct", recPct.toFixed(1).replace(".", ",")+"%");
-      setText("sumRejPct", rejPct.toFixed(1).replace(".", ",")+"%");
-
-      // receita (ainda não coletamos preço, então fica 0)
-      setText("sumReceita", fmtPt(0,1));
-
-      // rejeito breakdown (usando: não reciclável = rejeito, não comercializado = totalNaoCom)
-      const rejeitoTotal = totalRej + totalNaoCom;
-      const pctNaoRec = rejeitoTotal ? (totalRej/rejeitoTotal)*100 : 0;
-      const pctNaoCom = rejeitoTotal ? (totalNaoCom/rejeitoTotal)*100 : 0;
-
-      setText("rejNaoRecKg", fmtPt(totalRej,1));
-      setText("rejNaoComKg", fmtPt(totalNaoCom,1));
-      setText("rejNaoRecPct", pctNaoRec.toFixed(1).replace(".", ",")+"%");
-      setText("rejNaoComPct", pctNaoCom.toFixed(1).replace(".", ",")+"%");
-
-      // óleo (do final_turno)
-      setText("outroKg", fmtPt(materialTotals.oleoKg,1));
-
-      // bolhas
-      renderBubbles(materialTotals, totalRec);
-
-      // charts
-      drawQualidade(q3, q2, q1);
-
-      // bar series
-      const labels = Array.from(perDay.keys()).filter(x=>x!=="sem-data").sort((a,b)=> a.localeCompare(b));
-      const recArr = labels.map(d=> perDay.get(d).rec);
-      const rejArr = labels.map(d=> perDay.get(d).rej);
-      drawBar(labels.map(d=> d.slice(8,10)), rejArr, recArr); // mostra dia do mês no eixo
-
-      // planilha
-      renderTable(items);
     }
 
-    setDbStatus("conectando…", true);
+    function renderBadges(){
+      const b = $("badges");
+      b.innerHTML = "";
 
-    onSnapshot(collection(db, "coletasSeletivas"), (snap)=>{
-      const items = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      console.log("🔥 coletasSeletivas:", items);
+      const add = (label, val)=>{
+        const el = document.createElement("span");
+        el.className = "badge";
+        el.innerHTML = `<b>${label}:</b> ${val}`;
+        b.appendChild(el);
+      };
 
-      setDbStatus(`conectado ✅ (${items.length})`, true);
-      renderAll(items);
-    }, (err)=>{
-      console.error(err);
-      setDbStatus("erro (rules)", false);
-      alert("Erro ao ler Firestore. Publique as regras e verifique permissões.");
+      if(filters.data) add("Data", isoToBr(filters.data));
+      if(filters.mes) add("Mês", filters.mes);
+      if(filters.ciclo) add("Ciclo", filters.ciclo);
+      if(filters.tipo) add("Tipo", filters.tipo);
+      if(filters.codigo) add("Código", filters.codigo);
+
+      if(!filters.data && !filters.mes && !filters.ciclo && !filters.tipo && !filters.codigo){
+        const el = document.createElement("span");
+        el.className = "badge";
+        el.textContent = "Sem filtros (mostrando tudo)";
+        b.appendChild(el);
+      }
+    }
+
+    function renderAll(){
+      applyFilters();
+      renderBadges();
+
+      const dash = computeDash();
+
+      const START = "2025-09-02"; // ajuste se quiser
+      const startDt = new Date(START + "T00:00:00");
+      const now = new Date();
+      const diasProjeto = Math.max(0, Math.round((now - startDt) / 86400000));
+
+      setText("kpiDias", diasProjeto);
+      setText("kpiInicio", isoToBr(START));
+      setText("kpiOps", dash.ops);
+
+      setText("famParticipantes", dash.famIdsCount);
+      setText("condParticipantes", dash.condIdsCount);
+      setText("famColetas", dash.famColetas);
+      setText("condColetas", dash.condColetas);
+
+      setText("sumRecKg", fmtPt(dash.recTotal, 1));
+      setText("sumRejKg", fmtPt(dash.rejTotal, 1));
+      setText("sumTotalKg", fmtPt(dash.totalKg, 1));
+      setText("sumOps", dash.ops);
+      setText("sumDiasFiltro", dash.daysInFilter);
+
+      setText("sumRecPct", dash.recPct.toFixed(1).replace(".", ",") + "%");
+      setText("sumRejPct", dash.rejPct.toFixed(1).replace(".", ",") + "%");
+
+      setText("sumReceita", fmtPt(0, 1)); // placeholder
+
+      setText("rejNaoRecPct", dash.naoRecPct.toFixed(1).replace(".", ",") + "%");
+      setText("rejNaoRecKg", fmtPt(dash.naoRecTotal, 1));
+      setText("rejNaoComPct", dash.naoComPct.toFixed(1).replace(".", ",") + "%");
+      setText("rejNaoComKg", fmtPt(dash.naoComTotal, 1));
+      setText("outroKg", fmtPt(dash.oilTotal, 1));
+
+      renderBubbles(dash.matsArr, dash.recTotal);
+      renderTable(filteredDocs);
+
+      drawQualidade(dash.qualidade);
+      drawBar(dash.series);
+    }
+
+    async function loadColetas(){
+      const qy = query(
+        collection(db, "coletasSeletivas"),
+        orderBy("opDate", "desc"),
+        limit(2000)
+      );
+      const snap = await onSnapshot(qy);
+      const raw = snap.docs.map(doc => ({ __id: doc.id, ...doc.data() }));
+      allDocs = raw.map(normalizeDoc);
+
+      const cycles = Array.from(new Set(allDocs.map(d=>d.cycle).filter(Boolean))).sort().reverse();
+      $("fCiclo").innerHTML = `<option value="">Selecione…</option>` + cycles.map(c=>`<option>${c}</option>`).join("");
+
+      renderAll();
+    }
+
+    function togglePop(id){
+      const pop = $(id);
+      const isHidden = pop.classList.contains("hidden");
+      closeAllPops();
+      pop.classList.toggle("hidden", !isHidden);
+    }
+    function closeAllPops(){
+      ["popData","popMes","popCiclo","popTipo","popCodigo"].forEach(id=>$(id).classList.add("hidden"));
+    }
+
+    $("btnData").addEventListener("click", ()=> togglePop("popData"));
+    $("btnMes").addEventListener("click", ()=> togglePop("popMes"));
+    $("btnCiclo").addEventListener("click", ()=> togglePop("popCiclo"));
+    $("btnTipo").addEventListener("click", ()=> togglePop("popTipo"));
+    $("btnCodigo").addEventListener("click", ()=> togglePop("popCodigo"));
+
+    document.addEventListener("click", (e)=>{
+      const ids = ["btnData","btnMes","btnCiclo","btnTipo","btnCodigo","popData","popMes","popCiclo","popTipo","popCodigo"];
+      const inside = ids.some(id=>{
+        const el = $(id);
+        return el && (el === e.target || el.contains(e.target));
+      });
+      if(!inside) closeAllPops();
     });
+
+    $("applyData").addEventListener("click", ()=>{ filters.data = $("fData").value || ""; closeAllPops(); renderAll(); });
+    $("clearData").addEventListener("click", ()=>{ filters.data=""; $("fData").value=""; closeAllPops(); renderAll(); });
+
+    $("applyMes").addEventListener("click", ()=>{ filters.mes = $("fMes").value || ""; closeAllPops(); renderAll(); });
+    $("clearMes").addEventListener("click", ()=>{ filters.mes=""; $("fMes").value=""; closeAllPops(); renderAll(); });
+
+    $("applyCiclo").addEventListener("click", ()=>{ filters.ciclo = $("fCiclo").value || ""; closeAllPops(); renderAll(); });
+    $("clearCiclo").addEventListener("click", ()=>{ filters.ciclo=""; $("fCiclo").value=""; closeAllPops(); renderAll(); });
+
+    $("applyTipo").addEventListener("click", ()=>{ filters.tipo = $("fTipo").value || ""; closeAllPops(); renderAll(); });
+    $("clearTipo").addEventListener("click", ()=>{ filters.tipo=""; $("fTipo").value=""; closeAllPops(); renderAll(); });
+
+    $("applyCodigo").addEventListener("click", ()=>{ filters.codigo = ($("fCodigo").value||"").trim(); closeAllPops(); renderAll(); });
+    $("clearCodigo").addEventListener("click", ()=>{ filters.codigo=""; $("fCodigo").value=""; closeAllPops(); renderAll(); });
+
+    initMap();
+    await loadColetas();
   </script>
 </body>
 </html>
