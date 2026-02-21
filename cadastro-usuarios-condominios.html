@@ -63,6 +63,10 @@
       box-shadow: 0 0 0 4px rgba(27,127,90,.10);
     }
     .reqDot::after{ content:" *"; color:#dc2626; font-weight:800; }
+    .codebox{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      letter-spacing: .02em;
+    }
   </style>
 </head>
 
@@ -186,7 +190,7 @@
 
           <!-- STEP 5: Dificuldades -->
           <div class="step" data-step="5">
-            <h2 class="text-lg font-extrabold text-deepBlue reqDot">4) Se você encontra dificuldades para separar/armazenar seus resíduos recicláveis (secos), nos conte quais são as limitações</h2>
+            <h2 class="text-lg font-extrabold text-deepBlue reqDot">4) Quais são as limitações para separar/armazenar resíduos recicláveis (secos)?</h2>
             <p class="mt-1 text-sm text-graphite/70">Conte com suas palavras (ex.: espaço, tempo, dúvidas, falta de sacaria).</p>
             <textarea id="dificuldades" rows="5" class="mt-4 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
               placeholder="Escreva aqui…"></textarea>
@@ -239,11 +243,26 @@
               <div class="text-sm font-extrabold text-deepBlue">Mensagem final</div>
               <p class="mt-2 text-sm text-graphite/80">
                 Agradecemos por se cadastrar no projeto!<br/>
-                Nosso time irá analisar as informações enviadas e entrar em contato para verificar se
+                Nosso time irá analisar as informações enviadas e entrará em contato para verificar se
                 o endereço informado está dentro da área de abrangência da coleta.<br/>
                 Em breve, você receberá mais informações sobre os próximos passos.<br/>
                 Obrigada pelo interesse e por contribuir com essa iniciativa! 💚♻️
               </p>
+            </div>
+
+            <!-- MOSTRA O ID GERADO -->
+            <div id="idBox" class="hidden mt-4 rounded-2xl border border-regen/20 bg-regen/10 p-4">
+              <div class="text-sm font-extrabold text-deepBlue">Seu ID no projeto</div>
+              <div class="mt-2 flex flex-col sm:flex-row sm:items-center gap-3">
+                <div class="codebox text-lg font-extrabold text-regen" id="participantIdText">RB-XXXXXXXX</div>
+                <button id="btnCopyId" type="button"
+                  class="px-4 py-2 rounded-xl bg-white border border-black/10 font-semibold hover:bg-black/5">
+                  Copiar ID
+                </button>
+              </div>
+              <div class="mt-2 text-xs text-graphite/70">
+                Guarde este ID. Ele pode ser usado no cadastro de coletas para puxar seus dados.
+              </div>
             </div>
 
             <div class="mt-4 text-xs text-graphite/60">
@@ -282,20 +301,13 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
-      getFirestore,
-      collection,
-      addDoc,
-      serverTimestamp,
-      query,
-      where,
-      getDocs,
-      limit
+      getFirestore, collection, addDoc, doc, setDoc, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
     // ===========================
     // Firebase Config (SEU)
     // ===========================
-  const firebaseConfig = {
+       const firebaseConfig = {
   apiKey: "AIzaSyAe5E7M8Jednj1xGRjNrV0oD4wQwv6b-WM",
   authDomain: "reciclabonja-3dee7.firebaseapp.com",
   projectId: "reciclabonja-3dee7",
@@ -353,25 +365,6 @@
 
     function cleanPhone(v){ return (v || "").replace(/[^\d]/g, ""); }
 
-    function todayKey(){
-      // YYYY-MM-DD
-      const d = new Date();
-      const y = d.getFullYear();
-      const m = String(d.getMonth()+1).padStart(2,"0");
-      const da = String(d.getDate()).padStart(2,"0");
-      return `${y}-${m}-${da}`;
-    }
-
-    function makePublicId(){
-      // PART-YYYYMMDD-XXXXX (não sequencial, mas amigável)
-      const d = new Date();
-      const y = d.getFullYear();
-      const m = String(d.getMonth()+1).padStart(2,"0");
-      const da = String(d.getDate()).padStart(2,"0");
-      const rand = Math.random().toString(36).slice(2,7).toUpperCase();
-      return `PART-${y}${m}${da}-${rand}`;
-    }
-
     function setProgress() {
       $("progressText").textContent = `${step}/${TOTAL_STEPS}`;
       const pct = Math.round((step / TOTAL_STEPS) * 100);
@@ -398,6 +391,13 @@
       setProgress();
       hideAlert();
       $("preview").classList.add("hidden");
+
+      // esconde a caixa do ID enquanto não enviou
+      if(n !== 9){
+        $("idBox").classList.add("hidden");
+        $("participantIdText").textContent = "";
+      }
+
       setTimeout(() => {
         const active = document.querySelector(".step.active input, .step.active textarea");
         if(active) active.focus();
@@ -500,17 +500,28 @@
       return null;
     }
 
-    function buildPayloadFinal() {
-      const phone = state.whatsappDDD;
-      const day = todayKey();
+    // ======== ID gerado (RB-YYYYMMDD-XXXXXX) ========
+    function pad2(n){ return String(n).padStart(2,"0"); }
+    function randomDigits(len){
+      let s = "";
+      for(let i=0;i<len;i++) s += Math.floor(Math.random()*10);
+      return s;
+    }
+    function generateParticipantId(){
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = pad2(d.getMonth()+1);
+      const day = pad2(d.getDate());
+      const rnd = randomDigits(6);
+      return `RB-${y}${m}${day}-${rnd}`;
+    }
+
+    function buildPayloadFinal(participantId) {
       return {
         type: "participant_registration",
-        publicId: makePublicId(),        // ID amigável (não sequencial)
-        dayKey: day,                     // chave do dia (para evitar duplicidade simples)
+        participantId,                 // <<<<< ID do usuário no projeto
         createdAtISO: new Date().toISOString(),
         createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        sourcePage: "cadastro-participantes-step",
 
         consent: {
           dados: state.consent.c1,
@@ -522,11 +533,9 @@
         jaDestinaReciclavel: state.jaDestinaReciclavel,
         temInteresseProjeto: state.temInteresseProjeto,
         dificuldades: state.dificuldades,
-        whatsappDDD: phone,
-
+        whatsappDDD: state.whatsappDDD,
         localColeta: state.localColeta,
         localColetaOutro: state.localColeta === "Outro" ? state.localColetaOutro : null,
-
         enderecoCompleto: state.enderecoCompleto,
         pontoReferencia: state.pontoReferencia,
 
@@ -534,29 +543,32 @@
       };
     }
 
-    async function existsSamePhoneToday(phoneDigits, dayKey){
-      // (opcional) evita duplicidade: mesmo telefone no mesmo dia
-      const q = query(
-        collection(db, "participants"),
-        where("whatsappDDD", "==", phoneDigits),
-        where("dayKey", "==", dayKey),
-        limit(1)
-      );
-      const snap = await getDocs(q);
-      return !snap.empty;
-    }
-
     async function saveToFirestore() {
-      const payload = buildPayloadFinal();
+      // gera o ID (público) para uso nas coletas
+      const participantId = generateParticipantId();
 
-      // bloqueio simples de duplicidade (opcional)
-      const dup = await existsSamePhoneToday(payload.whatsappDDD, payload.dayKey);
-      if(dup){
-        return { duplicated: true, id: null, payload };
-      }
+      const payload = buildPayloadFinal(participantId);
 
+      // 1) Salva no participants (auto-id do Firestore)
       const ref = await addDoc(collection(db, "participants"), payload);
-      return { duplicated: false, id: ref.id, payload };
+
+      // 2) (Recomendado) cria/atualiza um user doc com docId = participantId
+      // Isso facilita puxar dados pelo ID na página de coletas.
+      await setDoc(doc(db, "users", participantId), {
+        type: "participant",
+        participantId,
+        nomeCompleto: payload.nomeCompleto,
+        whatsappDDD: payload.whatsappDDD,
+        enderecoCompleto: payload.enderecoCompleto,
+        pontoReferencia: payload.pontoReferencia,
+        localColeta: payload.localColeta,
+        localColetaOutro: payload.localColetaOutro,
+        createdAtISO: payload.createdAtISO,
+        createdAt: serverTimestamp(),
+        status: "active"
+      });
+
+      return { firestoreDocId: ref.id, participantId, payload };
     }
 
     // ===========================
@@ -596,52 +608,24 @@
 
         try{
           setDbStatus("salvando no Firestore…", true);
-
-          const result = await saveToFirestore();
-
-          if(result.duplicated){
-            setDbStatus("não salvo (duplicado)", false);
-            showAlert("err", "Esse telefone já foi cadastrado hoje. Se foi engano, tente novamente amanhã ou use outro número.");
-            isSubmitting = false;
-            setProgress();
-            return;
-          }
-
+          const res = await saveToFirestore();
           setDbStatus("salvo ✅", true);
-          showAlert("ok", `Cadastro enviado com sucesso! ID: ${result.payload.publicId} • docId: ${result.id}`);
 
+          // mostra id
+          $("participantIdText").textContent = res.participantId;
+          $("idBox").classList.remove("hidden");
+
+          showAlert("ok", `Cadastro enviado com sucesso! Seu ID: ${res.participantId}`);
           $("preview").classList.remove("hidden");
-          $("preview").textContent = JSON.stringify(
-            { firestoreDocId: result.id, ...result.payload, createdAt: "(serverTimestamp)", updatedAt: "(serverTimestamp)" },
-            null,
-            2
-          );
+          $("preview").textContent = JSON.stringify({
+            firestoreDocId: res.firestoreDocId,
+            participantId: res.participantId,
+            ...res.payload,
+            createdAt: "(serverTimestamp)"
+          }, null, 2);
 
-          // reset do fluxo (opcional)
-          setTimeout(()=> {
-            // limpar inputs/chips
-            document.querySelectorAll("input, textarea").forEach(el => {
-              if(el.type === "checkbox") el.checked = false;
-              else el.value = "";
-            });
-            document.querySelectorAll(".chip").forEach(el => el.classList.remove("selected"));
-            document.getElementById("localOutroWrap").classList.add("hidden");
-
-            // reset state
-            state.consent = { c1:false, c2:false, c3:false };
-            state.nomeCompleto = "";
-            state.jaDestinaReciclavel = "";
-            state.temInteresseProjeto = "";
-            state.dificuldades = "";
-            state.whatsappDDD = "";
-            state.localColeta = "";
-            state.localColetaOutro = "";
-            state.enderecoCompleto = "";
-            state.pontoReferencia = "";
-
-            showStep(1);
-            $("preview").classList.add("hidden");
-          }, 1200);
+          // NÃO resetar automaticamente para a pessoa conseguir copiar o ID
+          // Se quiser reset depois, a gente coloca um botão "Novo cadastro".
 
         }catch(e){
           console.error(e);
@@ -659,10 +643,25 @@
 
     $("btnPreview").addEventListener("click", ()=>{
       readStepIntoState();
-      const payload = buildPayloadFinal();
+      // gera um ID de exemplo só pra preview (não salva)
+      const previewId = generateParticipantId();
+      const payload = buildPayloadFinal(previewId);
+
       $("preview").classList.remove("hidden");
-      $("preview").textContent = JSON.stringify({ ...payload, createdAt: "(serverTimestamp)", updatedAt: "(serverTimestamp)" }, null, 2);
+      $("preview").textContent = JSON.stringify({ ...payload, createdAt: "(serverTimestamp)" }, null, 2);
       showAlert("info", "Prévia gerada (ainda não foi salva).");
+    });
+
+    // copiar ID
+    $("btnCopyId").addEventListener("click", async ()=>{
+      const id = $("participantIdText").textContent.trim();
+      if(!id) return;
+      try{
+        await navigator.clipboard.writeText(id);
+        showAlert("ok", "ID copiado ✅");
+      }catch{
+        showAlert("info", "Não consegui copiar automaticamente. Selecione e copie manualmente.");
+      }
     });
 
     // Enter = Next (exceto textarea)
