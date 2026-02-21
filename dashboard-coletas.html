@@ -462,22 +462,18 @@
   <!-- ===========================
        FIREBASE + DASHBOARD LOGIC
        =========================== -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      query,
-      where,
-      orderBy,
-      limit,
-      getDocs
-    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-    // ===========================
-    // CONFIG
-    // ===========================
-     const firebaseConfig = {
+/* ===========================
+   FIREBASE
+=========================== */
+      const firebaseConfig = {
   apiKey: "AIzaSyAe5E7M8Jednj1xGRjNrV0oD4wQwv6b-WM",
   authDomain: "reciclabonja-3dee7.firebaseapp.com",
   projectId: "reciclabonja-3dee7",
@@ -486,646 +482,128 @@
   appId: "1:590941010829:web:9b8e4703df54cc8b0a9bc4"
 };
 
-    const PROJECT_START = "2026-01-01"; // ajuste quando quiser (YYYY-MM-DD)
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-    // Mapeamento de materiais (do seu formulário "final do turno")
-    const MATERIAL_FIELDS = [
-      { key:"PLÁSTICO", field:"plasticoKg", icon:"🧴", receitaField:"plasticoReceita" },
-      { key:"VIDRO", field:"vidroKg", icon:"🍾", receitaField:"vidroReceita" },
-      { key:"ALUMÍNIO/METAL", field:"aluminioMetalKg", icon:"🥫", receitaField:"metalReceita" },
-      { key:"SACARIA/SACOLINHA", field:"sacariaKg", icon:"🛍️", receitaField:"sacariaReceita" },
-      { key:"PAPEL MISTO", field:"papelMistoKg", icon:"📄", receitaField:"papelMistoReceita" },
-      { key:"PAPELÃO", field:"papelaoKg", icon:"📦", receitaField:"papelaoReceita" },
-      { key:"ISOPOR", field:"isoporKg", icon:"🍱", receitaField:"isoporReceita" },
-      { key:"ÓLEO", field:"oleoKg", icon:"🧴", receitaField:"oleoReceita" },
-    ];
+/* ===========================
+   HELPERS
+=========================== */
 
-    // ===========================
-    // INIT FIREBASE
-    // ===========================
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+const fmt = (n) => Number(n || 0).toLocaleString("pt-BR", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1
+});
 
-    const $ = (id) => document.getElementById(id);
-    const fmtPt = (n, dec=1) => (Number(n)||0).toLocaleString("pt-BR", {minimumFractionDigits: dec, maximumFractionDigits: dec});
+function setText(id, value){
+  const el = document.getElementById(id);
+  if(el) el.textContent = value;
+}
 
-    function setDbStatus(txt, ok=true){
-      const el = $("dbStatus");
-      el.textContent = txt;
-      el.className = ok ? "text-regen font-semibold" : "text-red-600 font-semibold";
+function toNumber(x){
+  const n = Number(x);
+  return Number.isFinite(n) ? n : 0;
+}
+
+/* ===========================
+   RENDER TABELA (PLANILHA)
+=========================== */
+
+function renderTabela(items){
+
+  const container = document.getElementById("rows");
+  container.innerHTML = "";
+
+  items.forEach(item => {
+
+    const row = document.createElement("div");
+    row.className = "grid grid-cols-12 gap-3 py-2 text-xs border-b border-black/5";
+
+    const codigo = item.linkedId || item.codigoFamilia || item.codigoCondominio || "-";
+    const tipo = item.flowType === "recebimento" ? "Recebimento" : "Final turno";
+    const data = item.opDate || "-";
+
+    const rejeito = item.flowType === "recebimento"
+      ? fmt(item.pesoRejeitoKg)
+      : fmt(item.pesoRejeitoGeralKg);
+
+    const naoCom = item.pesoNaoComercializadoKg
+      ? fmt(item.pesoNaoComercializadoKg)
+      : "-";
+
+    row.innerHTML = `
+      <div class="col-span-2 font-semibold">${codigo}</div>
+      <div class="col-span-2">${tipo}</div>
+      <div class="col-span-2">${data}</div>
+      <div class="col-span-2">${rejeito}</div>
+      <div class="col-span-2">${naoCom}</div>
+      <div class="col-span-2">${item.deliveryType || "-"}</div>
+    `;
+
+    container.appendChild(row);
+  });
+}
+
+/* ===========================
+   RENDER KPI
+=========================== */
+
+function renderKPIs(items){
+
+  let totalRec = 0;
+  let totalRej = 0;
+
+  items.forEach(d => {
+
+    if(d.flowType === "recebimento"){
+      totalRec += toNumber(d.pesoResiduoSecoKg);
+      totalRej += toNumber(d.pesoRejeitoKg);
     }
 
-    function toDateKey(d){
-      // Date -> YYYY-MM-DD local
-      const y = d.getFullYear();
-      const m = String(d.getMonth()+1).padStart(2,"0");
-      const da = String(d.getDate()).padStart(2,"0");
-      return `${y}-${m}-${da}`;
+    if(d.flowType === "final_turno"){
+      totalRej += toNumber(d.pesoRejeitoGeralKg);
+
+      totalRec +=
+        toNumber(d.plasticoKg) +
+        toNumber(d.papelMistoKg) +
+        toNumber(d.papelaoKg) +
+        toNumber(d.aluminioMetalKg) +
+        toNumber(d.vidroKg) +
+        toNumber(d.sacariaKg) +
+        toNumber(d.isoporKg) +
+        toNumber(d.oleoKg);
     }
 
-    function parseYYYYMMDD(s){
-      // assume "YYYY-MM-DD"
-      if(!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
-      const [y,m,d] = s.split("-").map(Number);
-      const dt = new Date(y, m-1, d);
-      return isNaN(dt.getTime()) ? null : dt;
-    }
+  });
 
-    function daysBetween(aStr, bStr){
-      const a = parseYYYYMMDD(aStr);
-      const b = parseYYYYMMDD(bStr);
-      if(!a || !b) return 0;
-      const ms = (b.getTime() - a.getTime());
-      return Math.max(0, Math.floor(ms / (1000*60*60*24)) + 1);
-    }
+  setText("kpiOps", items.length);
+  setText("sumRecKg", fmt(totalRec));
+  setText("sumRejKg", fmt(totalRej));
+  setText("sumTotalKg", fmt(totalRec + totalRej));
+}
 
-    // ===========================
-    // DROPDOWNS
-    // ===========================
-    function initDropdowns(){
-      document.querySelectorAll("[data-dd-btn]").forEach(btn=>{
-        btn.addEventListener("click", (e)=>{
-          e.stopPropagation();
-          const parent = btn.closest(".dd");
-          document.querySelectorAll(".dd").forEach(d => { if(d !== parent) d.classList.remove("open"); });
-          parent.classList.toggle("open");
-        });
-      });
-      document.addEventListener("click", ()=> document.querySelectorAll(".dd").forEach(d=>d.classList.remove("open")));
-    }
+/* ===========================
+   FIRESTORE LISTENER
+=========================== */
 
-    // ===========================
-    // FILTER STATE
-    // ===========================
-    const filterState = {
-      start: "",    // YYYY-MM-DD
-      end: "",      // YYYY-MM-DD
-      month: "",    // YYYY-MM
-      cycle: "",    // string
-      type: "",     // deliveryType
-      codigo: ""    // linkedId
-    };
+const colRef = collection(db, "coletasSeletivas");
 
-    function syncFilterInputs(){
-      $("fStart").value = filterState.start || "";
-      $("fEnd").value = filterState.end || "";
-      $("fMonth").value = filterState.month || "";
-      $("fCycle").value = filterState.cycle || "";
-      $("fCodigo").value = filterState.codigo || "";
-    }
+onSnapshot(colRef, (snapshot) => {
 
-    function clearDate(){
-      filterState.start = "";
-      filterState.end = "";
-    }
-    function clearMonth(){ filterState.month = ""; }
-    function clearCycle(){ filterState.cycle = ""; }
-    function clearType(){ filterState.type = ""; }
-    function clearCodigo(){ filterState.codigo = ""; }
+  const items = snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
 
-    // ===========================
-    // FETCH COLETAS (Firestore)
-    // ===========================
-    async function fetchColetas(){
-      // Estratégia:
-      // - Sempre limitamos para não travar: 500 docs.
-      // - Se tiver filtro de data: usa opDate >= start e <= end (string YYYY-MM-DD)
-      // - Se tiver month: define start/end do mês
-      // - Se tiver type/codigo/cycle: adiciona where
-      // Obs: Firestore pode exigir índices compostos dependendo dos filtros.
-      let start = filterState.start;
-      let end = filterState.end;
+  console.log("🔥 Dados carregados:", items);
 
-      if(filterState.month){
-        const [y,m] = filterState.month.split("-").map(Number);
-        const first = new Date(y, m-1, 1);
-        const last = new Date(y, m, 0);
-        start = toDateKey(first);
-        end = toDateKey(last);
-      }
+  renderKPIs(items);
+  renderTabela(items);
 
-      const ref = collection(db, "coletasSeletivas");
-      const clauses = [];
+}, (error) => {
+  console.error("Erro ao carregar Firestore:", error);
+  alert("Erro ao carregar dados do Firestore.\nVerifique regras ou conexão.");
+});
 
-      // where date
-      if(start) clauses.push(where("opDate", ">=", start));
-      if(end) clauses.push(where("opDate", "<=", end));
-
-      // other filters
-      if(filterState.type) clauses.push(where("deliveryType", "==", filterState.type));
-      if(filterState.codigo) clauses.push(where("linkedId", "==", filterState.codigo));
-      if(filterState.cycle) clauses.push(where("cycle", "==", filterState.cycle)); // se você não usa "cycle", pode remover
-
-      // orderBy (necessário se usar range)
-      // opDate é string YYYY-MM-DD => ordena bem
-      clauses.push(orderBy("opDate", "desc"));
-
-      // limit
-      clauses.push(limit(500));
-
-      const q = query(ref, ...clauses);
-      const snap = await getDocs(q);
-      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    }
-
-    // ===========================
-    // AGGREGATION
-    // ===========================
-    function sumNum(v){ return (typeof v === "number" && isFinite(v)) ? v : 0; }
-
-    function qualityBucket(v){
-      // seu form: "1 2 3" (sujo -> limpo). Também pode vir "SUJO/LIMPO".
-      if(v == null) return "medio";
-      if(typeof v === "number"){
-        if(v >= 3) return "limpo";
-        if(v <= 1) return "ruim";
-        return "medio";
-      }
-      const s = String(v).toLowerCase();
-      if(s.includes("limpo") || s === "3") return "limpo";
-      if(s.includes("sujo") || s === "1") return "ruim";
-      if(s === "2") return "medio";
-      return "medio";
-    }
-
-    function buildDashboardFromColetas(coletas){
-      // Considera dois tipos:
-      // - flowType == "recebimento": usa pesoResiduoSecoKg / pesoRejeitoKg / pesoNaoComercializadoKg + qualidade + observação
-      // - flowType == "final_turno": usa materiais (plasticoKg, papelMistoKg, etc) + pesoRejeitoGeralKg + oleoKg
-      // Materiais:
-      //  - Para "reciclável" usaremos soma de MATERIAL_FIELDS (exceto oleo? aqui inclui, mas também exibimos em "OUTRO")
-      // Rejeitos:
-      //  - não reciclável = pesoRejeitoKg (recebimento) + pesoRejeitoGeralKg (final_turno)
-      //  - não comercializado = pesoNaoComercializadoKg (recebimento)
-      // OUTRO:
-      //  - óleo = oleoKg (final_turno) ou outro campo que você colocar
-
-      const today = toDateKey(new Date());
-      const diasProjeto = daysBetween(PROJECT_START, today);
-
-      // KPIs baseados em coletas + linkedId
-      const ops = coletas.length;
-
-      const uniqRB = new Set();
-      const uniqCOND = new Set();
-      const uniqAll = new Set();
-
-      let recKg = 0;
-      let rejKg = 0;
-      let naoRecKg = 0;
-      let naoComKg = 0;
-      let outroKg = 0; // óleo
-
-      const quality = { limpo:0, medio:0, ruim:0 };
-
-      // por dia (para o gráfico)
-      const byDay = new Map(); // day -> {rec, rej}
-
-      // materiais (bolhas): soma kg por material
-      const matSum = new Map(); // key -> kg
-
-      // tabela: vamos listar as últimas 30 coletas "recebimento" (faz mais sentido)
-      const tableRows = [];
-
-      // map points: coletas com lat/lng (se existirem)
-      const mapPoints = [];
-
-      for(const c of coletas){
-        const linkedId = (c.linkedId || "").trim();
-        if(linkedId){
-          uniqAll.add(linkedId);
-          if(linkedId.startsWith("RB-")) uniqRB.add(linkedId);
-          if(linkedId.startsWith("COND-")) uniqCOND.add(linkedId);
-        }
-
-        const dateKey = (c.opDate && /^\d{4}-\d{2}-\d{2}$/.test(c.opDate)) ? c.opDate : null;
-        if(dateKey && !byDay.has(dateKey)) byDay.set(dateKey, { rec:0, rej:0 });
-
-        // mapa
-        if(typeof c.lat === "number" && typeof c.lng === "number"){
-          mapPoints.push({ lat:c.lat, lng:c.lng, label: linkedId ? `Coleta ${linkedId}` : "Coleta" });
-        } else if(c.location && typeof c.location.lat === "number" && typeof c.location.lng === "number"){
-          mapPoints.push({ lat:c.location.lat, lng:c.location.lng, label: linkedId ? `Coleta ${linkedId}` : "Coleta" });
-        }
-
-        if(c.flowType === "recebimento"){
-          const r = sumNum(c.pesoResiduoSecoKg);
-          const rej = sumNum(c.pesoRejeitoKg);
-          const nc = sumNum(c.pesoNaoComercializadoKg);
-
-          recKg += r;
-          rejKg += (rej + nc);
-
-          naoRecKg += rej;
-          naoComKg += nc;
-
-          // qualidade
-          const qb = qualityBucket(c.qualidadeNota ?? c.qualidade ?? c.qualidadeResiduo);
-          quality[qb]++;
-
-          // series by day
-          if(dateKey){
-            const d = byDay.get(dateKey);
-            d.rec += r;
-            d.rej += (rej + nc);
-          }
-
-          // tabela (últimas)
-          tableRows.push({
-            codigo: linkedId || "",
-            tipo: c.deliveryType || "—",
-            data: dateKey ? dateKey.split("-").reverse().join("/") : "—",
-            qualidade: qb.toUpperCase(),
-            obs: (c.observacao || c.obs || "").toString().slice(0, 80) || "—",
-            naoRec: fmtPt(rej,1),
-            naoCom: fmtPt(nc,1)
-          });
-
-        } else if(c.flowType === "final_turno"){
-          // soma materiais
-          let recTurno = 0;
-          for(const m of MATERIAL_FIELDS){
-            const kg = sumNum(c[m.field]);
-            if(kg > 0){
-              matSum.set(m.key, (matSum.get(m.key)||0) + kg);
-              recTurno += kg;
-            }
-          }
-
-          // óleo como OUTRO (além de entrar no recTurno se você quiser)
-          const oleo = sumNum(c.oleoKg);
-          outroKg += oleo;
-
-          const rejGeral = sumNum(c.pesoRejeitoGeralKg);
-          naoRecKg += rejGeral;
-          rejKg += rejGeral;
-          recKg += recTurno;
-
-          if(dateKey){
-            const d = byDay.get(dateKey);
-            d.rec += recTurno;
-            d.rej += rejGeral;
-          }
-        }
-      }
-
-      // materiais: completar com zero para todos
-      const materials = MATERIAL_FIELDS
-        .filter(m => m.key !== "ÓLEO") // óleo fica no card OUTRO
-        .map(m => ({ ...m, kg: matSum.get(m.key)||0 }))
-        .filter(m => m.kg > 0);
-
-      const total = recKg + rejKg;
-      const recPct = total ? (recKg/total)*100 : 0;
-      const rejPct = total ? (rejKg/total)*100 : 0;
-
-      const rejTotal = (naoRecKg + naoComKg);
-      const naoRecPct = rejTotal ? (naoRecKg/rejTotal)*100 : 0;
-      const naoComPct = rejTotal ? (naoComKg/rejTotal)*100 : 0;
-
-      // bolhas: percentual do total reciclável (sem óleo)
-      const totalMat = materials.reduce((a,m)=>a+m.kg,0) || 1;
-      const bubbles = materials
-        .sort((a,b)=>b.kg - a.kg)
-        .slice(0, 9)
-        .map(m => ({
-          key: m.key,
-          icon: m.icon,
-          kg: m.kg,
-          pct: (m.kg/totalMat)*100,
-          receita: 0 // se você tiver receita por material, preenche aqui
-        }));
-
-      // series: ordenar dias asc
-      const days = Array.from(byDay.keys()).sort();
-      const labels = days.map((d, i)=> String(i+1));
-      const reciclavel = days.map(d => +(byDay.get(d).rec.toFixed(2)));
-      const rejeito = days.map(d => +(byDay.get(d).rej.toFixed(2)));
-
-      return {
-        kpis: {
-          diasProjeto,
-          inicio: PROJECT_START,
-          opsTotal: ops,
-          famCadastradas: uniqRB.size, // aproximado pelo que apareceu em coletas
-          famParticipantes: uniqRB.size,
-          famColetas: coletas.filter(c => (c.linkedId||"").startsWith("RB-")).length,
-          condCadastrados: uniqCOND.size,
-          condParticipantes: uniqCOND.size,
-          condColetas: coletas.filter(c => (c.linkedId||"").startsWith("COND-")).length
-        },
-        summary: { recKg, rejKg, receita: 0, totalKg: total, recPct, rejPct, ops, diasFiltro: days.length },
-        rejectBreakdown: { naoRecKg, naoRecPct, naoComKg, naoComPct, outroKg },
-        qualidade: {
-          limpo: quality.limpo,
-          medio: quality.medio,
-          ruim: quality.ruim
-        },
-        bubbles,
-        series: { labels, reciclavel, rejeito },
-        table: tableRows.slice(0, 40),
-        uniqParticipants: uniqAll.size,
-        mapPoints
-      };
-    }
-
-    // ===========================
-    // RENDERERS
-    // ===========================
-    function setText(id, v){ const el = $(id); if(el) el.textContent = v; }
-
-    function renderKpis(d){
-      setText("kpiDias", d.kpis.diasProjeto);
-      setText("kpiInicio", d.kpis.inicio.split("-").reverse().join("/"));
-      setText("kpiOps", d.kpis.opsTotal);
-      setText("kpiOpsFiltro", d.summary.ops);
-
-      setText("famCadastradas", d.kpis.famCadastradas);
-      setText("famParticipantes", d.kpis.famParticipantes);
-      setText("famColetas", d.kpis.famColetas);
-
-      setText("condCadastrados", d.kpis.condCadastrados);
-      setText("condParticipantes", d.kpis.condParticipantes);
-      setText("condColetas", d.kpis.condColetas);
-    }
-
-    function renderSummary(d){
-      setText("sumRecKg", fmtPt(d.summary.recKg, 1));
-      setText("sumRejKg", fmtPt(d.summary.rejKg, 1));
-      setText("sumReceita", fmtPt(d.summary.receita, 1));
-      setText("sumTotalKg", fmtPt(d.summary.totalKg, 1));
-      setText("sumOps", d.summary.ops);
-      setText("sumDiasFiltro", d.summary.diasFiltro || 0);
-
-      setText("sumRecPct", d.summary.recPct.toFixed(1).replace(".", ",") + "%");
-      setText("sumRejPct", d.summary.rejPct.toFixed(1).replace(".", ",") + "%");
-
-      setText("rejNaoRecPct", d.rejectBreakdown.naoRecPct.toFixed(1).replace(".", ",") + "%");
-      setText("rejNaoRecKg", fmtPt(d.rejectBreakdown.naoRecKg, 1));
-      setText("rejNaoComPct", d.rejectBreakdown.naoComPct.toFixed(1).replace(".", ",") + "%");
-      setText("rejNaoComKg", fmtPt(d.rejectBreakdown.naoComKg, 1));
-
-      setText("outroKg", fmtPt(d.rejectBreakdown.outroKg, 1));
-      setText("outroLabel", "ÓLEO DE COZINHA");
-      setText("uniqParticipants", d.uniqParticipants);
-    }
-
-    function renderBubbles(d){
-      const grid = $("bubblesGrid");
-      grid.innerHTML = "";
-
-      if(!d.bubbles.length){
-        const empty = document.createElement("div");
-        empty.className = "col-span-2 md:col-span-3 rounded-2xl border border-black/10 bg-grayClean p-6 text-center text-sm text-graphite/70";
-        empty.innerHTML = "Sem materiais (final do turno) no período selecionado.";
-        grid.appendChild(empty);
-        return;
-      }
-
-      d.bubbles.forEach(m=>{
-        const el = document.createElement("div");
-        el.className = "bubble rounded-full p-4 md:p-5 flex flex-col items-center justify-center text-center min-h-[150px]";
-        el.innerHTML = `
-          <div class="text-3xl">${m.icon}</div>
-          <div class="mt-1 text-2xl font-extrabold">${m.pct.toFixed(1).replace(".", ",")}%</div>
-          <div class="text-sm text-graphite/70">${fmtPt(m.kg,1)} kg</div>
-          <div class="text-[11px] text-graphite/60 mt-1">Receita = <span class="font-bold">R$ ${fmtPt(m.receita,1)}</span></div>
-          <div class="mt-2 text-xs font-extrabold">${m.key}</div>
-        `;
-        grid.appendChild(el);
-      });
-    }
-
-    function renderTable(d){
-      const wrap = $("rows");
-      wrap.innerHTML = "";
-
-      if(!d.table.length){
-        const row = document.createElement("div");
-        row.className = "py-6 text-center text-sm text-graphite/60";
-        row.textContent = "Nenhuma coleta encontrada para os filtros selecionados.";
-        wrap.appendChild(row);
-        return;
-      }
-
-      d.table.forEach(r=>{
-        const row = document.createElement("div");
-        row.className = "grid grid-cols-12 gap-3 py-2 text-xs";
-        row.innerHTML = `
-          <div class="col-span-1 font-semibold">${r.codigo || ""}</div>
-          <div class="col-span-2">${r.tipo}</div>
-          <div class="col-span-2">${r.data}</div>
-          <div class="col-span-2 font-semibold">${r.qualidade}</div>
-          <div class="col-span-3 text-graphite/70">${r.obs}</div>
-          <div class="col-span-1 text-right">${r.naoRec}</div>
-          <div class="col-span-1 text-right">${r.naoCom}</div>
-        `;
-        wrap.appendChild(row);
-      });
-    }
-
-    // ===========================
-    // CHARTS
-    // ===========================
-    let chartQualidade, chartBar;
-
-    function drawQualidade(d){
-      if(chartQualidade) chartQualidade.destroy();
-      const ctx = $("chartQualidade");
-      chartQualidade = new Chart(ctx, {
-        type: "doughnut",
-        data: {
-          labels: ["LIMPO", "MÉDIO", "RUIM"],
-          datasets: [{
-            data: [d.qualidade.limpo, d.qualidade.medio, d.qualidade.ruim],
-            backgroundColor: ["#1B7F5A", "#F2C94C", "#EF4444"],
-            borderWidth: 0
-          }]
-        },
-        options: {
-          cutout: "70%",
-          plugins: { legend: { display:false }, tooltip: { enabled:true } }
-        }
-      });
-    }
-
-    function drawBar(d){
-      if(chartBar) chartBar.destroy();
-      const ctx = $("chartBar");
-      chartBar = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels: d.series.labels,
-          datasets: [
-            { label: "Peso do rejeito", data: d.series.rejeito, backgroundColor: "#EF4444", stack: "stack1", borderWidth: 0 },
-            { label: "Peso do reciclável", data: d.series.reciclavel, backgroundColor: "#22C55E", stack: "stack1", borderWidth: 0 }
-          ]
-        },
-        options: {
-          responsive: true,
-          plugins: { legend: { display:false } },
-          scales: {
-            x: { stacked:true, grid: { display:false }, ticks: { maxRotation:0, autoSkip:true, maxTicksLimit:18, font:{size:10} } },
-            y: { stacked:true, grid: { color: "rgba(0,0,0,.06)" }, ticks: { font:{size:10} } }
-          }
-        }
-      });
-    }
-
-    // ===========================
-    // MAP
-    // ===========================
-    let map, layer;
-    function initMap(){
-      map = L.map('map', { zoomControl: true }).setView([-30.0346, -51.2177], 12);
-
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap'
-      }).addTo(map);
-
-      layer = L.layerGroup().addTo(map);
-    }
-
-    function renderMap(points){
-      if(!layer) return;
-      layer.clearLayers();
-
-      if(!points.length){
-        // sem pontos: mantém view default
-        return;
-      }
-
-      const bounds = [];
-      points.slice(0, 200).forEach(p=>{
-        const marker = L.circleMarker([p.lat, p.lng], {
-          radius: 7,
-          color: "#1B7F5A",
-          fillColor: "#4CAF8F",
-          fillOpacity: 0.9,
-          weight: 2
-        }).addTo(layer).bindPopup(p.label || "Coleta");
-        bounds.push([p.lat, p.lng]);
-      });
-
-      if(bounds.length){
-        map.fitBounds(bounds, { padding: [18,18] });
-      }
-    }
-
-    // ===========================
-    // MAIN LOAD
-    // ===========================
-    async function reload(){
-      setDbStatus("carregando…", true);
-
-      try{
-        const coletas = await fetchColetas();
-        setDbStatus(`ok • ${coletas.length} registros`, true);
-
-        const dash = buildDashboardFromColetas(coletas);
-        renderKpis(dash);
-        renderSummary(dash);
-        renderBubbles(dash);
-        renderTable(dash);
-        drawQualidade(dash);
-        drawBar(dash);
-        renderMap(dash.mapPoints);
-
-      }catch(err){
-        console.error(err);
-        setDbStatus("erro (rules / índice)", false);
-
-        // fallback UI
-        renderBubbles({ bubbles: [] });
-        renderTable({ table: [] });
-      }
-    }
-
-    // ===========================
-    // FILTER EVENTS
-    // ===========================
-    function wireFilters(){
-      // date
-      $("btnApplyDate").addEventListener("click", ()=>{
-        filterState.start = $("fStart").value || "";
-        filterState.end = $("fEnd").value || "";
-        document.querySelectorAll(".dd").forEach(d=>d.classList.remove("open"));
-        reload();
-      });
-      $("btnClearDate").addEventListener("click", ()=>{
-        clearDate(); syncFilterInputs();
-        document.querySelectorAll(".dd").forEach(d=>d.classList.remove("open"));
-        reload();
-      });
-
-      // month
-      $("btnApplyMonth").addEventListener("click", ()=>{
-        filterState.month = $("fMonth").value || "";
-        // se usar month, zera date range manual para evitar conflito visual
-        clearDate(); syncFilterInputs();
-        document.querySelectorAll(".dd").forEach(d=>d.classList.remove("open"));
-        reload();
-      });
-      $("btnClearMonth").addEventListener("click", ()=>{
-        clearMonth(); syncFilterInputs();
-        document.querySelectorAll(".dd").forEach(d=>d.classList.remove("open"));
-        reload();
-      });
-
-      // cycle
-      $("btnApplyCycle").addEventListener("click", ()=>{
-        filterState.cycle = ($("fCycle").value || "").trim();
-        document.querySelectorAll(".dd").forEach(d=>d.classList.remove("open"));
-        reload();
-      });
-      $("btnClearCycle").addEventListener("click", ()=>{
-        clearCycle(); syncFilterInputs();
-        document.querySelectorAll(".dd").forEach(d=>d.classList.remove("open"));
-        reload();
-      });
-
-      // type items
-      document.querySelectorAll("#ddTipo .dd-item").forEach(item=>{
-        item.addEventListener("click", ()=>{
-          filterState.type = item.getAttribute("data-type") || "";
-          document.querySelectorAll(".dd").forEach(d=>d.classList.remove("open"));
-          reload();
-        });
-      });
-
-      // codigo
-      $("btnApplyCodigo").addEventListener("click", ()=>{
-        filterState.codigo = ($("fCodigo").value || "").trim().toUpperCase();
-        document.querySelectorAll(".dd").forEach(d=>d.classList.remove("open"));
-        reload();
-      });
-      $("btnClearCodigo").addEventListener("click", ()=>{
-        clearCodigo(); syncFilterInputs();
-        document.querySelectorAll(".dd").forEach(d=>d.classList.remove("open"));
-        reload();
-      });
-
-      // clear all
-      $("btnClearAll").addEventListener("click", ()=>{
-        clearDate(); clearMonth(); clearCycle(); clearType(); clearCodigo();
-        syncFilterInputs();
-        reload();
-      });
-    }
-
-    // ===========================
-    // Boot
-    // ===========================
-    setDbStatus("conectado ✅", true);
-    initDropdowns();
-    initMap();
-    wireFilters();
-    syncFilterInputs();
-
-    // inicial: sem filtros, pega últimos 500
-    reload();
-
-  </script>
+</script>
 </body>
 </html>
