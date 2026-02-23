@@ -1,4 +1,4 @@
-<!doctype html>
+<!doctype html> 
 <html lang="pt-BR" translate="no">
 <head>
   <meta charset="utf-8" />
@@ -108,7 +108,6 @@
 
       <!-- Pills (Filtros) -->
       <div class="flex-1 flex items-center justify-center gap-3 flex-wrap relative">
-
         <div class="relative">
           <button id="btnData" class="pill text-white font-semibold text-sm px-6 py-2 rounded-xl shadow-soft inline-flex items-center gap-2">
             DATA <span class="text-white/90">▾</span>
@@ -216,14 +215,28 @@
         <div id="badges" class="flex items-center gap-2 flex-wrap justify-center"></div>
       </div>
 
+      <!-- RIGHT -->
       <div class="min-w-[260px] flex justify-end items-center gap-2">
-        <span class="text-xs text-graphite/55">Dashboard • Coletas</span>
+        <a href="index.html"
+           class="px-4 py-2 rounded-xl bg-deepBlue text-white text-sm font-extrabold hover:brightness-95 shadow-soft">
+          ⟵ Voltar ao início
+        </a>
+      </div>
+    </div>
+
+    <!-- STATUS (debug) -->
+    <div class="max-w-[1400px] mx-auto px-4 pb-3 -mt-1">
+      <div class="text-xs text-graphite/60">
+        Status: <span id="status" class="font-semibold">conectando…</span>
+        <span class="ml-2">| Registros: <span id="countAll" class="font-semibold">0</span></span>
+        <span class="ml-2">| Exibindo (pós-filtro): <span id="countShown" class="font-semibold">0</span></span>
       </div>
     </div>
   </header>
 
   <main class="max-w-[1400px] mx-auto px-4 py-4">
     <div class="grid dash-grid gap-4">
+      <!-- LEFT -->
       <aside class="space-y-4">
         <div class="panel rounded-2xl overflow-hidden">
           <div class="grid grid-cols-2">
@@ -300,6 +313,7 @@
         </div>
       </aside>
 
+      <!-- RIGHT -->
       <section class="space-y-4">
         <div class="panel rounded-2xl p-4">
           <div class="grid grid-cols-12 gap-4 items-stretch">
@@ -371,7 +385,6 @@
           <div class="col-span-12 lg:col-span-8 panel rounded-2xl p-4">
             <div class="text-center font-extrabold text-lg">TIPO DE MATERIAL RECICLÁVEL</div>
             <div class="text-center text-xs text-graphite/60 mt-1">(% sobre o total de recicláveis)</div>
-
             <div id="bubblesGrid" class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4"></div>
           </div>
 
@@ -454,20 +467,29 @@
       getFirestore, collection, onSnapshot, query, orderBy, limit
     } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-   const firebaseConfig = {
-  apiKey: "AIzaSyAe5E7M8Jednj1xGRjNrV0oD4wQwv6b-WM",
-  authDomain: "reciclabonja-3dee7.firebaseapp.com",
-  projectId: "reciclabonja-3dee7",
-  storageBucket: "reciclabonja-3dee7.firebasestorage.app",
-  messagingSenderId: "590941010829",
-  appId: "1:590941010829:web:9b8e4703df54cc8b0a9bc4"
-};
+    // ✅ Seu firebase atual:
+    const firebaseConfig = {
+      apiKey: "AIzaSyAe5E7M8Jednj1xGRjNrV0oD4wQwv6b-WM",
+      authDomain: "reciclabonja-3dee7.firebaseapp.com",
+      projectId: "reciclabonja-3dee7",
+      storageBucket: "reciclabonja-3dee7.firebasestorage.app",
+      messagingSenderId: "590941010829",
+      appId: "1:590941010829:web:9b8e4703df54cc8b0a9bc4"
+    };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
     const $ = (id) => document.getElementById(id);
     const fmtPt = (n, dec=1) => (Number(n)||0).toLocaleString("pt-BR", {minimumFractionDigits: dec, maximumFractionDigits: dec});
+    const statusEl = $("status");
+    const countAllEl = $("countAll");
+    const countShownEl = $("countShown");
+
+    function setStatus(text, ok=true){
+      statusEl.textContent = text;
+      statusEl.className = ok ? "font-semibold text-regen" : "font-semibold text-red-700";
+    }
 
     function setText(id, value){ const el=$(id); if(el) el.textContent=value; }
     function isoToBr(iso){
@@ -538,12 +560,29 @@
       });
     }
 
+    // MAP
     let map;
+    let mapLayer = null;
     function initMap(){
       map = L.map('map', { zoomControl: true }).setView([-30.0346, -51.2177], 12);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19, attribution: '&copy; OpenStreetMap'
       }).addTo(map);
+      mapLayer = L.layerGroup().addTo(map);
+    }
+    function renderMap(points){
+      if(!mapLayer) return;
+      mapLayer.clearLayers();
+      points.forEach(p=>{
+        if(typeof p.lat !== "number" || typeof p.lng !== "number") return;
+        L.circleMarker([p.lat, p.lng], {
+          radius: 7,
+          color: "#1B7F5A",
+          fillColor: "#4CAF8F",
+          fillOpacity: 0.9,
+          weight: 2
+        }).addTo(mapLayer).bindPopup(p.label || "Ponto");
+      });
     }
 
     function normalizeDoc(d){
@@ -556,7 +595,10 @@
       let recKg = 0, rejeitoKg = 0, naoComKg = 0, naoRecKg = 0, oilKg = 0;
       const mats = {};
 
-      if(d.flowType === "recebimento"){
+      // ✅ Ajuste robusto: se flowType vier vazio, tenta inferir pelo campo existente
+      const flowType = d.flowType || (d.pesoResiduoSecoKg != null ? "recebimento" : "final_turno");
+
+      if(flowType === "recebimento"){
         recKg = num(d.pesoResiduoSecoKg);
         naoRecKg = num(d.pesoRejeitoKg);
         naoComKg = num(d.pesoNaoComercializadoKg);
@@ -607,26 +649,32 @@
           topMat = k;
         }
       });
-      if(d.flowType === "recebimento") topMat = "Misto (recebimento)";
+      if(flowType === "recebimento") topMat = "Misto (recebimento)";
 
       let qualTxt = "—";
-      if(d.flowType === "recebimento"){
+      if(flowType === "recebimento"){
         const q = Number(d.qualidadeNota || 0);
         qualTxt = (q===3) ? "BOM" : (q===2) ? "MÉDIO" : (q===1) ? "RUIM" : "—";
       }
+
+      const geo = d.geo || null; // opcional, se você salvar depois
+      const mapPoint = (geo && typeof geo.lat==="number" && typeof geo.lng==="number")
+        ? { lat: geo.lat, lng: geo.lng, label: code || "Coleta" }
+        : null;
 
       return {
         id: d.__id,
         raw: d,
         opDate, month, cycle,
         deliveryType: d.deliveryType || "",
-        flowType: d.flowType || "",
+        flowType,
         code,
         recKg, rejeitoKg, naoRecKg, naoComKg, oilKg,
         mats,
         topMat,
         qualTxt,
-        obs: (d.observacao || "—").toString()
+        obs: (d.observacao || "—").toString(),
+        mapPoint
       };
     }
 
@@ -648,6 +696,8 @@
         }
         return true;
       });
+
+      countShownEl.textContent = String(filteredDocs.length);
     }
 
     function computeDash(){
@@ -663,6 +713,8 @@
       let famColetas = 0;
       let condColetas = 0;
 
+      const points = [];
+
       filteredDocs.forEach(x=>{
         recTotal += x.recKg;
         rejTotal += x.rejeitoKg;
@@ -672,7 +724,7 @@
 
         if(x.opDate) daysSet.add(x.opDate);
 
-        if(x.raw.flowType === "recebimento"){
+        if(x.flowType === "recebimento"){
           const q = Number(x.raw.qualidadeNota||0);
           if(q===1) q1++;
           if(q===2) q2++;
@@ -684,13 +736,15 @@
         });
 
         const code = (x.code||"").trim();
-        if(x.raw.flowType === "recebimento"){
+        if(x.flowType === "recebimento"){
           famColetas++;
           if(code) famIds.add(code);
         } else {
           condColetas++;
           if(code) condIds.add(code);
         }
+
+        if(x.mapPoint) points.push(x.mapPoint);
       });
 
       const totalKg = recTotal + rejTotal;
@@ -735,7 +789,8 @@
         famIdsCount: famIds.size,
         condIdsCount: condIds.size,
         famColetas,
-        condColetas
+        condColetas,
+        points
       };
     }
 
@@ -785,7 +840,7 @@
       const list = docs
         .slice()
         .sort((a,b)=> (b.opDate||"").localeCompare(a.opDate||""))
-        .slice(0, 80);
+        .slice(0, 200); // ✅ mostra mais
 
       if(!list.length){
         wrap.innerHTML = `<div class="py-6 text-center text-sm text-graphite/60">Nenhuma coleta encontrada no filtro.</div>`;
@@ -846,7 +901,8 @@
 
       const dash = computeDash();
 
-      const START = "2025-09-02"; // ajuste se quiser
+      // ✅ ajuste conforme seu projeto:
+      const START = "2025-09-02";
       const startDt = new Date(START + "T00:00:00");
       const now = new Date();
       const diasProjeto = Math.max(0, Math.round((now - startDt) / 86400000));
@@ -882,22 +938,9 @@
 
       drawQualidade(dash.qualidade);
       drawBar(dash.series);
-    }
 
-    async function loadColetas(){
-      const qy = query(
-        collection(db, "coletasSeletivas"),
-        orderBy("opDate", "desc"),
-        limit(2000)
-      );
-      const snap = await onSnapshot(qy);
-      const raw = snap.docs.map(doc => ({ __id: doc.id, ...doc.data() }));
-      allDocs = raw.map(normalizeDoc);
-
-      const cycles = Array.from(new Set(allDocs.map(d=>d.cycle).filter(Boolean))).sort().reverse();
-      $("fCiclo").innerHTML = `<option value="">Selecione…</option>` + cycles.map(c=>`<option>${c}</option>`).join("");
-
-      renderAll();
+      // mapa (se tiver geo)
+      renderMap(dash.points);
     }
 
     function togglePop(id){
@@ -940,8 +983,37 @@
     $("applyCodigo").addEventListener("click", ()=>{ filters.codigo = ($("fCodigo").value||"").trim(); closeAllPops(); renderAll(); });
     $("clearCodigo").addEventListener("click", ()=>{ filters.codigo=""; $("fCodigo").value=""; closeAllPops(); renderAll(); });
 
+    // INIT
     initMap();
-    await loadColetas();
+    setStatus("conectando…", true);
+
+    // ✅ CORRETO: onSnapshot com callback
+    const qy = query(
+      collection(db, "coletasSeletivas"),
+      orderBy("opDate", "desc"),
+      limit(2000)
+    );
+
+    onSnapshot(
+      qy,
+      (snap)=>{
+        setStatus("online ✅ (tempo real)", true);
+
+        const raw = snap.docs.map(doc => ({ __id: doc.id, ...doc.data() }));
+        countAllEl.textContent = String(raw.length);
+
+        allDocs = raw.map(normalizeDoc);
+
+        const cycles = Array.from(new Set(allDocs.map(d=>d.cycle).filter(Boolean))).sort().reverse();
+        $("fCiclo").innerHTML = `<option value="">Selecione…</option>` + cycles.map(c=>`<option>${c}</option>`).join("");
+
+        renderAll();
+      },
+      (err)=>{
+        console.error(err);
+        setStatus("erro ao ler Firestore (rules/permissões)", false);
+      }
+    );
   </script>
 </body>
 </html>
