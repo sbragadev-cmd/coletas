@@ -107,6 +107,7 @@
         <div id="alert" class="hidden rounded-2xl border p-4 text-sm mb-4"></div>
 
         <div id="steps">
+          <!-- STEP 1 -->
           <div class="step active" data-step="1">
             <div class="flex items-start gap-3">
               <div class="mt-1 h-10 w-10 rounded-2xl bg-regen/10 border border-regen/15 flex items-center justify-center">✅</div>
@@ -129,11 +130,13 @@
             </div>
           </div>
 
+          <!-- STEP 2 -->
           <div class="step" data-step="2">
             <h2 class="text-lg font-extrabold text-deepBlue reqDot">1) Nome completo</h2>
             <input id="nome" class="mt-4 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring" placeholder="Digite seu nome completo"/>
           </div>
 
+          <!-- STEP 3 -->
           <div class="step" data-step="3">
             <h2 class="text-lg font-extrabold text-deepBlue reqDot">2) Você já destina seu resíduo reciclável para algum local/catador?</h2>
             <div class="mt-4 grid sm:grid-cols-2 gap-3">
@@ -142,6 +145,7 @@
             </div>
           </div>
 
+          <!-- STEP 4 -->
           <div class="step" data-step="4">
             <h2 class="text-lg font-extrabold text-deepBlue reqDot">3) Você tem interesse em participar do projeto com coleta no local?</h2>
             <div class="mt-4 grid sm:grid-cols-2 gap-3">
@@ -150,18 +154,22 @@
             </div>
           </div>
 
+          <!-- STEP 5 -->
           <div class="step" data-step="5">
             <h2 class="text-lg font-extrabold text-deepBlue reqDot">4) Quais limitações você encontra?</h2>
             <textarea id="dificuldades" rows="5" class="mt-4 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
               placeholder="Ex.: espaço, tempo, dúvidas, sacaria, etc."></textarea>
           </div>
 
+          <!-- STEP 6 -->
           <div class="step" data-step="6">
             <h2 class="text-lg font-extrabold text-deepBlue reqDot">5) Telefone/WhatsApp com DDD</h2>
             <input id="telefone" inputmode="tel" class="mt-4 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
               placeholder="(51) 99999-9999"/>
+            <div class="mt-2 text-xs text-graphite/60">Dica: pode digitar com espaço/traço que eu limpo automaticamente.</div>
           </div>
 
+          <!-- STEP 7 -->
           <div class="step" data-step="7">
             <h2 class="text-lg font-extrabold text-deepBlue reqDot">6) Local para coleta</h2>
             <div class="mt-4 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -176,14 +184,110 @@
               <input id="localOutro" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
                 placeholder="Ex.: escola, associação, igreja..." />
             </div>
+
+            <!-- NOVO: tipo de cadastro (mantendo ficha/estética) -->
+            <div class="mt-6 rounded-2xl border border-black/10 bg-grayClean p-4">
+              <div class="text-sm font-extrabold text-deepBlue">Tipo de cadastro</div>
+              <div class="mt-2 text-sm text-graphite/70">
+                Se for <b>Condomínio</b>, o sistema vai gerar um código <b>COND-XXXXXX</b>.  
+                Caso contrário, gera <b>RB-XXXXXX</b>.
+              </div>
+
+              <div class="mt-3 grid sm:grid-cols-2 gap-3">
+                <div class="chip" data-radio="tipoCadastro" data-value="participante">
+                  <div class="font-extrabold">Participante</div>
+                  <div class="text-xs text-graphite/60">RB-XXXXXX</div>
+                </div>
+                <div class="chip" data-radio="tipoCadastro" data-value="condominio">
+                  <div class="font-extrabold">Condomínio</div>
+                  <div class="text-xs text-graphite/60">COND-XXXXXX</div>
+                </div>
+              </div>
+
+              <div id="condWrap" class="mt-4 hidden">
+                <label class="text-sm font-semibold reqDot">Nome do condomínio</label>
+                <input id="condNome" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
+                  placeholder="Ex.: Condomínio Jardim Bonja" />
+                <div class="mt-2 grid sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="text-sm font-semibold">Bloco (opcional)</label>
+                    <input id="condBloco" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring" placeholder="Ex.: A" />
+                  </div>
+                  <div>
+                    <label class="text-sm font-semibold">Unidade/Apto (opcional)</label>
+                    <input id="condUnidade" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring" placeholder="Ex.: 302" />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
+          <!-- STEP 8 (ENDEREÇO COM CEP) -->
           <div class="step" data-step="8">
-            <h2 class="text-lg font-extrabold text-deepBlue reqDot">7) Endereço completo</h2>
-            <input id="endereco" class="mt-4 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
-              placeholder="Rua, número, bairro, cidade/UF e CEP" />
+            <h2 class="text-lg font-extrabold text-deepBlue reqDot">7) Endereço (com CEP)</h2>
+
+            <div class="mt-4 grid sm:grid-cols-3 gap-3">
+              <div class="sm:col-span-2">
+                <label class="text-sm font-semibold reqDot">CEP</label>
+                <div class="mt-1 flex gap-2">
+                  <input id="cep" inputmode="numeric" class="flex-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
+                    placeholder="Ex.: 90010-000" />
+                  <button id="btnCep" type="button"
+                    class="px-4 py-3 rounded-xl bg-regen text-white font-extrabold hover:brightness-95 transition">
+                    Buscar
+                  </button>
+                </div>
+                <div id="cepMsg" class="mt-1 text-xs text-graphite/60"></div>
+              </div>
+
+              <div>
+                <label class="text-sm font-semibold reqDot">Número</label>
+                <input id="numero" inputmode="numeric" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
+                  placeholder="Ex.: 123" />
+                <div class="mt-1 text-xs text-graphite/60">Usado para achar a localização no mapa.</div>
+              </div>
+            </div>
+
+            <div class="mt-4 grid sm:grid-cols-2 gap-3">
+              <div>
+                <label class="text-sm font-semibold reqDot">Rua</label>
+                <input id="rua" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
+                  placeholder="Preenchido pelo CEP" />
+              </div>
+              <div>
+                <label class="text-sm font-semibold reqDot">Bairro</label>
+                <input id="bairro" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
+                  placeholder="Preenchido pelo CEP" />
+              </div>
+            </div>
+
+            <div class="mt-4 grid sm:grid-cols-2 gap-3">
+              <div>
+                <label class="text-sm font-semibold reqDot">Cidade</label>
+                <input id="cidade" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
+                  placeholder="Preenchido pelo CEP" />
+              </div>
+              <div>
+                <label class="text-sm font-semibold reqDot">UF</label>
+                <input id="uf" maxlength="2" class="mt-1 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
+                  placeholder="Ex.: RS" />
+              </div>
+            </div>
+
+            <div class="mt-4 rounded-2xl border border-black/10 bg-grayClean p-4">
+              <div class="text-sm font-extrabold text-deepBlue">Localização para o Dashboard</div>
+              <div class="mt-1 text-sm text-graphite/70">
+                Quando você busca o CEP e informa o número, eu tento gerar a <b>latitude/longitude</b> automaticamente
+                para aparecer como ponto no mapa.
+              </div>
+              <div class="mt-2 text-xs">
+                <span class="font-bold">Geo:</span>
+                <span id="geoStatus" class="text-graphite/70">ainda não calculado</span>
+              </div>
+            </div>
           </div>
 
+          <!-- STEP 9 -->
           <div class="step" data-step="9">
             <h2 class="text-lg font-extrabold text-deepBlue reqDot">8) Ponto de referência</h2>
             <input id="referencia" class="mt-4 w-full px-4 py-3 rounded-xl border border-black/10 focus-ring"
@@ -230,18 +334,17 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import {
-      getFirestore, collection, addDoc, serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-    
-const firebaseConfig = {
-  apiKey: "AIzaSyAe5E7M8Jednj1xGRjNrV0oD4wQwv6b-WM",
-  authDomain: "reciclabonja-3dee7.firebaseapp.com",
-  projectId: "reciclabonja-3dee7",
-  storageBucket: "reciclabonja-3dee7.firebasestorage.app",
-  messagingSenderId: "590941010829",
-  appId: "1:590941010829:web:9b8e4703df54cc8b0a9bc4"
-};
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAe5E7M8Jednj1xGRjNrV0oD4wQwv6b-WM",
+      authDomain: "reciclabonja-3dee7.firebaseapp.com",
+      projectId: "reciclabonja-3dee7",
+      storageBucket: "reciclabonja-3dee7.firebasestorage.app",
+      messagingSenderId: "590941010829",
+      appId: "1:590941010829:web:9b8e4703df54cc8b0a9bc4"
+    };
+
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
@@ -258,7 +361,12 @@ const firebaseConfig = {
       whatsappDDD: "",
       localColeta: "",
       localColetaOutro: "",
-      enderecoCompleto: "",
+      tipoCadastro: "",          // "participante" | "condominio"
+      condNome: "",
+      condBloco: "",
+      condUnidade: "",
+      endereco: { cep:"", rua:"", numero:"", bairro:"", cidade:"", uf:"" },
+      geo: { lat:null, lng:null, provider:"" },
       pontoReferencia: ""
     };
 
@@ -282,6 +390,18 @@ const firebaseConfig = {
     function hideAlert(){ alertBox.classList.add("hidden"); }
 
     function cleanPhone(v){ return (v || "").replace(/[^\d]/g, ""); }
+    function cleanCep(v){ return (v || "").replace(/[^\d]/g, "").slice(0,8); }
+
+    function setGeoStatus(){
+      const el = $("geoStatus");
+      if(state.geo.lat && state.geo.lng){
+        el.textContent = `${state.geo.lat.toFixed(6)}, ${state.geo.lng.toFixed(6)} (${state.geo.provider}) ✅`;
+        el.className = "text-regen font-semibold";
+      } else {
+        el.textContent = "ainda não calculado";
+        el.className = "text-graphite/70";
+      }
+    }
 
     function setProgress() {
       $("progressText").textContent = `${step}/${TOTAL_STEPS}`;
@@ -308,7 +428,7 @@ const firebaseConfig = {
       hideAlert();
       $("preview").classList.add("hidden");
       setTimeout(() => {
-        const active = document.querySelector(".step.active input, .step.active textarea");
+        const active = document.querySelector(".step.active input, .step.active textarea, .step.active button");
         if(active) active.focus();
       }, 30);
     }
@@ -319,6 +439,7 @@ const firebaseConfig = {
 
       if(group === "destina") state.jaDestinaReciclavel = value;
       if(group === "interesse") state.temInteresseProjeto = value;
+
       if(group === "local") {
         state.localColeta = value;
         $("localOutroWrap").classList.toggle("hidden", value !== "Outro");
@@ -326,7 +447,25 @@ const firebaseConfig = {
           state.localColetaOutro = "";
           $("localOutro").value = "";
         }
+        // Se a pessoa marcar "Condomínio", pré-seleciona tipoCadastro = condominio (sem forçar, mas ajuda)
+        if(value === "Condomínio" && !state.tipoCadastro){
+          // marca chip visual
+          const chipCond = document.querySelector(`.chip[data-radio="tipoCadastro"][data-value="condominio"]`);
+          if(chipCond) chipCond.click();
+        }
       }
+
+      if(group === "tipoCadastro"){
+        state.tipoCadastro = value; // participante|condominio
+        $("condWrap").classList.toggle("hidden", value !== "condominio");
+        if(value !== "condominio"){
+          state.condNome = ""; state.condBloco = ""; state.condUnidade = "";
+          $("condNome").value = "";
+          $("condBloco").value = "";
+          $("condUnidade").value = "";
+        }
+      }
+
       hideAlert();
     }
 
@@ -335,6 +474,124 @@ const firebaseConfig = {
         selectChip(chip.getAttribute("data-radio"), chip.getAttribute("data-value"), chip);
       });
     });
+
+    // ===== CEP lookup (ViaCEP + fallback BrasilAPI) =====
+    async function lookupCEP(cep8){
+      // 1) ViaCEP
+      try{
+        const r = await fetch(`https://viacep.com.br/ws/${cep8}/json/`, { cache:"no-store" });
+        const j = await r.json();
+        if(j && !j.erro){
+          return {
+            provider: "viacep",
+            rua: j.logradouro || "",
+            bairro: j.bairro || "",
+            cidade: j.localidade || "",
+            uf: j.uf || ""
+          };
+        }
+      }catch(e){}
+
+      // 2) BrasilAPI fallback
+      try{
+        const r = await fetch(`https://brasilapi.com.br/api/cep/v1/${cep8}`, { cache:"no-store" });
+        if(!r.ok) throw new Error("brasilapi not ok");
+        const j = await r.json();
+        return {
+          provider: "brasilapi",
+          rua: j.street || "",
+          bairro: j.neighborhood || "",
+          cidade: j.city || "",
+          uf: j.state || ""
+        };
+      }catch(e){}
+
+      return null;
+    }
+
+    // ===== Geocode (Nominatim) =====
+    async function geocodeAddress(){
+      const rua = ($("rua").value || "").trim();
+      const numero = ($("numero").value || "").trim();
+      const bairro = ($("bairro").value || "").trim();
+      const cidade = ($("cidade").value || "").trim();
+      const uf = ($("uf").value || "").trim();
+      const cep = cleanCep($("cep").value || "");
+
+      if(!rua || !numero || !cidade || !uf) {
+        state.geo = { lat:null, lng:null, provider:"" };
+        setGeoStatus();
+        return null;
+      }
+
+      const q = `${rua}, ${numero}, ${bairro}, ${cidade} - ${uf}, Brasil, ${cep}`;
+      const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`;
+
+      try{
+        const res = await fetch(url, { cache:"no-store" });
+        const arr = await res.json();
+        if(Array.isArray(arr) && arr.length){
+          state.geo = { lat: Number(arr[0].lat), lng: Number(arr[0].lon), provider:"nominatim" };
+          setGeoStatus();
+          return state.geo;
+        }
+      }catch(e){}
+
+      state.geo = { lat:null, lng:null, provider:"" };
+      setGeoStatus();
+      return null;
+    }
+
+    async function handleBuscarCep(){
+      const cep8 = cleanCep($("cep").value);
+      $("cepMsg").textContent = "";
+      $("cepMsg").className = "mt-1 text-xs text-graphite/60";
+
+      if(cep8.length !== 8){
+        $("cepMsg").textContent = "CEP inválido. Digite 8 números.";
+        $("cepMsg").className = "mt-1 text-xs text-red-600 font-semibold";
+        return;
+      }
+
+      $("btnCep").disabled = true;
+      $("btnCep").textContent = "Buscando…";
+
+      try{
+        const data = await lookupCEP(cep8);
+        if(!data){
+          $("cepMsg").textContent = "CEP não encontrado. Confira e tente novamente.";
+          $("cepMsg").className = "mt-1 text-xs text-red-600 font-semibold";
+          return;
+        }
+
+        $("rua").value = data.rua;
+        $("bairro").value = data.bairro;
+        $("cidade").value = data.cidade;
+        $("uf").value = data.uf;
+
+        state.endereco.cep = cep8;
+        state.endereco.rua = data.rua;
+        state.endereco.bairro = data.bairro;
+        state.endereco.cidade = data.cidade;
+        state.endereco.uf = data.uf;
+
+        $("cepMsg").textContent = `CEP encontrado ✅ (${data.provider})`;
+        $("cepMsg").className = "mt-1 text-xs text-regen font-semibold";
+
+        // se já tiver número, tenta geocode já
+        if(($("numero").value || "").trim()){
+          await geocodeAddress();
+        }else{
+          setGeoStatus();
+        }
+      } finally {
+        $("btnCep").disabled = false;
+        $("btnCep").textContent = "Buscar";
+      }
+    }
+
+    $("btnCep").addEventListener("click", handleBuscarCep);
+    $("numero").addEventListener("blur", ()=> geocodeAddress());
 
     function readStepIntoState() {
       if(step === 1){
@@ -345,86 +602,122 @@ const firebaseConfig = {
       if(step === 2) state.nomeCompleto = ($("nome").value || "").trim();
       if(step === 5) state.dificuldades = ($("dificuldades").value || "").trim();
       if(step === 6) state.whatsappDDD = cleanPhone($("telefone").value);
-      if(step === 7) state.localColetaOutro = ($("localOutro").value || "").trim();
-      if(step === 8) state.enderecoCompleto = ($("endereco").value || "").trim();
+
+      if(step === 7){
+        state.localColetaOutro = ($("localOutro").value || "").trim();
+        state.condNome = ($("condNome").value || "").trim();
+        state.condBloco = ($("condBloco").value || "").trim();
+        state.condUnidade = ($("condUnidade").value || "").trim();
+      }
+
+      if(step === 8){
+        state.endereco.cep = cleanCep($("cep").value || "");
+        state.endereco.numero = ($("numero").value || "").trim();
+        state.endereco.rua = ($("rua").value || "").trim();
+        state.endereco.bairro = ($("bairro").value || "").trim();
+        state.endereco.cidade = ($("cidade").value || "").trim();
+        state.endereco.uf = ($("uf").value || "").trim().toUpperCase();
+      }
+
       if(step === 9) state.pontoReferencia = ($("referencia").value || "").trim();
     }
 
     function validateCurrentStep() {
       readStepIntoState();
+
       if(step === 1 && !(state.consent.c1 && state.consent.c2 && state.consent.c3)) return "Marque as 3 autorizações para avançar.";
       if(step === 2 && (!state.nomeCompleto || state.nomeCompleto.length < 3)) return "Informe seu nome completo.";
       if(step === 3 && !state.jaDestinaReciclavel) return "Selecione Sim ou Não.";
       if(step === 4 && !state.temInteresseProjeto) return "Selecione Sim ou Não.";
       if(step === 5 && (!state.dificuldades || state.dificuldades.length < 3)) return "Descreva suas limitações.";
       if(step === 6 && (!state.whatsappDDD || state.whatsappDDD.length < 10)) return "Informe WhatsApp válido com DDD.";
+
       if(step === 7){
         if(!state.localColeta) return "Selecione o local.";
         if(state.localColeta === "Outro" && (!state.localColetaOutro || state.localColetaOutro.length < 2)) return "Descreva o local (Outro).";
+
+        if(!state.tipoCadastro) return "Selecione o tipo de cadastro (Participante ou Condomínio).";
+        if(state.tipoCadastro === "condominio" && (!state.condNome || state.condNome.length < 3)) return "Informe o nome do condomínio.";
       }
-      if(step === 8 && (!state.enderecoCompleto || state.enderecoCompleto.length < 6)) return "Informe o endereço completo.";
+
+      if(step === 8){
+        if(!state.endereco.cep || state.endereco.cep.length !== 8) return "Informe um CEP válido e clique em Buscar.";
+        if(!state.endereco.numero) return "Informe o número do endereço.";
+        if(!state.endereco.rua || state.endereco.rua.length < 2) return "Rua inválida (use Buscar CEP).";
+        if(!state.endereco.bairro || state.endereco.bairro.length < 2) return "Bairro inválido (use Buscar CEP).";
+        if(!state.endereco.cidade || state.endereco.cidade.length < 2) return "Cidade inválida (use Buscar CEP).";
+        if(!state.endereco.uf || state.endereco.uf.length !== 2) return "UF inválida (ex.: RS).";
+      }
+
       if(step === 9 && (!state.pontoReferencia || state.pontoReferencia.length < 3)) return "Informe o ponto de referência.";
+
       return null;
     }
 
-    function buildPayloadFinal(participantCode){
+    function genPublicCode(prefix){
+      const rand = crypto.getRandomValues(new Uint32Array(1))[0].toString(16).slice(0,6).toUpperCase().padStart(6,"0");
+      return `${prefix}-${rand}`;
+    }
+
+    function buildPayloadFinal(publicCode){
+      const enderecoCompleto = `${state.endereco.rua}, ${state.endereco.numero} - ${state.endereco.bairro}, ${state.endereco.cidade}/${state.endereco.uf} • CEP ${state.endereco.cep}`;
+
       return {
         type: "participant_registration",
         createdAtISO: new Date().toISOString(),
         createdAt: serverTimestamp(),
-        participantCode, // ID público (RB-XXXXXX)
+
+        // tipo (participante/condominio) + código público
+        tipoCadastro: state.tipoCadastro,
+        participantCode: publicCode,
+
+        // dados
         consent: { dados: state.consent.c1, whatsapp: state.consent.c2, imagem: state.consent.c3 },
         nomeCompleto: state.nomeCompleto,
         jaDestinaReciclavel: state.jaDestinaReciclavel,
         temInteresseProjeto: state.temInteresseProjeto,
         dificuldades: state.dificuldades,
         whatsappDDD: state.whatsappDDD,
+
+        // local
         localColeta: state.localColeta,
         localColetaOutro: state.localColeta === "Outro" ? state.localColetaOutro : null,
-        enderecoCompleto: state.enderecoCompleto,
+
+        // condomínio
+        condominio: (state.tipoCadastro === "condominio")
+          ? { nome: state.condNome, bloco: state.condBloco || null, unidade: state.condUnidade || null }
+          : null,
+
+        // endereço (estruturado + string)
+        endereco: {
+          cep: state.endereco.cep,
+          rua: state.endereco.rua,
+          numero: state.endereco.numero,
+          bairro: state.endereco.bairro,
+          cidade: state.endereco.cidade,
+          uf: state.endereco.uf,
+          completo: enderecoCompleto
+        },
+        enderecoCompleto: enderecoCompleto, // compatibilidade com seu modelo antigo
+
+        // geo para o dashboard (ponto no mapa)
+        geo: (state.geo.lat && state.geo.lng) ? { lat: state.geo.lat, lng: state.geo.lng, provider: state.geo.provider } : null,
+
         pontoReferencia: state.pontoReferencia,
         status: "pending"
       };
     }
 
     async function saveParticipant(){
-      // 1) cria doc "vazio" para gerar ID
-      const tmp = await addDoc(collection(db, "participants"), {
-        type: "participant_registration",
-        createdAtISO: new Date().toISOString(),
-        createdAt: serverTimestamp(),
-        participantCode: "RB-TMP",
-        consent: { dados:true, whatsapp:true, imagem:true },
-        nomeCompleto: "TMP",
-        jaDestinaReciclavel: "Sim",
-        temInteresseProjeto: "Sim",
-        dificuldades: "TMP",
-        whatsappDDD: "0000000000",
-        localColeta: "Casa",
-        localColetaOutro: null,
-        enderecoCompleto: "TMP",
-        pontoReferencia: "TMP",
-        status: "pending"
-      });
+      // garante geocode (se tiver como)
+      await geocodeAddress();
 
-      // 2) gera código público baseado no docId
-      const code = "RB-" + tmp.id.slice(-6).toUpperCase();
+      const prefix = (state.tipoCadastro === "condominio") ? "COND" : "RB";
+      const publicCode = genPublicCode(prefix);
 
-      // 3) regrava doc completo: como não liberamos update nas rules, precisamos criar o doc completo direto.
-      // => então a solução correta é: não criar "tmp".
-      // Para manter 100% compatível com rules (sem update), vamos:
-      // - apagar a ideia de tmp e usar code baseado em random local.
-      // (sem backend, é o melhor caminho com rules travadas)
-
-      // --------
-      // Versão FINAL: código aleatório local (não precisa update)
-      // --------
-      const rand = crypto.getRandomValues(new Uint32Array(1))[0].toString(16).slice(0,6).toUpperCase().padStart(6,"0");
-      const participantCode = "RB-" + rand;
-
-      const payload = buildPayloadFinal(participantCode);
+      const payload = buildPayloadFinal(publicCode);
       const ref = await addDoc(collection(db, "participants"), payload);
-      return { docId: ref.id, participantCode, payload };
+      return { docId: ref.id, publicCode, payload };
     }
 
     $("btnBack").addEventListener("click", ()=>{
@@ -432,9 +725,11 @@ const firebaseConfig = {
       if(step > 1) showStep(step - 1);
     });
 
-    $("btnPreview").addEventListener("click", ()=>{
+    $("btnPreview").addEventListener("click", async ()=>{
       readStepIntoState();
-      const payload = buildPayloadFinal("RB-XXXXXX");
+      await geocodeAddress();
+      const prefix = (state.tipoCadastro === "condominio") ? "COND" : "RB";
+      const payload = buildPayloadFinal(`${prefix}-XXXXXX`);
       $("preview").classList.remove("hidden");
       $("preview").textContent = JSON.stringify({ ...payload, createdAt: "(serverTimestamp)" }, null, 2);
       showAlert("info", "Prévia gerada (ainda não foi salva).");
@@ -445,6 +740,11 @@ const firebaseConfig = {
 
       const err = validateCurrentStep();
       if(err){ showAlert("err", err); return; }
+
+      // passo 8: se usuário preencheu tudo mas ainda não tem geo, tenta calcular antes de avançar
+      if(step === 8){
+        await geocodeAddress();
+      }
 
       if(step < TOTAL_STEPS){
         showStep(step + 1);
@@ -457,10 +757,12 @@ const firebaseConfig = {
 
       try{
         setDbStatus("salvando no Firestore…", true);
-        const { docId, participantCode, payload } = await saveParticipant();
+        const { docId, publicCode, payload } = await saveParticipant();
         setDbStatus("salvo ✅", true);
 
-        showAlert("ok", `Cadastro enviado! Seu ID do participante é: ${participantCode}`);
+        const label = (payload.tipoCadastro === "condominio") ? "ID do condomínio" : "ID do participante";
+        showAlert("ok", `Cadastro enviado! ${label}: ${publicCode}`);
+
         $("preview").classList.remove("hidden");
         $("preview").textContent = JSON.stringify({ firestoreDocId: docId, ...payload, createdAt: "(serverTimestamp)" }, null, 2);
 
@@ -483,6 +785,7 @@ const firebaseConfig = {
     });
 
     setDbStatus("conectado ✅", true);
+    setGeoStatus();
     setProgress();
   </script>
 </body>
